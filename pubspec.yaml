@@ -1,0 +1,98 @@
+# 项目名称
+name: itms_mobile
+# 项目描述
+description: "天津银行外勤手持机项目应用APP"
+# 发布位置
+publish_to: 'none'
+# 版本号
+version: 1.0.0+1
+
+environment:
+  sdk: '>=2.19.0-146.2.beta <3.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+  image_picker: ^0.8.9
+  provider: ^6.0.5
+  dio: ^5.4.0
+  flutter_slidable: ^2.0.0
+  device_info_plus: ^9.1.2
+  network_info_plus: ^3.0.3
+  sim_data: ^0.0.2
+  path: ^1.8.2
+  crypto: ^3.0.2
+  sm_crypto: ^1.0.3
+  flutter_svg: ^1.1.6
+  flutter_baidu_mapapi_map: ^3.1.0+1
+  permission_handler: ^8.3.0
+  webview_flutter: ^4.2.2
+
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^2.0.0
+  flutter_native_splash: ^2.1.6
+  build_runner: ^2.3.3
+  build: ^2.3.1
+  flutter_launcher_icons: ^0.12.0
+
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/splash/splash.jpg
+  android: true
+  ios: true
+  android_12:
+    image: assets/splash/splash.jpg
+    icon_background_color: "#FFFFFF"
+    image_dark: assets/splash/splash.jpg
+    icon_background_color_dark: "#FFFFFF"
+  web: false
+  fullscreen: true
+  android_gravity: fill 
+  ios_content_mode: scaleAspectFill
+  remove_after: true
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/splash/
+    - assets/icons/
+    - assets/location.json
+
+# 配置路径别名
+module:
+  androidX: true
+  android: true
+  ios: true
+  module:
+    androidPackage: com.example.itms_mobile
+    moduleName: itms_mobile
+    androidX: true
+    android: true
+    ios: true
+
+# 添加路径别名配置
+path_aliases:
+  core: lib/core
+  data: lib/data
+  presentation: lib/presentation
+  utils: lib/utils
+  widgets: lib/widgets
+  pages: lib/presentation/pages
+  models: lib/data/models
+
+# 添加路径别名配置
+flutter_assets:
+  - lib/
+  - lib/pages/
+  - lib/providers/
+  - lib/routes/
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/icon.png"
