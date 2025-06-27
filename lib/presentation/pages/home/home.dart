@@ -222,7 +222,7 @@ class _HomePageState extends State<HomePage>
   Widget _buildArrowIcon(MenuItem menu) {
     return Positioned(
       top: 12,
-      left: 15,
+      left: 8,
       child: Icon(Icons.play_arrow, size: 16, color: menu.color),
     );
   }
@@ -230,7 +230,7 @@ class _HomePageState extends State<HomePage>
   // 左侧文字内容
   Widget _buildLeftText(MenuItem menu) {
     return Positioned(
-      left: 80,
+      left: 50,
       top: 0,
       bottom: 0,
       child: Center(
