@@ -330,6 +330,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
+        print("登录成功");
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {

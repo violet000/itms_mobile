@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'dart:ui';
-import 'package:provider/provider.dart';
-import 'package:itms_mobile/presentation/state/providers/verify_token_provider.dart';
-import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
 
-// 菜单项模型
+// 菜单项接口定义
 class MenuItem {
   final String name;
   final String? imagePath;
   final String? iconPath;
+  final String? unselectedIcon;
+  final String? selectedIcon;
   final IconData? icon;
   final List<MenuItem>? children;
   final String? route;
@@ -19,6 +17,8 @@ class MenuItem {
     required this.name,
     this.imagePath,
     this.iconPath,
+    this.unselectedIcon,
+    this.selectedIcon,
     this.icon,
     this.children,
     this.route,
@@ -42,29 +42,44 @@ class _HomePageState extends State<HomePage>
 
   final List<MenuItem> menus = [
     MenuItem(
-      name: '交接',
-      icon: Icons.work_rounded,
+      name: '仓储',
+      unselectedIcon: 'assets/storage/storage_unselected.svg',
+      selectedIcon: 'assets/storage/storage_selected.svg',
       color: const Color.fromARGB(255, 255, 255, 255),
       children: [
         MenuItem(
-          name: '网点交接',
-          imagePath: 'assets/icons/handover_circle.svg',
-          iconPath: 'assets/icons/net_handover_icon.svg',
+          name: '仓储一区',
+          imagePath: 'assets/storage/storage_1.svg',
+          iconPath: 'assets/images/storage_1.svg',
           route: '/outlets/box-scan',
-          color: const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
+          color: const Color(0xFF0DBC95),
         ),
         MenuItem(
-          name: '金库交接',
-          imagePath: 'assets/icons/treasury_reat.svg',
-          iconPath: 'assets/icons/treasury_handover_icon.svg',
+          name: '仓储二区',
+          imagePath: 'assets/storage/storage_2.svg',
+          iconPath: 'assets/images/storage_2.svg',
           route: '/outlets/box-handover',
-          color: const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
+          color: const Color(0xFFAE673A),
         ),
+        MenuItem(
+          name: '仓储三区',
+          imagePath: 'assets/storage/storage_3.svg',
+          iconPath: 'assets/images/storage_3.svg',
+          route: '/outlets/box-handover',
+          color: const Color(0xFF16A8FA),
+        )
       ],
     ),
     MenuItem(
-      name: '我的',
-      icon: Icons.person_rounded,
+      name: '库内作业',
+      unselectedIcon: 'assets/storage/inner_unselected.svg',
+      selectedIcon: 'assets/storage/inner_selected.svg',
+      route: '/plugin-test',
+      color: const Color(0xFF0489FE),
+    ),
+    MenuItem(
+      name: '厂商模式',
+      icon: Icons.business,
       route: '/plugin-test',
       color: const Color(0xFF0489FE),
     ),
@@ -102,135 +117,10 @@ class _HomePageState extends State<HomePage>
     });
   }
 
-  // 构建子菜单页面
-  Widget _buildSubMenuPage(MenuItem menu) {
-    return Scaffold(
-        body: Container(
-            decoration:
-                const BoxDecoration(color: Color.fromARGB(255, 245, 246, 250)),
-            child: Column(children: [
-              _buildHeader(menu),
-              Expanded(
-                  // 子菜单
-                  child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: GridView.builder(
-                  padding: const EdgeInsets.all(8.0),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 1.0,
-                    crossAxisSpacing: 8.0,
-                    mainAxisSpacing: 8.0,
-                  ),
-                  itemCount: menu.children?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    final child = menu.children![index];
-                    return _buildMenuCard(child);
-                  },
-                ),
-              ))
-            ])));
-  }
-
-  // 构建菜单卡片
-  Widget _buildMenuCard(MenuItem menu) {
-    return Hero(
-      tag: menu.name,
-      child: Card(
-        elevation: 2, // 阴影
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: InkWell(
-          splashColor: Colors.transparent, // 点击时没有水波纹效果
-          highlightColor: Colors.transparent, // 点击时没有高亮效果
-          onTap: () {
-            if (menu.route != null) {
-              Navigator.pushNamed(context, menu.route!);
-            }
-          },
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              color: menu.color,
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
-                  blurRadius: 8,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                // 背景SVG - 放大并定位到右下区域
-                Positioned(
-                  right: -30,
-                  bottom: -30,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 5.0, sigmaY: 5.0), // 模糊效果
-                      child: SvgPicture.asset(
-                        menu.imagePath!,
-                        width: 120,
-                        height: 120,
-                        fit: BoxFit.contain,
-                      ),
-                    ),
-                  ),
-                ),
-                // 右下角居中图标
-                if (menu.iconPath != null)
-                  Positioned(
-                    right: 20,
-                    bottom: 20,
-                    child: SvgPicture.asset(
-                      menu.iconPath!,
-                      width: 40,
-                      height: 40,
-                      fit: BoxFit.contain,
-                      color: Colors.white,
-                    ),
-                  ),
-                // 右上角放置一个箭头角标 - 放在最后确保在最上层
-                Positioned(
-                  top: 12,
-                  right: 12,
-                  child: SvgPicture.asset(
-                    'assets/icons/arrow_right_icon.svg',
-                    width: 20,
-                    height: 20,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-                // 文字内容
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: Text(
-                    menu.name,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 构建Header
+  // 顶部标题
   Widget _buildHeader(MenuItem menu) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      padding: const EdgeInsets.fromLTRB(25, 25, 25, 15),
       decoration: BoxDecoration(
         color: const Color.fromARGB(255, 245, 246, 250),
         boxShadow: [
@@ -248,12 +138,159 @@ class _HomePageState extends State<HomePage>
             menu.name,
             textAlign: TextAlign.center,
             style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
               color: Color.fromARGB(255, 3, 3, 3),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // 构建子菜单页面
+  Widget _buildSubMenuPage(MenuItem menu) {
+    return Scaffold(
+        body: Container(
+            decoration:
+                const BoxDecoration(color: Color.fromARGB(255, 245, 246, 250)),
+            child: Column(children: [
+              _buildHeader(menu),
+              Expanded(
+                  child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16.0),
+                  itemCount: menu.children?.length ?? 0,
+                  itemBuilder: (context, index) {
+                    final child = menu.children![index];
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: _buildMenuCard(child),
+                    );
+                  },
+                ),
+              ))
+            ])));
+  }
+
+  // 卡片背景
+  Widget _buildCardBackground(MenuItem menu) {
+    return Positioned.fill(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: menu.imagePath != null
+            ? Container(
+                width: double.infinity,
+                height: double.infinity,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: SvgPicture.asset(
+                    menu.imagePath!,
+                    fit: BoxFit.fill,
+                  ),
+                ),
+              )
+            : Container(
+                color: menu.color ?? Colors.grey[200],
+                child: const Center(
+                  child: Text('无背景'),
+                ),
+              ),
+      ),
+    );
+  }
+
+  // 卡片图标
+  Widget _buildCardIcon(MenuItem menu) {
+    return Positioned(
+      right: 20,
+      top: 0,
+      bottom: 0,
+      child: Center(
+        child: SvgPicture.asset(
+          menu.iconPath!,
+          width: 50,
+          height: 50,
+          fit: BoxFit.contain,
+        ),
+      ),
+    );
+  }
+
+  // 箭头图标
+  Widget _buildArrowIcon(MenuItem menu) {
+    return Positioned(
+      top: 12,
+      left: 15,
+      child: Icon(Icons.play_arrow, size: 16, color: menu.color),
+    );
+  }
+
+  // 左侧文字内容
+  Widget _buildLeftText(MenuItem menu) {
+    return Positioned(
+      left: 80,
+      top: 0,
+      bottom: 0,
+      child: Center(
+        child: Text(
+          menu.name,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: menu.color,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 菜单卡片
+  Widget _buildMenuCard(MenuItem menu) {
+    return Hero(
+      tag: menu.name,
+      child: Card(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: InkWell(
+          splashColor: Colors.transparent,
+          highlightColor: Colors.transparent,
+          onTap: () {
+            if (menu.route != null) {
+              Navigator.pushNamed(context, menu.route!);
+            }
+          },
+          borderRadius: BorderRadius.circular(4),
+          child: Container(
+            height: 90,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      const Color.fromARGB(255, 255, 255, 255).withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 1),
+                ),
+              ],
+            ),
+            child: Stack(
+              children: [
+                // 背景PNG - 覆盖整个容器
+                _buildCardBackground(menu),
+                // 右侧PNG图标
+                if (menu.iconPath != null)
+                  _buildCardIcon(menu),
+                // 左上角箭头
+                _buildArrowIcon(menu),
+                // 卡片文字内容
+                _buildLeftText(menu),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -296,7 +333,22 @@ class _HomePageState extends State<HomePage>
             },
             items: menus
                 .map((menu) => BottomNavigationBarItem(
-                      icon: Icon(menu.icon),
+                      icon: menu.unselectedIcon != null
+                          ? SvgPicture.asset(
+                              menu.unselectedIcon!,
+                              width: 24,
+                              height: 24,
+                              color: Colors.grey,
+                            )
+                          : Icon(menu.icon),
+                      activeIcon: menu.selectedIcon != null
+                          ? SvgPicture.asset(
+                              menu.selectedIcon!,
+                              width: 24,
+                              height: 24,
+                              color: const Color(0xFF29A8FF),
+                            )
+                          : Icon(menu.icon),
                       label: menu.name,
                     ))
                 .toList(),
