@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:itms_mobile/data/datasources/api/api.dart';
-import 'package:itms_mobile/core/errors/error_handler.dart';
-import 'package:itms_mobile/presentation/pages/login/face_login/face_login.dart';
-import 'package:itms_mobile/presentation/state/providers/face_login_provider.dart';
-import 'package:itms_mobile/presentation/state/providers/verify_token_provider.dart';
+import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -18,17 +12,13 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  late final FaceLoginProvider _faceLoginProvider;
-  late final VerifyTokenProvider _verifyTokenProvider;
-  late final Service18082 _loginService;
+  bool _obscurePassword = true;
+  final _labelColor = const Color.fromARGB(255, 215, 211, 211).withOpacity(0.5);
+
 
   @override
   void initState() {
     super.initState();
-    _faceLoginProvider = FaceLoginProvider();
-    _loginService = Service18082();
-    _verifyTokenProvider =
-        Provider.of<VerifyTokenProvider>(context, listen: false);
   }
 
   @override
@@ -38,280 +28,334 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  // 验证表单
-  bool _validateFormData(String? username, String? password, String? faceImage) {
-    if (username == null || username.isEmpty) {
-      throw Exception('请输入用户名');
-    }
-
-    if ((password == null || password.isEmpty) && (faceImage == null || faceImage.isEmpty)) {
-      throw Exception('请输入密码或进行人脸拍照');
-    }
-    
-    return true;
+  // 背景渐变层控件抽取
+  Widget _buildBackgroundGradient() {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Color.fromARGB(255, 6, 76, 162),
+            Color.fromARGB(255, 26, 128, 245),
+            Color.fromARGB(255, 60, 154, 255),
+          ],
+          stops: [0.3, 0.8, 1.0],
+        ),
+      ),
+    );
   }
 
-  // 保存登录数据
-  void _saveLoginData(String username, Map<String, dynamic> loginResult) {
-    _verifyTokenProvider.setToken(loginResult['access_token'].toString());
-      _verifyTokenProvider.setUserData(<String, dynamic>{
-        'username': username,
-        'access_token': loginResult['access_token'],
-        'refresh_token': loginResult['refresh_token'],
-        'expires_in': loginResult['expires_in'],
-        'token_type': loginResult['token_type'],
-        'scope': loginResult['scope'],
-      });
+  // 顶部的Logo和APP名称控件抽取
+  Widget _buildTopLogoAndAppName() {
+    return Expanded(
+      flex: 3, // 设置为2，Logo和系统名称占更大的空间
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const SizedBox(height: 30),
+          // Logo图标
+          Image.asset(
+            'assets/images/login.png',
+            // width: 60, // 移除宽度，以高度为自适应拉伸
+            height: 120,
+            filterQuality: FilterQuality.high,
+            fit: BoxFit.contain,
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            '仓储管理系统',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.normal,
+              color: Color.fromARGB(255, 221, 219, 219),
+            ),
+          ),
+          const SizedBox(height: 12)
+        ],
+      ),
+    );
   }
 
-  // 登录提交
-  Future<void> _login() async {
-    try {
-      final faceImage1 = _faceLoginProvider.getFaceImage(0);
-      final username1 = _faceLoginProvider.getUsername(0);
-      final password1 = _faceLoginProvider.getPassword(0);
+  // 用户名输入框控件抽取
+  Widget _buildUsernameInput() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(
+          bottom: BorderSide(
+            color:  _labelColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          Icon(Icons.email_outlined, color: _labelColor, size: 25),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _usernameController,
+              decoration: InputDecoration(
+                hintText: '请输入用户名',
+                hintStyle: TextStyle(
+                  color: _labelColor,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+              ),
+              style: TextStyle(
+                fontSize: 14,
+                color: _labelColor,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  // 密码输入框控件抽取
+  Widget _buildPasswordInput() {
+    return Container(
+      width: double.infinity,
+      height: 56,
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(
+          bottom: BorderSide(
+            color:  _labelColor,
+            width: 1,
+          ),
+        ),
+      ),
+      child: Row(
+        children: [
+          const SizedBox(width: 16),
+          Icon(Icons.lock_outlined, color: _labelColor, size: 25),
+          const SizedBox(width: 12),
+          Expanded(
+            child: TextField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              decoration: InputDecoration(
+                hintText: '请输入密码',
+                hintStyle: TextStyle(
+                  color: _labelColor,
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+              ),
+              style: TextStyle(
+                fontSize: 14,
+                color: _labelColor,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: Icon(
+              _obscurePassword ? Icons.visibility : Icons.visibility_off,
+              color: _labelColor,
+            ),
+            onPressed: () {
+              setState(() {
+                _obscurePassword = !_obscurePassword;
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
 
-      // final faceImage2 = _faceLoginProvider.getFaceImage(1);
-      // final username2 = _faceLoginProvider.getUsername(1);
-      // final password2 = _faceLoginProvider.getPassword(1);
-      
-      // 验证数据
-      _validateFormData(username1, password1, faceImage1);
-      // _validateFormData(username2, password2, faceImage2);
-      // $2a$10$JUmI1bvEC7qAs75ZhcqUA.DLr4gPJor.gQjuEgK.jsxEe2dTB82ay
+  // 忘记密码控件抽取
+  Widget _buildForgetPassword() {
+    return Align(
+      alignment: Alignment.center,
+      child: TextButton(
+        onPressed: () {},
+        child: const Text(
+          '忘记密码？',
+          style: TextStyle(
+            color: Color.fromARGB(255, 230, 228, 228),
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+  }
 
-      setState(() {
-        _isLoading = true;
-      });
-
-
-      final Map<String, dynamic> loginResult1 = await _loginService.accountLogin(
-        (username1 == null || username1.isEmpty) ? '' : username1,
-        (password1 == null || password1.isEmpty) ? '' : password1,
-        // faceImage1,
-      );
-      // final Map<String, dynamic> loginResult2 = await _loginService.accountLogin(
-      //   username2!,
-      //   (password2 == null || password2.isEmpty) ? null : md5.convert(utf8.encode(password2)).toString(),
-      //   faceImage2,
-      // );
-
-      _saveLoginData(username1!, loginResult1);
-      // _saveLoginData(username2!, loginResult2);
-
-      Navigator.of(context).pushReplacementNamed('/home');
-    } catch (e) {
-      ErrorHandler.handleError(context, e);
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+  // 登录按钮控件抽取
+  Widget _buildLoginButton() {
+    return Expanded(
+      flex: 3,
+      child: Column(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleLogin,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 112, 195, 240).withOpacity(0.8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                )
+              ),
+              child: _isLoading
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      '登录',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: OutlinedButton(
+              onPressed: _handleRegister,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: const Color(0xFF2196F3),
+                side: BorderSide(
+                  color: _labelColor,
+                  width: 1,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                backgroundColor: Colors.transparent,
+              ),
+              child: const Text(
+                '注册',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final topSectionHeight = screenHeight * 0.4; // 40% 的高度用于蓝色背景
-
-    return ChangeNotifierProvider.value(
-      value: _faceLoginProvider,
-      child: DefaultTabController(
-        length: 2,
-        child: Scaffold(
-          resizeToAvoidBottomInset: false,
-          body: Stack(
-            children: [
-              // 蓝色背景部分
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: topSectionHeight,
-                child: Stack(
-                  children: [
-                    Container(
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Color(0xFF29A8FF),
-                            Color(0xFF0489FE),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      top: 20,
-                      right: 20,
-                      child: SvgPicture.asset(
-                        'assets/icons/n_font.svg',
-                        width: 80,
-                        height: 80,
-                        color: Colors.white.withOpacity(0.2),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // 白色背景部分
-              Positioned(
-                top: topSectionHeight,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: Container(
-                  color: Colors.white,
-                ),
-              ),
-              // 登录表单
-              Positioned(
-                top: topSectionHeight * 0.25,
-                left: 0,
-                right: 0,
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 20, left: 26),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              "你好",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 237, 238, 239),
-                              ),
+    return Scaffold(
+      body: Stack(
+        children: [
+          // 背景渐变层
+          _buildBackgroundGradient(),
+          // 主要内容区域
+          SafeArea(
+            child: Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: ClipRRect(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        children: [
+                          // 顶部Logo和系统名称
+                          _buildTopLogoAndAppName(),
+                          // 中间输入框区域
+                          Expanded(
+                            flex: 3,
+                            child: Column(
+                              children: [
+                                // 用户名输入框
+                                _buildUsernameInput(),
+                                const SizedBox(height: 16),
+                                // 密码输入框
+                                _buildPasswordInput(),
+                                const SizedBox(height: 16),  
+                                // 忘记密码
+                                _buildForgetPassword(),
+                              ],
                             ),
-                            SizedBox(height: 10),
-                            Text(
-                              "欢迎登录天津银行外勤配送系统",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color.fromARGB(255, 237, 238, 239),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        width: screenWidth * 0.85,
-                        margin: const EdgeInsets.symmetric(horizontal: 14),
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(10),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Tab切换栏
-                              Transform.translate(
-                                offset: const Offset(0, -10),
-                                child: const TabBar(
-                                  padding: EdgeInsets.only(top: 0),
-                                  indicator: UnderlineTabIndicator(
-                                    borderSide: BorderSide(
-                                      width: 3,
-                                      color: Colors.blue,
-                                    ),
-                                  ),
-                                  labelColor: Colors.black,
-                                  unselectedLabelColor: Colors.grey,
-                                  labelStyle: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  unselectedLabelStyle: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                  tabs: [
-                                    Tab(text: '押运员1'),
-                                    Tab(text: '押运员2'),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-
-                              // Tab内容
-                              const SizedBox(
-                                height: 230,
-                                child: TabBarView(
-                                  physics: NeverScrollableScrollPhysics(),
-                                  children: [
-                                    // 押运人员1的输入框
-                                    FaceLogin(personIndex: 0),
-                                    // 押运人员2的输入框
-                                    FaceLogin(personIndex: 1),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ),
-                        ),
+                          // 底部按钮区域
+                          _buildLoginButton(),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-              // 登录按钮
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 30,
-                child: Center(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Color(0xFF29A8FF),
-                      minimumSize: Size(screenWidth * 0.85, 45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      disabledBackgroundColor: Color(0xFF29A8FF),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          )
-                        : const Text(
-                            '登录',
-                            style: TextStyle(
-                                color: Color.fromARGB(255, 241, 240, 240),
-                                fontSize: 16),
-                          ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
+      ),
+    );
+  }
+
+  // 登录方法的实现
+  Future<void> _handleLogin() async {
+    // 注释掉用户名和密码的校验
+    // if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(
+    //       content: Text('请输入用户名和密码'),
+    //       backgroundColor: Colors.red,
+    //     ),
+    //   );
+    //   return;
+    // }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('登录失败: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // 注册方法的实现
+  void _handleRegister() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('注册功能开发中...'),
+        backgroundColor: Colors.orange,
       ),
     );
   }
