@@ -17,13 +17,13 @@ void main() async {
   // 初始化位置服务
   if (!kIsWeb) {
     // 禁用掉底部的虚拟按键
-    // SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    //   statusBarColor: Colors.transparent,
-    //   statusBarIconBrightness: Brightness.light,
-    //   systemNavigationBarColor: Colors.transparent,
-    //   systemNavigationBarIconBrightness: Brightness.dark,
-    // ));
-    // SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ));
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
   }
   
   runApp(const MyApp());
