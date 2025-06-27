@@ -6,7 +6,6 @@ import 'package:itms_mobile/core/errors/error_handler.dart';
 import 'package:itms_mobile/presentation/pages/login/face_login/face_login.dart';
 import 'package:itms_mobile/presentation/state/providers/face_login_provider.dart';
 import 'package:itms_mobile/presentation/state/providers/verify_token_provider.dart';
-import 'package:itms_mobile/core/utils/hashStr.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -88,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final Map<String, dynamic> loginResult1 = await _loginService.accountLogin(
         (username1 == null || username1.isEmpty) ? '' : username1,
-        (password1 == null || password1.isEmpty) ? '' : MD5Util.generateMd5("${password1}messi"),
+        (password1 == null || password1.isEmpty) ? '' : password1,
         // faceImage1,
       );
       // final Map<String, dynamic> loginResult2 = await _loginService.accountLogin(
