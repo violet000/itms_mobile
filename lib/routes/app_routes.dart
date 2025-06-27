@@ -1,23 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/presentation/pages/login/login_page.dart';
 import 'package:itms_mobile/presentation/pages/home/home.dart';
-import 'package:itms_mobile/presentation/pages/outlets/box-scanning/box_scan_page.dart';
-import 'package:itms_mobile/presentation/pages/outlets/box-handover/box_handover_page.dart';
+import 'package:itms_mobile/presentation/pages/inner_work/inbound_management_page.dart';
+import 'package:itms_mobile/presentation/pages/inner_work/outbound_management_page.dart';
+import 'package:itms_mobile/presentation/pages/vendor_mode/vendor_mode_page.dart';
 
 class AppRoutes {
   static const String login = '/login';
   static const String home = '/home';
-  static const String boxScan = '/outlets/box-scan';
-  static const String boxHandover = '/outlets/box-handover';
-  static const String settings = '/settings';
-  static const String pluginTest = '/plugin-test';
+  static const String inboundManagement = '/inner_work/inbound';
+  static const String outboundManagement = '/inner_work/outbound';
+  static const String vendorMode = '/vendor_mode';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
+      // 登录
       login: (context) => const LoginPage(),
+      // 主页
       home: (context) => const HomePage(),
-      boxScan: (context) => const BoxScanPage(),
-      boxHandover: (context) => const BoxHandoverPage()
+      // 库内作业
+      inboundManagement: (context) => const InboundManagementPage(),
+      outboundManagement: (context) => const OutboundManagementPage(),
+      // 厂商模式
+      vendorMode: (context) => const VendorModePage(),
     };
   }
 } 
