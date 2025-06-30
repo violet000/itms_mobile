@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' show NoSplash;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:ui';
 
@@ -511,7 +512,7 @@ class _HomePageState extends State<HomePage>
               ),
               const SizedBox(height: 8),
               Text(
-                '功能开发中...',
+                '暂未开发...',
                 style: TextStyle(
                   fontSize: 14,
                   color: Colors.grey[500],
@@ -546,42 +547,47 @@ class _HomePageState extends State<HomePage>
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(2)),
-          child: BottomNavigationBar(
-            currentIndex: _selectedIndex,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.white,
-            selectedItemColor: const Color(0xFF29A8FF),
-            unselectedItemColor: Colors.grey,
-            selectedLabelStyle: const TextStyle(fontWeight: FontWeight.bold),
-            elevation: 0,
-            enableFeedback: false,
-            onTap: (index) {
-              setState(() {
-                print("index: $index");
-                _selectedIndex = index;
-              });
-            },
-            items: menus
-                .map((menu) => BottomNavigationBarItem(
-                      icon: menu.unselectedIcon != null
-                          ? SvgPicture.asset(
-                              menu.unselectedIcon!,
-                              width: 24,
-                              height: 24,
-                              color: Colors.grey,
-                            )
-                          : Icon(menu.icon),
-                      activeIcon: menu.selectedIcon != null
-                          ? SvgPicture.asset(
-                              menu.selectedIcon!,
-                              width: 24,
-                              height: 24,
-                              color: const Color(0xFF29A8FF),
-                            )
-                          : Icon(menu.icon),
-                      label: menu.name,
-                    ))
-                .toList(),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: Colors.transparent,
+            ),
+            child: BottomNavigationBar(
+              currentIndex: _selectedIndex,
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.white,
+              selectedItemColor: const Color(0xFF29A8FF),
+              unselectedItemColor: Colors.grey,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal, fontSize: 12),
+              elevation: 0,
+              enableFeedback: false,
+              onTap: (index) {
+                setState(() {
+                  _selectedIndex = index;
+                });
+              },
+              items: menus
+                  .map((menu) => BottomNavigationBarItem(
+                        icon: menu.unselectedIcon != null
+                            ? SvgPicture.asset(
+                                menu.unselectedIcon!,
+                                width: 18,
+                                height: 18,
+                                color: Colors.grey,
+                              )
+                            : Icon(menu.icon),
+                        activeIcon: menu.selectedIcon != null
+                            ? SvgPicture.asset(
+                                menu.selectedIcon!,
+                                width: 18,
+                                height: 18,
+                                color: const Color(0xFF29A8FF),
+                              )
+                            : Icon(menu.icon),
+                        label: menu.name,
+                      ))
+                  .toList(),
+            ),
           ),
         ),
       ),
