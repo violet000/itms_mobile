@@ -193,6 +193,7 @@ class _HomePageState extends State<HomePage>
               Expanded(
                   child: FadeTransition(
                 opacity: _fadeAnimation,
+                // 将仓储菜单和库内作业菜单分开
                 child:  menu.name == '仓储' ?
                 ListView.builder(
                   padding: const EdgeInsets.all(16.0),
