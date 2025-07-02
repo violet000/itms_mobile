@@ -5,7 +5,7 @@ import 'package:itms_mobile/core/config/env.dart';
 /// 登录(认证)API接口服务 - 18082服务接口部分
 class Service18082 {
 
-  Service18082() : _dioService = DioServiceManager().getService('${Env.config.apiBaseUrl}:8082');
+  Service18082() : _dioService = DioServiceManager().getService('${Env.config.apiBaseUrl}:18082');
   
   final DioService _dioService;
 
@@ -13,7 +13,7 @@ class Service18082 {
 
   static Future<Service18082> create() async {
     final config = await Env.config;
-    return Service18082._(DioServiceManager().getService('${config.apiBaseUrl}:8082'));
+    return Service18082._(DioServiceManager().getService('${config.apiBaseUrl}:18082'));
   }
 
   /// 用户登陆
@@ -21,10 +21,11 @@ class Service18082 {
   /// @param password 密码
   /// @param faceImage 人脸图片（可选）
   Future<Map<String, dynamic>> login(String username, String? password, [String? faceImage]) async {
+    print('登录信息: $username ${passwordEncrypt(password!, ENCRYPT_ENUM['MD5_SALT']!)} ');
     return _dioService.post(
       '/auth/callback/login/mobile',
       body: <String, dynamic>{
-        'username': passwordEncrypt(username),
+        'username': username,
         'password': password != null ? passwordEncrypt(password, ENCRYPT_ENUM['MD5_SALT']!) : '',
         if (faceImage != null) 'faceImage': faceImage,
       },

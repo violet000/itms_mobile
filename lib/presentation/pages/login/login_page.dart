@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
 import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
@@ -14,11 +15,19 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   final _labelColor = const Color.fromARGB(255, 215, 211, 211).withOpacity(0.5);
+  Service18082? _service;
 
 
   @override
   void initState() {
     super.initState();
+    _initializeService();
+  }
+
+  Future<void> _initializeService() async {
+    _usernameController.text = 'admin';
+    _passwordController.text = '123456';
+    _service = await Service18082.create();
   }
 
   @override
@@ -306,6 +315,18 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
+          // 固定在底部的版权信息
+          const Positioned(
+            bottom: 30,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Text(
+                'Copyright©深圳市紫金支点技术股份有限公司',
+                style: TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -313,16 +334,6 @@ class _LoginPageState extends State<LoginPage> {
 
   // 登录方法的实现
   Future<void> _handleLogin() async {
-    // 注释掉用户名和密码的校验
-    // if (_usernameController.text.isEmpty || _passwordController.text.isEmpty) {
-    //   ScaffoldMessenger.of(context).showSnackBar(
-    //     const SnackBar(
-    //       content: Text('请输入用户名和密码'),
-    //       backgroundColor: Colors.red,
-    //     ),
-    //   );
-    //   return;
-    // }
 
     setState(() {
       _isLoading = true;
@@ -330,7 +341,7 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
-        print("登录成功");
+        await _service!.login(_usernameController.text, _passwordController.text);
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
