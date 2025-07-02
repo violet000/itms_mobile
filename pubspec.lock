@@ -630,6 +630,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  sm_crypto:
+    dependency: "direct main"
+    description:
+      name: sm_crypto
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "1.0.3"
   source_span:
     dependency: transitive
     description:

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
+import 'package:itms_mobile/core/utils/hashStr.dart';
 import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
@@ -341,7 +342,11 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
-        await _service!.login(_usernameController.text, _passwordController.text);
+        final Map<String, dynamic> loginResult1 = await _service!.accountLogin(
+          _usernameController.text,
+          MD5Util.generateMd5("${_passwordController.text}messi"),
+        );
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {

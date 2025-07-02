@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' show NoSplash;
 import 'package:flutter_svg/flutter_svg.dart';
-import '../storage/map_control.dart';
+import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
+import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
 import 'dart:ui';
 
 // 菜单项接口定义
@@ -33,7 +34,77 @@ class MenuItem {
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
+  static final cells = [
+    // 第一行
+    GridCell(x: 0, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第二行
+    GridCell(x: 0, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第三行
+    GridCell(x: 0, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第四行
+    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第六行
+    GridCell(x: 7, y: 5, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第七行
+    GridCell(x: 0, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第八行
+    GridCell(x: 0, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第九行
+    GridCell(x: 0, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
+    // 第十行
+    GridCell(x: 0, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 1, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 3, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 4, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
+    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
+  ];
+  static final cells2 = [
+    // 第七行
+    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 4, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 5, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 6, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 7, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 8, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 10, color: const Color.fromARGB(255, 172, 173, 174)),
+    GridCell(x: 7, y: 11, color: const Color.fromARGB(255, 172, 173, 174)),
+  ];
+  static final cells3 = [
+    // 第六行
+    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 8, y: 5, color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 8, y: 7 , color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 7, y: 10, color: const Color.fromARGB(255, 6, 207, 147)),
+  ];
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -479,7 +550,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // 构建占位页面（用于有路由的菜单项）
+  // 构建占位页面
   Widget _buildPlaceholderPage(MenuItem menu) {
     return Scaffold(
       body: Container(
@@ -519,7 +590,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // 构建空页面（用于没有路由的菜单项）
+  // 构建空页面
   Widget _buildEmptyPage(MenuItem menu) {
     return Scaffold(
       body: Container(
@@ -567,40 +638,116 @@ class _HomePageState extends State<HomePage>
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
+          insetPadding: EdgeInsets.zero,
           child: Container(
-            width: MediaQuery.of(context).size.width * 0.95,
+            width: MediaQuery.of(context).size.width * 0.9,
             height: MediaQuery.of(context).size.height * 0.95,
             padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      '缩略图',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '缩略图',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                // 图例内容 - 这里可以展示外部widget
-                Container(
-                  width: double.infinity,
-                  height: 100,
-                  child: const MapControlExample(),
-                )
-              ],
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: const Icon(Icons.close, color: Colors.grey),
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  // 图例内容
+                  CustomPaint(
+                      painter: DashedBorderPainter(
+                        color: const Color.fromARGB(255, 221, 221, 221),
+                        strokeWidth: 2,
+                        dashWidth: 6, 
+                        gap: 4,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Flex(
+                          direction: Axis.horizontal,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('仓储一区',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
+                            SizedBox(
+                              width: 180,
+                              height: 200,
+                              child: CustomPaint(
+                                painter: GridPainter(cells: HomePage.cells),
+                              ),
+                            )
+                          ],
+                        ),
+                      )),
+                      CustomPaint(
+                      painter: DashedBorderPainter(
+                        color: const Color.fromARGB(255, 221, 221, 221),
+                        strokeWidth: 2,
+                        dashWidth: 6, 
+                        gap: 4,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Flex(
+                          direction: Axis.horizontal,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('仓储二区',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
+                            SizedBox(
+                              width: 180,
+                              height: 200,
+                              child: CustomPaint(
+                                painter: GridPainter(cells: HomePage.cells2),
+                              ),
+                            )
+                          ],
+                        ),
+                      )),
+                      CustomPaint(
+                      painter: DashedBorderPainter(
+                        color: const Color.fromARGB(255, 221, 221, 221),
+                        strokeWidth: 2,
+                        dashWidth: 6, 
+                        gap: 4,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: Flex(
+                          direction: Axis.horizontal,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text('仓储三区',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
+                            SizedBox(
+                              width: 180,
+                              height: 200,
+                              child: CustomPaint(
+                                painter: GridPainter(cells: HomePage.cells3),
+                              ),
+                            )
+                          ],
+                        ),
+                      ))
+                ],
+              ),
             ),
           ),
         );
