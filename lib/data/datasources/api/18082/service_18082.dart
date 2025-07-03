@@ -33,7 +33,6 @@ class Service18082 {
   
   /// 老的登录方式
   Future<Map<String, dynamic>> accountLogin(String username, String? password) async {
-    print('登录信息: $username $password');
     return _dioService.post(
       '/auth/callback/login',
       body: <String, dynamic>{
@@ -43,76 +42,81 @@ class Service18082 {
     );
   }
 
-  // 查询押运员详细信息
-  Future <Map<String, dynamic>> getEscortInfo(String escortName) async {
-    return _dioService.get('/manage-center/v2/escortInfo', queryParameters: <String, String>{'escortName': escortName});
+  /// 查询仓储库位信息
+  Future<Map<String, dynamic>> getStorageAreas() async {
+    return _dioService.get('/storage/data/storage-areas');
   }
 
-  // 根据押运员编号查询线路及线路涉及机构信息
-  Future <Map<String, dynamic>> qryLineByEscortNo(String escortNo) async {
-    return _dioService.post('/user-center/v2/user/qryLineByEscortNo', body: <String, String>{'escortNo': escortNo});
-  }
+  // // 查询押运员详细信息
+  // Future <Map<String, dynamic>> getEscortInfo(String escortName) async {
+  //   return _dioService.get('/manage-center/v2/escortInfo', queryParameters: <String, String>{'escortName': escortName});
+  // }
 
-  // 查询入库交接信息
-  Future <Map<String, dynamic>> getInHandover(String orgNo) async {
-    return _dioService.get('/manage-center/v2/inHandover', queryParameters: <String, String>{'orgNo': orgNo});
-  }
+  // // 根据押运员编号查询线路及线路涉及机构信息
+  // Future <Map<String, dynamic>> qryLineByEscortNo(String escortNo) async {
+  //   return _dioService.post('/user-center/v2/user/qryLineByEscortNo', body: <String, String>{'escortNo': escortNo});
+  // }
 
-  // 查询出库交接信息
-  Future <Map<String, dynamic>> getOutletHandover(String orgNo) async {
-    return _dioService.get('/manage-center/v2/outletHandover', queryParameters: <String, String>{'orgNo': orgNo});
-  }
+  // // 查询入库交接信息
+  // Future <Map<String, dynamic>> getInHandover(String orgNo) async {
+  //   return _dioService.get('/manage-center/v2/inHandover', queryParameters: <String, String>{'orgNo': orgNo});
+  // }
 
-  // 获取线路组织机构列表
-  Future <Map<String, dynamic>> getLineOrgList(String orgNo) async {
-    return _dioService.get('/manage-center/v2/lineOrgList', queryParameters: <String, String>{'orgNo': orgNo});
-  }
+  // // 查询出库交接信息
+  // Future <Map<String, dynamic>> getOutletHandover(String orgNo) async {
+  //   return _dioService.get('/manage-center/v2/outletHandover', queryParameters: <String, String>{'orgNo': orgNo});
+  // }
 
-  /// 查询当前用户下的押运线路数据
-  Future <Map<String, dynamic>> getEscortRouteToday(String username) async {
-    return _dioService.get('/storage/escort-route/today', queryParameters: <String, String>{'username': username});
-  }
+  // // 获取线路组织机构列表
+  // Future <Map<String, dynamic>> getLineOrgList(String orgNo) async {
+  //   return _dioService.get('/manage-center/v2/lineOrgList', queryParameters: <String, String>{'orgNo': orgNo});
+  // }
 
-  /// 查询当前金库下所有需要扫描的款箱列表
-  Future <Map<String, dynamic>> getCashBoxList(String pointCode) async {
-    return _dioService.get('/storage/cash-box/list', queryParameters: <String, String>{'pointCode': pointCode});
-  }
+  // /// 查询当前用户下的押运线路数据
+  // Future <Map<String, dynamic>> getEscortRouteToday(String username) async {
+  //   return _dioService.get('/storage/escort-route/today', queryParameters: <String, String>{'username': username});
+  // }
 
-  /// 更新当前扫描款箱的状态
-  Future<Map<String, dynamic>> updateCashBoxStatus(String boxCode, int scanStatus) async {
-    return _dioService.post(
-      '/storage/cash-box/scan-status',
-      body: <String, dynamic>{
-        'boxCode': boxCode,
-        'scanStatus': scanStatus,
-      },
-    );
-  }
+  // /// 查询当前金库下所有需要扫描的款箱列表
+  // Future <Map<String, dynamic>> getCashBoxList(String pointCode) async {
+  //   return _dioService.get('/storage/cash-box/list', queryParameters: <String, String>{'pointCode': pointCode});
+  // }
 
-  /// 交接款箱
-  Future<Map<String, dynamic>> handoverCashBox(String pointCode, List<dynamic> cashBoxList) async {
-    return _dioService.post(
-      '/storage/cash-box/check?pointCode=$pointCode',
-      body: <String, dynamic>{
-        'cashBoxList': cashBoxList,
-      },
-    );
-  }
+  // /// 更新当前扫描款箱的状态
+  // Future<Map<String, dynamic>> updateCashBoxStatus(String boxCode, int scanStatus) async {
+  //   return _dioService.post(
+  //     '/storage/cash-box/scan-status',
+  //     body: <String, dynamic>{
+  //       'boxCode': boxCode,
+  //       'scanStatus': scanStatus,
+  //     },
+  //   );
+  // }
 
-  /// 更新金库状态
-  Future<Map<String, dynamic>> updatePointStatus(String username, String password, String pointCode) async {
-    return _dioService.post(
-      '/storage/point/update-status',
-      body: <String, dynamic>{
-        'username': username,
-        'password': password,
-        'pointCode': pointCode,
-      },
-    );
-  }
+  // /// 交接款箱
+  // Future<Map<String, dynamic>> handoverCashBox(String pointCode, List<dynamic> cashBoxList) async {
+  //   return _dioService.post(
+  //     '/storage/cash-box/check?pointCode=$pointCode',
+  //     body: <String, dynamic>{
+  //       'cashBoxList': cashBoxList,
+  //     },
+  //   );
+  // }
 
-  /// 根据登录用户查询金库列表
-  Future<Map<String, dynamic>> getUserClrCenterList(Map<String, dynamic> params) async {
-    return _dioService.get('tauro/v2/outsourcing/qryClrCenterNoByPerson', queryParameters: params);
-  }
+  // /// 更新金库状态
+  // Future<Map<String, dynamic>> updatePointStatus(String username, String password, String pointCode) async {
+  //   return _dioService.post(
+  //     '/storage/point/update-status',
+  //     body: <String, dynamic>{
+  //       'username': username,
+  //       'password': password,
+  //       'pointCode': pointCode,
+  //     },
+  //   );
+  // }
+
+  // /// 根据登录用户查询金库列表
+  // Future<Map<String, dynamic>> getUserClrCenterList(Map<String, dynamic> params) async {
+  //   return _dioService.get('tauro/v2/outsourcing/qryClrCenterNoByPerson', queryParameters: params);
+  // }
 }
