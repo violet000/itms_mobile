@@ -3,7 +3,9 @@ import 'package:flutter/material.dart' show NoSplash;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
+import 'package:itms_mobile/services/storage_service.dart';
 import 'dart:ui';
+import 'package:flutter/services.dart';
 
 // 菜单项接口定义
 class MenuItem {
@@ -17,6 +19,7 @@ class MenuItem {
   final List<MenuItem>? children;
   final String? route;
   final Color? color;
+  final Map<String, dynamic>? params;
 
   MenuItem({
     required this.name,
@@ -29,6 +32,18 @@ class MenuItem {
     this.children,
     this.route,
     this.color,
+    this.params,
+  });
+}
+
+// 图例数据类
+class _LegendData {
+  final String name;
+  final List<GridCell> cells;
+
+  const _LegendData({
+    required this.name,
+    required this.cells,
   });
 }
 
@@ -101,7 +116,7 @@ class HomePage extends StatefulWidget {
     GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 6, 207, 147)),
     GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 6, 207, 147)),
     GridCell(x: 8, y: 5, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 8, y: 7 , color: const Color.fromARGB(255, 6, 207, 147)),
+    GridCell(x: 8, y: 7, color: const Color.fromARGB(255, 6, 207, 147)),
     GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 6, 207, 147)),
     GridCell(x: 7, y: 10, color: const Color.fromARGB(255, 6, 207, 147)),
   ];
@@ -115,75 +130,18 @@ class _HomePageState extends State<HomePage>
   final List<Widget> _pages = [];
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
+  List<MenuItem> menus = [];
 
-  final List<MenuItem> menus = [
-    MenuItem(
-      name: '仓储',
-      index: 0,
-      unselectedIcon: 'assets/storage/storage_unselected.svg',
-      selectedIcon: 'assets/storage/storage_selected.svg',
-      color: const Color.fromARGB(255, 255, 255, 255),
-      children: [
-        MenuItem(
-          name: '仓储一区',
-          index: 0,
-          imagePath: 'assets/storage/storage_1.svg',
-          iconPath: 'assets/images/storage_1.svg',
-          route: '/outlets/box-scan',
-          color: const Color(0xFF0DBC95),
-        ),
-        MenuItem(
-          name: '仓储二区',
-          index: 1,
-          imagePath: 'assets/storage/storage_2.svg',
-          iconPath: 'assets/images/storage_2.svg',
-          route: '/outlets/box-handover',
-          color: const Color(0xFFAE673A),
-        ),
-        MenuItem(
-          name: '仓储三区',
-          index: 2,
-          imagePath: 'assets/storage/storage_3.svg',
-          iconPath: 'assets/images/storage_3.svg',
-          route: '/outlets/box-handover',
-          color: const Color(0xFF16A8FA),
-        )
-      ],
-    ),
-    MenuItem(
-      name: '库内作业',
-      index: 1,
-      unselectedIcon: 'assets/storage/inner_unselected.svg',
-      selectedIcon: 'assets/storage/inner_selected.svg',
-      route: '/inner_work',
-      children: [
-        MenuItem(
-          name: '点到点搬运',
-          index: 0,
-          imagePath: 'assets/icons/handover_circle.svg',
-          iconPath: 'assets/icons/net_handover_icon.svg',
-          route: '/inner_work/inbound',
-          color: const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
-        ),
-        MenuItem(
-          name: '搬运任务管理',
-          index: 1,
-          imagePath: 'assets/icons/treasury_reat.svg',
-          iconPath: 'assets/icons/treasury_handover_icon.svg',
-          route: '/inner_work/outbound',
-          color: const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
-        )
-      ],
-      color: const Color(0xFF0489FE),
-    ),
-    MenuItem(
-      name: '厂商模式',
-      index: 2,
-      icon: Icons.business,
-      route: '/vendor_mode',
-      color: const Color(0xFF0489FE),
-    ),
-  ];
+  // 常量定义
+  static const double _legendItemHeight = 200.0;
+  static const double _legendItemWidth = 180.0;
+  static const double _legendItemMargin = 8.0;
+  static const double _legendPadding = 10.0;
+  static const double _borderStrokeWidth = 2.0;
+  static const double _borderDashWidth = 6.0;
+  static const double _borderGap = 4.0;
+  static const Color _borderColor = Color.fromARGB(255, 221, 221, 221);
+  static const Color _textColor = Color.fromARGB(255, 64, 64, 64);
 
   @override
   void initState() {
@@ -198,6 +156,7 @@ class _HomePageState extends State<HomePage>
       _initializePages();
       _animationController.forward();
     });
+    _getStorageAreas();
   }
 
   @override
@@ -209,18 +168,103 @@ class _HomePageState extends State<HomePage>
   // 初始化页面
   void _initializePages() {
     setState(() {
+      _pages.clear();
       for (var menu in menus) {
         if (menu.children != null) {
           _pages.add(_buildSubMenuPage(menu));
         } else if (menu.route != null) {
-          // 为有路由的菜单项创建占位页面
           _pages.add(_buildPlaceholderPage(menu));
         } else {
-          // 为没有路由的菜单项创建空页面
           _pages.add(_buildEmptyPage(menu));
         }
       }
     });
+  }
+
+  /// 判断svg图片是否存在
+  Future<bool> assetExists(String assetPath) async {
+    try {
+      await rootBundle.load(assetPath);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // 获取仓储库位信息，根据仓储信息动态的生成仓储区域菜单
+  void _getStorageAreas() async {
+    try {
+      final Map<String, dynamic> response =
+          await StorageService().getStorageAreas();
+
+      final retList = response['retList'] as List<dynamic>;
+      List<MenuItem> storageChildren = [];
+      for (var item in retList) {
+        final map = item as Map<String, dynamic>;
+        String imagePath = 'assets/storage/storage_${map['x']}.svg';
+        bool exists = await assetExists(imagePath);
+
+        storageChildren.add(MenuItem(
+          name: map['name'] as String,
+          index: int.parse(map['x'].toString()),
+          imagePath: exists ? imagePath : null,
+          iconPath: 'assets/images/storage_${map['x']}.svg',
+          route: '/storage/storage-area',
+          params: item,
+        ));
+      }
+
+      setState(() {
+        menus = [
+          MenuItem(
+            name: '仓储',
+            index: 0,
+            unselectedIcon: 'assets/storage/storage_unselected.svg',
+            selectedIcon: 'assets/storage/storage_selected.svg',
+            color: const Color.fromARGB(255, 255, 255, 255),
+            children: storageChildren,
+          ),
+          MenuItem(
+            name: '库内作业',
+            index: 1,
+            unselectedIcon: 'assets/storage/inner_unselected.svg',
+            selectedIcon: 'assets/storage/inner_selected.svg',
+            route: '/inner_work',
+            children: [
+              MenuItem(
+                name: '点到点搬运',
+                index: 0,
+                imagePath: 'assets/icons/handover_circle.svg',
+                iconPath: 'assets/icons/net_handover_icon.svg',
+                route: '/inner_work/inbound',
+                color:
+                    const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
+              ),
+              MenuItem(
+                name: '搬运任务管理',
+                index: 1,
+                imagePath: 'assets/icons/treasury_reat.svg',
+                iconPath: 'assets/icons/treasury_handover_icon.svg',
+                route: '/inner_work/outbound',
+                color:
+                    const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
+              )
+            ],
+            color: const Color(0xFF0489FE),
+          ),
+          MenuItem(
+            name: '厂商模式',
+            index: 2,
+            icon: Icons.business,
+            route: '/vendor_mode',
+            color: const Color(0xFF0489FE),
+          ),
+        ];
+        _initializePages();
+      });
+    } catch (e) {
+      print('获取仓储库位信息失败: $e');
+    }
   }
 
   // 顶部标题
@@ -351,9 +395,9 @@ class _HomePageState extends State<HomePage>
                 ),
               )
             : Container(
-                color: menu.color ?? Colors.grey[200],
+                color: Colors.white,
                 child: const Center(
-                  child: Text('无背景'),
+                  child: Text(''),
                 ),
               ),
       ),
@@ -418,7 +462,11 @@ class _HomePageState extends State<HomePage>
           highlightColor: Colors.transparent,
           onTap: () {
             if (menu.route != null) {
-              Navigator.pushNamed(context, menu.route!);
+              Navigator.pushNamed(
+                context,
+                menu.route!,
+                arguments: menu.params, // 动态传递的参数
+              );
             }
           },
           borderRadius: BorderRadius.circular(4),
@@ -550,7 +598,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // 构建占位页面
+  // 占位页面
   Widget _buildPlaceholderPage(MenuItem menu) {
     return Scaffold(
       body: Container(
@@ -590,7 +638,7 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // 构建空页面
+  // 空页面
   Widget _buildEmptyPage(MenuItem menu) {
     return Scaffold(
       body: Container(
@@ -633,130 +681,116 @@ class _HomePageState extends State<HomePage>
   void _showLegendDialog(BuildContext context) {
     showDialog<void>(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+      builder: (BuildContext context) => _buildLegendDialog(),
+    );
+  }
+
+  // 创建图例弹窗
+  Widget _buildLegendDialog() {
+    return Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      insetPadding: EdgeInsets.zero,
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.9,
+        height: MediaQuery.of(context).size.height * 0.95,
+        padding: const EdgeInsets.all(10),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDialogHeader(),
+              ..._buildLegendItems(),
+            ],
           ),
-          insetPadding: EdgeInsets.zero,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.95,
-            padding: const EdgeInsets.all(10),
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
-                        '缩略图',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close, color: Colors.grey),
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  // 图例内容
-                  CustomPaint(
-                      painter: DashedBorderPainter(
-                        color: const Color.fromARGB(255, 221, 221, 221),
-                        strokeWidth: 2,
-                        dashWidth: 6, 
-                        gap: 4,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Flex(
-                          direction: Axis.horizontal,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('仓储一区',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
-                            SizedBox(
-                              width: 180,
-                              height: 200,
-                              child: CustomPaint(
-                                painter: GridPainter(cells: HomePage.cells),
-                              ),
-                            )
-                          ],
-                        ),
-                      )),
-                      CustomPaint(
-                      painter: DashedBorderPainter(
-                        color: const Color.fromARGB(255, 221, 221, 221),
-                        strokeWidth: 2,
-                        dashWidth: 6, 
-                        gap: 4,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Flex(
-                          direction: Axis.horizontal,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('仓储二区',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
-                            SizedBox(
-                              width: 180,
-                              height: 200,
-                              child: CustomPaint(
-                                painter: GridPainter(cells: HomePage.cells2),
-                              ),
-                            )
-                          ],
-                        ),
-                      )),
-                      CustomPaint(
-                      painter: DashedBorderPainter(
-                        color: const Color.fromARGB(255, 221, 221, 221),
-                        strokeWidth: 2,
-                        dashWidth: 6, 
-                        gap: 4,
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Flex(
-                          direction: Axis.horizontal,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text('仓储三区',
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 64, 64, 64))),
-                            SizedBox(
-                              width: 180,
-                              height: 200,
-                              child: CustomPaint(
-                                painter: GridPainter(cells: HomePage.cells3),
-                              ),
-                            )
-                          ],
-                        ),
-                      ))
-                ],
+        ),
+      ),
+    );
+  }
+
+  // 弹窗标题
+  Widget _buildDialogHeader() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close, color: Colors.grey),
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(),
+        ),
+      ],
+    );
+  }
+
+  // 仓储区域
+  List<Widget> _buildLegendItems() {
+    return _getLegendData()
+        .map((data) => _buildLegendItem(
+              name: data.name,
+              cells: data.cells,
+            ))
+        .toList();
+  }
+
+  // 仓储区域库位列表
+  List<_LegendData> _getLegendData() {
+    return [
+      _LegendData(name: '仓储一区', cells: HomePage.cells),
+      _LegendData(name: '仓储二区', cells: HomePage.cells2),
+      _LegendData(name: '仓储三区', cells: HomePage.cells3),
+    ];
+  }
+
+  // 仓储区域控件封装
+  Widget _buildLegendItem({
+    required String name,
+    required List<GridCell> cells,
+  }) {
+    return Container(
+      // margin: const EdgeInsets.only(bottom: _legendItemMargin),
+      child: CustomPaint(
+        painter: DashedBorderPainter(
+          color: _borderColor,
+          strokeWidth: _borderStrokeWidth,
+          dashWidth: _borderDashWidth,
+          gap: _borderGap,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(_legendPadding),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                name,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: _textColor,
+                ),
               ),
-            ),
+              SizedBox(
+                width: _legendItemWidth,
+                height: _legendItemHeight,
+                child: CustomPaint(
+                  painter: GridPainter(cells: cells),
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    if (menus.isEmpty || menus.length < 2) {
+      return Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
     return Scaffold(
       body: _pages.isEmpty
           ? const Center(
