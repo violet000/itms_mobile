@@ -113,12 +113,12 @@ class PageScaffold extends StatelessWidget {
 
   /// 获取默认背景装饰
   BoxDecoration _getDefaultBackgroundDecoration() {
-    return const BoxDecoration(
+    return BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topRight,
         end: Alignment.bottomLeft,
         colors: [
-          Color.fromARGB(255, 193, 204, 248), // 右上角淡蓝色
+          Color.fromARGB(255, 154, 185, 240).withOpacity(0.8), // 右上角淡蓝色
           Color.fromARGB(255, 255, 255, 255), // 左下角白色
         ],
       ),

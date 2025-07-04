@@ -15,18 +15,6 @@ void main() async {
   // 初始化环境配置
   Env.init();
   
-  // 初始化位置服务
-  if (!kIsWeb) {
-    // 禁用掉底部的虚拟按键
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.transparent,
-      systemNavigationBarIconBrightness: Brightness.dark,
-    ));
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
-  }
-  
   runApp(const MyApp());
 }
 
@@ -47,6 +35,20 @@ class MyApp extends StatelessWidget {
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: RouteGenerator.generateRoute,
         builder: (context, child) {
+          // 在启动屏结束后执行系统UI设置
+          // if (!kIsWeb) {
+          //   WidgetsBinding.instance.addPostFrameCallback((_) {
+          //     // 禁用掉底部的虚拟按键
+          //     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+          //       statusBarColor: Colors.transparent,
+          //       statusBarIconBrightness: Brightness.light,
+          //       systemNavigationBarColor: Colors.transparent,
+          //       systemNavigationBarIconBrightness: Brightness.dark,
+          //     ));
+          //     SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+          //   });
+          // }
+          
           if (kIsWeb) {
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
