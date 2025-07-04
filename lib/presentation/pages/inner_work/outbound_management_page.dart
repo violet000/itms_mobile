@@ -104,6 +104,8 @@ class _OutboundManagementPageState extends State<OutboundManagementPage> {
       ),
       child: InkWell(
         onTap: onTap,
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(16),
@@ -155,6 +157,9 @@ class _OutboundManagementPageState extends State<OutboundManagementPage> {
               onPressed: () {
                 Navigator.of(context).pop();
               },
+              style: TextButton.styleFrom(
+                splashFactory: NoSplash.splashFactory,
+              ),
               child: const Text('确定'),
             ),
           ],

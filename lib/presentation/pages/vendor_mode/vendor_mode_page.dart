@@ -98,6 +98,8 @@ class _VendorModePageState extends State<VendorModePage> {
         onTap: () {
           // TODO: 实现具体功能
         },
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.all(20),

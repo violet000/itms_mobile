@@ -158,6 +158,8 @@ class _UHFScanButtonState extends State<UHFScanButton> {
 
             return InkWell(
               onTap: () => _toggleScan(controller),
+              splashColor: Colors.transparent,
+              highlightColor: Colors.transparent,
               // style: ElevatedButton.styleFrom(
               //   backgroundColor:
               //       widget.buttonColor ?? Theme.of(context).primaryColor,

@@ -7,6 +7,7 @@ import 'routes/route_generator.dart';
 import 'presentation/state/providers/face_login_provider.dart';
 import 'presentation/state/providers/verify_token_provider.dart';
 import 'package:itms_mobile/core/config/env.dart';
+import 'package:itms_mobile/core/config/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,10 +42,7 @@ class MyApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: Env.config.appName,
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-          useMaterial3: true,
-        ),
+        theme: AppTheme.theme,
         initialRoute: '/',
         routes: AppRoutes.getRoutes(),
         onGenerateRoute: RouteGenerator.generateRoute,

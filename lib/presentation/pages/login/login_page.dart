@@ -189,6 +189,9 @@ class _LoginPageState extends State<LoginPage> {
       alignment: Alignment.center,
       child: TextButton(
         onPressed: () {},
+        style: TextButton.styleFrom(
+          splashFactory: NoSplash.splashFactory,
+        ),
         child: const Text(
           '忘记密码？',
           style: TextStyle(
@@ -215,7 +218,8 @@ class _LoginPageState extends State<LoginPage> {
                 backgroundColor: const Color.fromARGB(255, 112, 195, 240).withOpacity(0.8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
-                )
+                ),
+                splashFactory: NoSplash.splashFactory,
               ),
               child: _isLoading
                   ? const SizedBox(
@@ -252,6 +256,7 @@ class _LoginPageState extends State<LoginPage> {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 backgroundColor: Colors.transparent,
+                splashFactory: NoSplash.splashFactory,
               ),
               child: const Text(
                 '注册',
