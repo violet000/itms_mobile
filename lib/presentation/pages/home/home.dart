@@ -6,35 +6,8 @@ import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'dart:ui';
 import 'package:flutter/services.dart';
-
-// 菜单项接口定义
-class MenuItem {
-  final String name;
-  final int index;
-  final String? imagePath;
-  final String? iconPath;
-  final String? unselectedIcon;
-  final String? selectedIcon;
-  final IconData? icon;
-  final List<MenuItem>? children;
-  final String? route;
-  final Color? color;
-  final Map<String, dynamic>? params;
-
-  MenuItem({
-    required this.name,
-    required this.index,
-    this.imagePath,
-    this.iconPath,
-    this.unselectedIcon,
-    this.selectedIcon,
-    this.icon,
-    this.children,
-    this.route,
-    this.color,
-    this.params,
-  });
-}
+import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
+import 'package:itms_mobile/presentation/widgets/common/error_page.dart';
 
 // 图例数据类
 class _LegendData {
@@ -173,9 +146,9 @@ class _HomePageState extends State<HomePage>
         if (menu.children != null) {
           _pages.add(_buildSubMenuPage(menu));
         } else if (menu.route != null) {
-          _pages.add(_buildPlaceholderPage(menu));
+          _pages.add(buildPlaceholderPage(menu));
         } else {
-          _pages.add(_buildEmptyPage(menu));
+          _pages.add(buildEmptyPage(menu));
         }
       }
     });
@@ -267,114 +240,76 @@ class _HomePageState extends State<HomePage>
     }
   }
 
-  // 顶部标题
-  Widget _buildHeader(MenuItem menu) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(25, 25, 25, 15),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 245, 246, 250),
-        boxShadow: [
-          BoxShadow(
-            color: const Color.fromARGB(255, 221, 218, 218).withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            menu.name,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Color.fromARGB(255, 3, 3, 3),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   // 构建子菜单页面
   Widget _buildSubMenuPage(MenuItem menu) {
-    return Scaffold(
-        body: Container(
-            decoration:
-                const BoxDecoration(color: Color.fromARGB(255, 245, 246, 250)),
-            child: Column(children: [
-              _buildHeader(menu),
-              Expanded(
-                  child: FadeTransition(
-                      opacity: _fadeAnimation,
-                      // 将仓储菜单和库内作业菜单分开
-                      child: menu.name == '仓储'
-                          ? Column(
-                              children: [
-                                Expanded(
-                                  child: ListView.builder(
-                                    padding: const EdgeInsets.all(16.0),
-                                    itemCount: menu.children?.length ?? 0,
-                                    itemBuilder: (context, index) {
-                                      if (index < menu.children!.length) {
-                                        final child = menu.children![index];
-                                        return SizedBox(
-                                          height: 90,
-                                          child: Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 8.0),
-                                            child: _buildStorageMenuCard(child),
-                                          ),
-                                        );
-                                      }
-                                      return Container();
-                                    },
-                                  ),
-                                ),
-                                Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 16.0, vertical: 12.0),
-                                  child: TextButton(
-                                    onPressed: () {
-                                      // 图例按钮点击事件
-                                      _showLegendDialog(context);
-                                    },
-                                    style: TextButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 8.0),
-                                    ),
-                                    child: Text(
-                                      "图例",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          : GridView.builder(
-                              padding: const EdgeInsets.all(8.0),
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 2,
-                                childAspectRatio: 1.0,
-                                crossAxisSpacing: 8.0,
-                                mainAxisSpacing: 8.0,
-                              ),
-                              itemCount: menu.children?.length ?? 0,
-                              itemBuilder: (context, index) {
-                                final child = menu.children![index];
-                                return _buildInnerWorkMenuCard(child);
-                              },
-                            )))
-            ])));
+    return PageScaffold(
+      title: menu.name,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: menu.name == '仓储'
+            ? Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: menu.children?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        if (index < menu.children!.length) {
+                          final child = menu.children![index];
+                          return SizedBox(
+                            height: 90,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildStorageMenuCard(child),
+                            ),
+                          );
+                        }
+                        return Container();
+                      },
+                    ),
+                  ),
+                ],
+              )
+            : GridView.builder(
+                padding: const EdgeInsets.all(8.0),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                ),
+                itemCount: menu.children?.length ?? 0,
+                itemBuilder: (context, index) {
+                  final child = menu.children![index];
+                  return _buildInnerWorkMenuCard(child);
+                },
+              ),
+      ),
+      bottomWidget: menu.name == '仓储'
+          ? Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: TextButton(
+                onPressed: () {
+                  _showLegendDialog(context);
+                },
+                style: TextButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  splashFactory: NoSplash.splashFactory,
+                ),
+                child: Text(
+                  "图例",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ),
+            )
+          : null,
+    );
   }
 
   // 卡片背景
@@ -598,85 +533,6 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // 占位页面
-  Widget _buildPlaceholderPage(MenuItem menu) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color.fromARGB(255, 245, 246, 250),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                menu.icon ?? Icons.home,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                menu.name,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '点击底部导航栏的"${menu.name}"进入对应功能',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // 空页面
-  Widget _buildEmptyPage(MenuItem menu) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          color: Color.fromARGB(255, 245, 246, 250),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                menu.icon ?? Icons.home,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                menu.name,
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '暂未开发...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   // 显示图例弹窗
   void _showLegendDialog(BuildContext context) {
     showDialog<void>(
@@ -719,6 +575,9 @@ class _HomePageState extends State<HomePage>
           icon: const Icon(Icons.close, color: Colors.grey),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
+          style: IconButton.styleFrom(
+            splashFactory: NoSplash.splashFactory,
+          ),
         ),
       ],
     );
@@ -787,8 +646,9 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     if (menus.isEmpty || menus.length < 2) {
-      return Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return const PageScaffold(
+        showBackButton: false,
+        child: Center(child: CircularProgressIndicator()),
       );
     }
     return Scaffold(
