@@ -69,7 +69,7 @@ class PageScaffold extends StatelessWidget {
   /// 构建标题区域
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(25, 25, 25, 15),
+      padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
