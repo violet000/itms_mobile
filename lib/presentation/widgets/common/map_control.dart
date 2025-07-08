@@ -17,7 +17,10 @@ class MapControl extends StatelessWidget {
   final List<GridCell> cells;
   final void Function(GridCell)? onCellTap;
 
-  const MapControl({
+  // 存储 cell 和 rect 的映射
+  final List<MapEntry<GridCell, Rect>> cellRects = [];
+
+  MapControl({
     Key? key,
     this.xUnits = 9,
     this.yUnits = 10,
@@ -47,6 +50,7 @@ class MapControl extends StatelessWidget {
                 xStart: xStart,
                 yStart: yStart,
                 cells: cells,
+                cellRects: cellRects,
               ),
               size: Size.infinite,
             ),
@@ -56,22 +60,14 @@ class MapControl extends StatelessWidget {
     );
   }
 
-  void _handleTap(Offset position, Size size) {
-    final double dx = size.width / yUnits;
-    final double dy = size.height / xUnits;
-    int xIndex = (xUnits - (position.dy / dy)).floor();
-    int yIndex = (yUnits - (position.dx / dx)).floor();
-    double x = xStart + xIndex.toDouble();
-    double y = yStart + yIndex.toDouble();
-    // ！！！需要注意的是，这里加1是为了和父级抵消掉，找到对应的cell, 如果父级不加1，则会找错cell库位
-    final cell = cells.where((c) => c.x == (x + 1) && c.y == (y + 1)).isNotEmpty
-        ? cells.firstWhere((c) => c.x == (x + 1) && c.y == (y + 1))
-        : null;
-    if (cell != null && onCellTap != null) {
-      onCellTap!(cell);
-    } else {
-      AppLogger.warning('未找到cell');
+  void _handleTap(Offset localPosition, Size gridSize) {
+    for (final entry in cellRects) {
+      if (entry.value.contains(localPosition)) {
+        if (onCellTap != null) onCellTap!(entry.key);
+        return;
+      }
     }
+    AppLogger.warning('未找到cell');
   }
 }
 
@@ -84,16 +80,20 @@ class GridPainter extends CustomPainter {
   final Color axisColor = Colors.black;
   final Color gridColor = Colors.grey;
   final List<GridCell> cells;
+  final List<MapEntry<GridCell, Rect>> cellRects;
 
-  GridPainter(
-      {required this.xUnits,
-      required this.yUnits,
-      required this.xStart,
-      required this.yStart,
-      required this.cells});
+  GridPainter({
+    required this.xUnits,
+    required this.yUnits,
+    required this.xStart,
+    required this.yStart,
+    required this.cells,
+    required this.cellRects, // 新增
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
+    cellRects.clear(); // 每次重绘前清空
     final double dx = size.width / yUnits;
     final double dy = size.height / xUnits;
 
@@ -180,6 +180,7 @@ class GridPainter extends CustomPainter {
               adjustedX + (rect.width - yTextPainter.width) / 2,
               adjustedY + 3 * rect.height / 4 - yTextPainter.height / 2,
             ));
+        cellRects.add(MapEntry(cell, rect)); // 记录
       }
     }
 
