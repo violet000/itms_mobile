@@ -15,7 +15,7 @@ class MapControl extends StatelessWidget {
   final int xStart;
   final int yStart;
   final List<GridCell> cells;
-  final void Function(GridCell)? onCellTap; // 
+  final void Function(GridCell)? onCellTap;
 
   const MapControl({
     Key? key,
@@ -24,7 +24,7 @@ class MapControl extends StatelessWidget {
     this.xStart = 0,
     this.yStart = 0,
     this.cells = const [],
-    this.onCellTap, // 新增
+    this.onCellTap,
   }) : super(key: key);
 
   @override
@@ -36,7 +36,8 @@ class MapControl extends StatelessWidget {
           return GestureDetector(
             onTapDown: (details) {
               final RenderBox box = context.findRenderObject() as RenderBox;
-              final Offset localPosition = box.globalToLocal(details.globalPosition);
+              final Offset localPosition =
+                  box.globalToLocal(details.globalPosition);
               _handleTap(localPosition, constraints.biggest);
             },
             child: CustomPaint(
@@ -58,19 +59,18 @@ class MapControl extends StatelessWidget {
   void _handleTap(Offset position, Size size) {
     final double dx = size.width / yUnits;
     final double dy = size.height / xUnits;
-    // 计算点击的格子索引
     int xIndex = (xUnits - (position.dy / dy)).floor();
     int yIndex = (yUnits - (position.dx / dx)).floor();
-    // 反推格子的实际坐标
     double x = xStart + xIndex.toDouble();
     double y = yStart + yIndex.toDouble();
-    // 查找对应的 cell
-    final cell = cells.firstWhere(
-      (c) => c.x == x && c.y == y,
-      orElse: () => null!,
-    );
+    // ！！！需要注意的是，这里加1是为了和父级抵消掉，找到对应的cell, 如果父级不加1，则会找错cell库位
+    final cell = cells.where((c) => c.x == (x + 1) && c.y == (y + 1)).isNotEmpty
+        ? cells.firstWhere((c) => c.x == (x + 1) && c.y == (y + 1))
+        : null;
     if (cell != null && onCellTap != null) {
       onCellTap!(cell);
+    } else {
+      AppLogger.warning('未找到cell');
     }
   }
 }
@@ -85,21 +85,15 @@ class GridPainter extends CustomPainter {
   final Color gridColor = Colors.grey;
   final List<GridCell> cells;
 
-  GridPainter({
-    required this.xUnits,
-    required this.yUnits,
-    required this.xStart,
-    required this.yStart,
-    required this.cells,
-  });
+  GridPainter(
+      {required this.xUnits,
+      required this.yUnits,
+      required this.xStart,
+      required this.yStart,
+      required this.cells});
 
   @override
   void paint(Canvas canvas, Size size) {
-    AppLogger.info('xUnits: $xUnits');
-    AppLogger.info('yUnits: $yUnits');
-    AppLogger.info('xStart: $xStart');
-    AppLogger.info('yStart: $yStart');
-    AppLogger.info('cells: $cells');
     final double dx = size.width / yUnits;
     final double dy = size.height / xUnits;
 
@@ -200,10 +194,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      tp.paint(
-          canvas,
-          Offset(size.width + 2,
-              size.height - i * size.height / xUnits - tp.height / 2));
+      // tp.paint(
+      //     canvas,
+      //     Offset(size.width + 2,
+      //         size.height - i * size.height / xUnits - tp.height / 2));
     }
     // Y轴刻度（底部，从右往左为正轴）
     for (int j = 0; j <= yUnits; j++) {
@@ -215,10 +209,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      tp.paint(
-          canvas,
-          Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
-              size.height + 2));
+      // tp.paint(
+      //     canvas,
+      //     Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
+      //         size.height + 2));
     }
   }
 
