@@ -8,91 +8,24 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/error_page.dart';
+import 'package:itms_mobile/core/utils/storage_utils.dart';
+import 'package:itms_mobile/core/utils/grid_cell.dart';
 
 // 图例数据类
 class _LegendData {
   final String name;
   final List<GridCell> cells;
+  final Map<String, int> rangeInfo;
 
   const _LegendData({
     required this.name,
     required this.cells,
+    required this.rangeInfo,
   });
 }
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-  static final cells = [
-    // 第一行
-    GridCell(x: 0, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第二行
-    GridCell(x: 0, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第三行
-    GridCell(x: 0, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 2, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第四行
-    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第六行
-    GridCell(x: 7, y: 5, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第七行
-    GridCell(x: 0, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 6, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第八行
-    GridCell(x: 0, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 7, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第九行
-    GridCell(x: 0, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 8, color: const Color.fromARGB(255, 12, 110, 238)),
-    // 第十行
-    GridCell(x: 0, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 1, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 3, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 4, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
-    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 12, 110, 238)),
-  ];
-  static final cells2 = [
-    // 第七行
-    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 4, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 5, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 6, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 7, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 8, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 10, color: const Color.fromARGB(255, 172, 173, 174)),
-    GridCell(x: 7, y: 11, color: const Color.fromARGB(255, 172, 173, 174)),
-  ];
-  static final cells3 = [
-    // 第六行
-    GridCell(x: 7, y: 0, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 7, y: 1, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 7, y: 3, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 8, y: 5, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 8, y: 7, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 7, y: 9, color: const Color.fromARGB(255, 6, 207, 147)),
-    GridCell(x: 7, y: 10, color: const Color.fromARGB(255, 6, 207, 147)),
-  ];
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -107,7 +40,7 @@ class _HomePageState extends State<HomePage>
 
   // 常量定义
   static const double _legendItemHeight = 200.0;
-  static const double _legendItemWidth = 180.0;
+  static const double _legendItemWidth = 190.0;
   static const double _legendItemMargin = 8.0;
   static const double _legendPadding = 10.0;
   static const double _borderStrokeWidth = 2.0;
@@ -172,13 +105,45 @@ class _HomePageState extends State<HomePage>
 
       final retList = response['retList'] as List<dynamic>;
       List<MenuItem> storageChildren = [];
+
+      // 清空所有现有数据
+      StorageDataManager().clearAllData();
+
       for (var item in retList) {
         final map = item as Map<String, dynamic>;
         String imagePath = 'assets/storage/storage_${map['x']}.svg';
         bool exists = await assetExists(imagePath);
 
+        // 获取区域ID和名称
+        String areaId = map['id'] as String;
+        String areaName = map['name'] as String;
+
+        // 动态创建该区域的单元格数据
+        List<GridCell> areaCells = [];
+
+        // 处理该区域的库位数据
+        final storageLocationDTOS =
+            map['storageLocationDTOS'] as List<dynamic>?;
+        if (storageLocationDTOS != null) {
+          for (var location in storageLocationDTOS) {
+            final x = double.parse(location['xplace'].toString());
+            final y = double.parse(location['yplace'].toString());
+            final status = location['status'] as int;
+
+            areaCells.add(GridCell(
+              x: x,
+              y: y,
+              id: location['id'].toString(),
+              color: status == 1 ? Colors.blue : Colors.grey,
+            ));
+          }
+        }
+
+        // 更新该区域的数据
+        StorageDataManager().updateAreaData(areaId, areaName, areaCells);
+
         storageChildren.add(MenuItem(
-          name: map['name'] as String,
+          name: areaName,
           index: int.parse(map['x'].toString()),
           imagePath: exists ? imagePath : null,
           iconPath: 'assets/images/storage_${map['x']}.svg',
@@ -244,51 +209,11 @@ class _HomePageState extends State<HomePage>
   Widget _buildSubMenuPage(MenuItem menu) {
     return PageScaffold(
       title: menu.name,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: menu.name == '仓储'
-            ? Column(
-                children: [
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: menu.children?.length ?? 0,
-                      itemBuilder: (context, index) {
-                        if (index < menu.children!.length) {
-                          final child = menu.children![index];
-                          return SizedBox(
-                            height: 90,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: _buildStorageMenuCard(child),
-                            ),
-                          );
-                        }
-                        return Container();
-                      },
-                    ),
-                  ),
-                ],
-              )
-            : GridView.builder(
-                padding: const EdgeInsets.all(8.0),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 1.0,
-                  crossAxisSpacing: 8.0,
-                  mainAxisSpacing: 8.0,
-                ),
-                itemCount: menu.children?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final child = menu.children![index];
-                  return _buildInnerWorkMenuCard(child);
-                },
-              ),
-      ),
       bottomWidget: menu.name == '仓储'
           ? Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
               child: TextButton(
                 onPressed: () {
                   _showLegendDialog(context);
@@ -309,6 +234,47 @@ class _HomePageState extends State<HomePage>
               ),
             )
           : null,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: menu.name == '仓储'
+            ? Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: menu.children?.length ?? 0,
+                      itemBuilder: (context, index) {
+                        if (index < menu.children!.length) {
+                          final child = menu.children![index];
+                          return SizedBox(
+                            height: 90,
+                            child: Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: _buildStorageMenuCard(child),
+                            ),
+                          );
+                        }
+                        return Container();
+                      },
+                      padding: const EdgeInsets.all(16.0),
+                    ),
+                  ),
+                ],
+              )
+            : GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.0,
+                  crossAxisSpacing: 8.0,
+                  mainAxisSpacing: 8.0,
+                ),
+                itemCount: menu.children?.length ?? 0,
+                itemBuilder: (context, index) {
+                  final child = menu.children![index];
+                  return _buildInnerWorkMenuCard(child);
+                },
+                padding: const EdgeInsets.all(8.0),
+              ),
+      ),
     );
   }
 
@@ -397,11 +363,13 @@ class _HomePageState extends State<HomePage>
           highlightColor: Colors.transparent,
           onTap: () {
             if (menu.route != null) {
-              Navigator.pushNamed(
-                context,
-                menu.route!,
-                arguments: menu.params, // 动态传递的参数
-              );
+              // 根据菜单参数获取对应的storageAreas数据
+              final storageAreas = _getStorageAreasByMenuParams(menu.params);
+              Navigator.pushNamed(context, menu.route!,
+                  arguments: <String, dynamic>{
+                    ...menu.params ?? <String, dynamic>{},
+                    if (storageAreas != null) 'storageAreas': storageAreas,
+                  });
             }
           },
           borderRadius: BorderRadius.circular(4),
@@ -450,7 +418,16 @@ class _HomePageState extends State<HomePage>
           highlightColor: Colors.transparent, // 点击时没有高亮效果
           onTap: () {
             if (menu.route != null) {
-              Navigator.pushNamed(context, menu.route!);
+              // // 根据菜单名称获取对应的storageAreas数据
+              // final storageAreas = _getStorageAreasByMenuName(menu.name);
+              // Navigator.pushNamed(
+              //   context,
+              //   menu.route!,
+              //   arguments: <String, dynamic>{
+              //     ...menu.params ?? <String, dynamic>{},
+              //     if (storageAreas != null) 'storageAreas': storageAreas,
+              //   }
+              // );
             }
           },
           borderRadius: BorderRadius.circular(8),
@@ -557,7 +534,7 @@ class _HomePageState extends State<HomePage>
             mainAxisSize: MainAxisSize.min,
             children: [
               _buildDialogHeader(),
-              ..._buildLegendItems(),
+              ..._buildLegendItems().reversed,
             ],
           ),
         ),
@@ -589,24 +566,35 @@ class _HomePageState extends State<HomePage>
         .map((data) => _buildLegendItem(
               name: data.name,
               cells: data.cells,
+              rangeInfo: data.rangeInfo,
             ))
         .toList();
   }
 
   // 仓储区域库位列表
   List<_LegendData> _getLegendData() {
-    return [
-      _LegendData(name: '仓储一区', cells: HomePage.cells),
-      _LegendData(name: '仓储二区', cells: HomePage.cells2),
-      _LegendData(name: '仓储三区', cells: HomePage.cells3),
-    ];
+    final storageManager = StorageDataManager();
+    final areaIds = storageManager.areaIds;
+
+    return areaIds.map((areaId) {
+      final cells = storageManager.getCellsByAreaId(areaId);
+      final areaName = storageManager.getAreaName(areaId);
+      final rangeInfo = StorageUtils.calculateAreaRange(cells, storageManager.getAllCells().cast<GridCell>());
+      return _LegendData(
+        name: areaName,
+        cells: cells,
+        rangeInfo: rangeInfo,
+      );
+    }).toList();
   }
 
   // 仓储区域控件封装
   Widget _buildLegendItem({
     required String name,
     required List<GridCell> cells,
+    required Map<String, int> rangeInfo,
   }) {
+    
     return Container(
       // margin: const EdgeInsets.only(bottom: _legendItemMargin),
       child: CustomPaint(
@@ -630,17 +618,48 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
               SizedBox(
-                width: _legendItemWidth,
-                height: _legendItemHeight,
-                child: CustomPaint(
-                  painter: GridPainter(cells: cells),
-                ),
-              ),
+                  width: _legendItemWidth,
+                  height: _legendItemHeight,
+                  child: MapControl(
+                    // 在父级容器的时候就做好网格区域轴的绘制， +1，-1 为了防止网格数组溢出
+                    xUnits: (rangeInfo['xUnits'] as int) -
+                        (rangeInfo['xStart'] as int) +
+                        1,
+                    yUnits: (rangeInfo['yUnits'] as int) -
+                        (rangeInfo['yStart'] as int) +
+                        1,
+                    xStart: (rangeInfo['xStart'] as int) - 1,
+                    yStart: (rangeInfo['yStart'] as int) - 1,
+                    cells: cells
+                  ))
             ],
           ),
         ),
       ),
     );
+  }
+
+  // 根据菜单参数获取对应的storageAreas数据
+  Map<String, dynamic>? _getStorageAreasByMenuParams(
+      Map<String, dynamic>? params) {
+    if (params == null) return null;
+
+    final areaId = params['id'] as String?;
+    if (areaId == null) return null;
+
+    final storageManager = StorageDataManager();
+    final cells = storageManager.getCellsByAreaId(areaId);
+    final areaName = storageManager.getAreaName(areaId);
+
+    if (cells.isEmpty) return null;
+
+    return <String, dynamic>{
+      areaId: <String, dynamic>{
+        'name': areaName,
+        'cells': cells,
+        'rangeInfo': StorageUtils.calculateAreaRange(cells, storageManager.getAllCells().cast<GridCell>()),
+      },
+    };
   }
 
   @override

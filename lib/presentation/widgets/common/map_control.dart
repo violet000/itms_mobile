@@ -1,13 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
-
-class GridCell {
-  final double x;
-  final double y;
-  final String? id;
-  final Color color;
-  GridCell({required this.x, required this.y, this.id, required this.color});
-}
+import 'package:itms_mobile/core/utils/grid_cell.dart';
 
 class MapControl extends StatelessWidget {
   final int xUnits;
@@ -144,43 +137,43 @@ class GridPainter extends CustomPainter {
         );
         final paint = Paint()..color = cell.color;
         canvas.drawRect(rect, paint);
-        // 在矩形中显示坐标信息
-        var textStyle = const TextStyle(
-          color: Colors.black,
-          fontSize: 8,
-          fontWeight: FontWeight.bold,
-        );
-        // 显示xplace
-        final xTextSpan =
-            TextSpan(text: 'x:${cell.x.toStringAsFixed(1)}', style: textStyle);
-        final xTextPainter = TextPainter(
-          text: xTextSpan,
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-        );
-        xTextPainter.layout();
-        xTextPainter.paint(
-            canvas,
-            Offset(
-              adjustedX + (rect.width - xTextPainter.width) / 2,
-              adjustedY + rect.height / 4 - xTextPainter.height / 2,
-            ));
-        // 显示yplace
-        final yTextSpan =
-            TextSpan(text: 'y:${cell.y.toStringAsFixed(1)}', style: textStyle);
-        final yTextPainter = TextPainter(
-          text: yTextSpan,
-          textAlign: TextAlign.center,
-          textDirection: TextDirection.ltr,
-        );
-        yTextPainter.layout();
-        yTextPainter.paint(
-            canvas,
-            Offset(
-              adjustedX + (rect.width - yTextPainter.width) / 2,
-              adjustedY + 3 * rect.height / 4 - yTextPainter.height / 2,
-            ));
-        cellRects.add(MapEntry(cell, rect)); // 记录
+        // // 在矩形中显示坐标信息
+        // var textStyle = const TextStyle(
+        //   color: Colors.black,
+        //   fontSize: 8,
+        //   fontWeight: FontWeight.bold,
+        // );
+        // // 显示xplace
+        // final xTextSpan =
+        //     TextSpan(text: 'x:${cell.x.toStringAsFixed(1)}', style: textStyle);
+        // final xTextPainter = TextPainter(
+        //   text: xTextSpan,
+        //   textAlign: TextAlign.center,
+        //   textDirection: TextDirection.ltr,
+        // );
+        // xTextPainter.layout();
+        // xTextPainter.paint(
+        //     canvas,
+        //     Offset(
+        //       adjustedX + (rect.width - xTextPainter.width) / 2,
+        //       adjustedY + rect.height / 4 - xTextPainter.height / 2,
+        //     ));
+        // // 显示yplace
+        // final yTextSpan =
+        //     TextSpan(text: 'y:${cell.y.toStringAsFixed(1)}', style: textStyle);
+        // final yTextPainter = TextPainter(
+        //   text: yTextSpan,
+        //   textAlign: TextAlign.center,
+        //   textDirection: TextDirection.ltr,
+        // );
+        // yTextPainter.layout();
+        // yTextPainter.paint(
+        //     canvas,
+        //     Offset(
+        //       adjustedX + (rect.width - yTextPainter.width) / 2,
+        //       adjustedY + 3 * rect.height / 4 - yTextPainter.height / 2,
+        //     ));
+        // cellRects.add(MapEntry(cell, rect)); // 记录
       }
     }
 
@@ -195,10 +188,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset(size.width + 2,
-      //         size.height - i * size.height / xUnits - tp.height / 2));
+      tp.paint(
+          canvas,
+          Offset(size.width + 2,
+              size.height - i * size.height / xUnits - tp.height / 2));
     }
     // Y轴刻度（底部，从右往左为正轴）
     for (int j = 0; j <= yUnits; j++) {
@@ -210,10 +203,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
-      //         size.height + 2));
+      tp.paint(
+          canvas,
+          Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
+              size.height + 2));
     }
   }
 

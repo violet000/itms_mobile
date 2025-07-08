@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
+import 'package:itms_mobile/core/utils/storage_utils.dart';
+import 'package:itms_mobile/core/utils/grid_cell.dart';
 
 /// 仓储库位控件封装
 class StorageArea extends StatefulWidget {
@@ -20,58 +22,21 @@ class _StorageAreaState extends State<StorageArea> {
   Widget build(BuildContext context) {
     final args = ModalRoute.of(context)!.settings.arguments
         as Map?; // 获取父控件传递下来的参数(库位坐标以及库位详细信息)
-    AppLogger.info('args: ${args}');
-
-    final areaId = args?['id'] as String?;
-    final areaName = args?['name'] as String?;
-    final storageLocationDTOS = args?['storageLocationDTOS'] as List?;
-    final storageAreas = args?['storageAreas'] as Map<String, dynamic>?;
 
     // 解构storageAreas
-    final areaData = storageAreas?[areaId] as Map<String, dynamic>?;
-    final rangeInfo = areaData?['rangeInfo'] as Map<String, dynamic>?;
+    final areaName = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['areaName'] as String?;
+    final storageLocationDTOS = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['storageLocationDTOS'] as List?;
+    final Map<String, dynamic> areaInfo = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['rangeInfo'] as Map<String, dynamic>;
 
-    AppLogger.info('rangeInfo: $rangeInfo');
     StorageArea.cells.clear();
     if (storageLocationDTOS != null) {
-      for (var storageLocationDTO in storageLocationDTOS) {
-        final x = (double.parse(storageLocationDTO['xplace'].toString()));
-        final y = (double.parse(storageLocationDTO['yplace'].toString()));
-        StorageArea.cells.add(GridCell(
-            x: x,
-            y: y,
-            id: storageLocationDTO['id'].toString(),
-            color: storageLocationDTO['status'] == '1'
-                ? const Color.fromARGB(255, 238, 137, 4)
-                : const Color.fromARGB(255, 215, 212, 212)));
-      }
-    }
-
-    print('StorageArea.cells: ${StorageArea.cells.length}');
-
-    // 动态计算xUnits和yUnits
-    int xUnits = 1;
-    int yUnits = 1;
-
-    if (StorageArea.cells.isNotEmpty) {
-      double maxX = StorageArea.cells
-          .map((cell) => cell.x)
-          .reduce((a, b) => a > b ? a : b);
-      double maxY = StorageArea.cells
-          .map((cell) => cell.y)
-          .reduce((a, b) => a > b ? a : b);
-
-      xUnits = maxX.ceil();
-      yUnits = maxY.ceil();
-
-      // 确保至少为1
-      xUnits = xUnits < 1 ? 1 : xUnits;
-      yUnits = yUnits < 1 ? 1 : yUnits;
+      StorageArea.cells
+          .addAll(StorageUtils.buildGridCells(storageLocationDTOS));
     }
 
     return PageScaffold(
       showBackButton: true,
-      title: '${args?['name']}',
+      title: '$areaName',
       onBackPressed: () {
         Navigator.of(context)
             .pushNamedAndRemoveUntil('/home', (route) => false);
@@ -110,13 +75,18 @@ class _StorageAreaState extends State<StorageArea> {
                             height: _legendItemHeight,
                             child: MapControl(
                               // 在父级容器的时候就做好网格区域轴的绘制， +1，-1 为了防止网格数组溢出
-                              xUnits: (rangeInfo?['xUnits'] as int) - (rangeInfo?['xStart'] as int) + 1,
-                              yUnits: (rangeInfo?['yUnits'] as int) - (rangeInfo?['yStart'] as int) + 1,
-                              xStart: (rangeInfo?['xStart'] as int) - 1,
-                              yStart: (rangeInfo?['yStart'] as int) - 1,
+                              xUnits: (areaInfo['xUnits'] as int) -
+                                  (areaInfo['xStart'] as int) +
+                                  1,
+                              yUnits: (areaInfo['yUnits'] as int) -
+                                  (areaInfo['yStart'] as int) +
+                                  1,
+                              xStart: (areaInfo['xStart'] as int) - 1,
+                              yStart: (areaInfo['yStart'] as int) - 1,
                               cells: StorageArea.cells,
                               onCellTap: (cell) {
-                                AppLogger.info('点击了格子: x=${cell.x}, y=${cell.y}');
+                                AppLogger.info(
+                                    '点击了格子: x=${cell.x}, y=${cell.y}');
                               },
                             ))
                       ]),
@@ -127,7 +97,35 @@ class _StorageAreaState extends State<StorageArea> {
           Container(
             height: 50,
             color: Colors.transparent,
-            child: const Center(child: Text('底部区域')),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 18,
+                      color: const Color.fromARGB(255, 213, 213, 213),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('空闲'),
+                  ],
+                ),
+                const SizedBox(width: 24),
+                Row(
+                  children: [
+                    Container(
+                      width: 30,
+                      height: 18,
+                      color: const Color.fromARGB(255, 238, 137, 4),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text('占用'),
+                  ],
+                ),
+                const SizedBox(width: 10)
+              ],
+            ),
           ),
         ],
       ),
