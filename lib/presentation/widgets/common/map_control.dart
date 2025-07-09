@@ -60,7 +60,6 @@ class MapControl extends StatelessWidget {
         return;
       }
     }
-    AppLogger.warning('未找到cell');
   }
 }
 
@@ -173,7 +172,7 @@ class GridPainter extends CustomPainter {
         //       adjustedX + (rect.width - yTextPainter.width) / 2,
         //       adjustedY + 3 * rect.height / 4 - yTextPainter.height / 2,
         //     ));
-        // cellRects.add(MapEntry(cell, rect)); // 记录
+        cellRects.add(MapEntry(cell, rect)); // 记录
       }
     }
 

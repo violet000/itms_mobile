@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
+import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 
@@ -24,9 +25,14 @@ class _StorageAreaState extends State<StorageArea> {
         as Map?; // 获取父控件传递下来的参数(库位坐标以及库位详细信息)
 
     // 解构storageAreas
-    final areaName = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['areaName'] as String?;
-    final storageLocationDTOS = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['storageLocationDTOS'] as List?;
-    final Map<String, dynamic> areaInfo = StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['rangeInfo'] as Map<String, dynamic>;
+    final areaName =
+        StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['areaName']
+            as String?;
+    final storageLocationDTOS = StorageUtils.getCellsByAreaId(
+        args as Map<String, dynamic>)['storageLocationDTOS'] as List?;
+    final Map<String, dynamic> areaInfo =
+        StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['rangeInfo']
+            as Map<String, dynamic>;
 
     StorageArea.cells.clear();
     if (storageLocationDTOS != null) {
@@ -85,8 +91,14 @@ class _StorageAreaState extends State<StorageArea> {
                               yStart: (areaInfo['yStart'] as int) - 1,
                               cells: StorageArea.cells,
                               onCellTap: (cell) {
-                                AppLogger.info(
-                                    '点击了格子: x=${cell.x}, y=${cell.y}');
+                                MessageToast.show(
+                                  context,
+                                  message: '点击了格子: x=${cell.x}, y=${cell.y}',
+                                  type: MessageType.info,
+                                  backgroundColor: const Color.fromARGB(255, 11, 185, 71),
+                                  textColor: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
                               },
                             ))
                       ]),

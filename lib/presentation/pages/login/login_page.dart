@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
 import 'package:itms_mobile/core/utils/hashStr.dart';
+import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
@@ -356,12 +357,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('登录失败: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        context.showErrorMessage('登录失败: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -374,11 +370,7 @@ class _LoginPageState extends State<LoginPage> {
 
   // 注册方法的实现
   void _handleRegister() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('注册功能开发中...'),
-        backgroundColor: Colors.orange,
-      ),
-    );
+    context.showErrorMessage('暂时未开发');
+
   }
 }
