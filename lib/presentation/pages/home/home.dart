@@ -138,7 +138,7 @@ class _HomePageState extends State<HomePage>
             ));
           }
         }
-
+        
         // 更新该区域的数据
         StorageDataManager().updateAreaData(areaId, areaName, areaCells);
 
@@ -151,6 +151,7 @@ class _HomePageState extends State<HomePage>
           params: item,
         ));
       }
+
 
       setState(() {
         menus = [

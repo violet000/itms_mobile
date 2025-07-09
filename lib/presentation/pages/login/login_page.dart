@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
 import 'package:itms_mobile/core/utils/hashStr.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
+import 'package:itms_mobile/presentation/widgets/common/loading_widget.dart';
 import 'dart:ui';
 
 class LoginPage extends StatefulWidget {
@@ -348,11 +349,20 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
+        LoadingUtils.showLoading(
+          context: context,
+          type: LoadingType.circular,
+          size: LoadingSize.large,
+          text: '登录中...',
+        );
+        
         final Map<String, dynamic> loginResult1 = await _service!.accountLogin(
           _usernameController.text,
           MD5Util.generateMd5("${_passwordController.text}messi"),
         );
+        
         if (!mounted) return;
+        LoadingUtils.hideLoading(context);
         Navigator.pushReplacementNamed(context, '/home');
       }
     } catch (e) {
@@ -361,6 +371,7 @@ class _LoginPageState extends State<LoginPage> {
       }
     } finally {
       if (mounted) {
+        LoadingUtils.hideLoading(context);
         setState(() {
           _isLoading = false;
         });

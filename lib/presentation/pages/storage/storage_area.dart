@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
-import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
+import 'package:itms_mobile/presentation/widgets/common/custom_dialog.dart';
 
 /// 仓储库位控件封装
 class StorageArea extends StatefulWidget {
@@ -90,15 +89,20 @@ class _StorageAreaState extends State<StorageArea> {
                               xStart: (areaInfo['xStart'] as int) - 1,
                               yStart: (areaInfo['yStart'] as int) - 1,
                               cells: StorageArea.cells,
-                              onCellTap: (cell) {
-                                MessageToast.show(
-                                  context,
-                                  message: '点击了格子: x=${cell.x}, y=${cell.y}',
-                                  type: MessageType.info,
-                                  backgroundColor: const Color.fromARGB(255, 11, 185, 71),
-                                  textColor: Colors.white,
-                                  duration: const Duration(seconds: 2),
+                              onCellTap: (cell) async {
+                                final result = await CustomDialog.showConfirm(
+                                  context: context,
+                                  title: '确认操作',
+                                  content: '您确定要执行此操作吗？',
+                                  confirmText: '确定',
+                                  cancelText: '取消',
+                                  confirmColor: Colors.red,
                                 );
+                                if (result == ConfirmResult.confirm) {
+                                  context.showSuccessMessage('用户确认了操作');
+                                } else if (result == ConfirmResult.cancel) {
+                                  context.showInfoMessage('用户取消了操作');
+                                }
                               },
                             ))
                       ]),
