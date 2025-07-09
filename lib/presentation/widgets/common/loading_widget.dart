@@ -190,7 +190,8 @@ class _LoadingWidgetState extends State<LoadingWidget>
           Text(
             widget.text!,
             style: TextStyle(
-              color: widget.textColor ?? Colors.black87,
+              color: widget.textColor ?? const Color.fromARGB(221, 237, 235, 235),
+              decoration: TextDecoration.none,
               fontSize: 14,
             ),
             textAlign: TextAlign.center,
@@ -207,11 +208,11 @@ class _LoadingWidgetState extends State<LoadingWidget>
       decoration: BoxDecoration(
         color: widget.backgroundColor ?? Colors.white,
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.transparent,
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -234,7 +235,6 @@ class _LoadingWidgetState extends State<LoadingWidget>
 
 /// Loading工具类
 class LoadingUtils {
-  /// 显示Loading弹窗
   static Future<void> showLoading({
     required BuildContext context,
     LoadingType type = LoadingType.circular,
@@ -266,14 +266,12 @@ class LoadingUtils {
     );
   }
 
-  /// 隐藏Loading弹窗
   static void hideLoading(BuildContext context) {
     if (Navigator.of(context).canPop()) {
       Navigator.of(context).pop();
     }
   }
 
-  /// 显示简单Loading
   static Future<void> showSimpleLoading({
     required BuildContext context,
     String? text,
@@ -286,7 +284,6 @@ class LoadingUtils {
     );
   }
 
-  /// 显示全屏Loading
   static Future<void> showFullScreenLoading({
     required BuildContext context,
     String? text,
@@ -299,7 +296,7 @@ class LoadingUtils {
         return WillPopScope(
           onWillPop: () async => false,
           child: Container(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.transparent,
             child: Center(
               child: LoadingWidget(
                 type: LoadingType.circular,

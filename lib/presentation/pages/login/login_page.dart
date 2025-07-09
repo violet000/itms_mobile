@@ -217,13 +217,15 @@ class _LoginPageState extends State<LoginPage> {
             height: 56,
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleLogin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    const Color.fromARGB(255, 112, 195, 240).withOpacity(0.8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(const Color(0XFFFF86BDFF).withOpacity(0.8)),
+                shape: MaterialStateProperty.all(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
                 splashFactory: NoSplash.splashFactory,
+                overlayColor: MaterialStateProperty.all(Colors.transparent),
               ),
               child: _isLoading
                   ? const SizedBox(
@@ -350,10 +352,8 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
-        LoadingUtils.showLoading(
+        LoadingUtils.showFullScreenLoading(
           context: context,
-          type: LoadingType.circular,
-          size: LoadingSize.large,
           text: '登录中...',
         );
 
