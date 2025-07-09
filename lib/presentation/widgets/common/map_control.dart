@@ -80,8 +80,15 @@ class GridPainter extends CustomPainter {
     required this.xStart,
     required this.yStart,
     required this.cells,
-    required this.cellRects, // 新增
+    required this.cellRects,
   });
+
+  // 根据背景色计算对比色，确保文字清晰可见
+  Color _getContrastColor(Color backgroundColor) {
+    // 计算亮度
+    final double luminance = backgroundColor.computeLuminance();
+    return luminance > 0.5 ? Colors.black87 : Colors.white;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -89,37 +96,37 @@ class GridPainter extends CustomPainter {
     final double dx = size.width / yUnits;
     final double dy = size.height / xUnits;
 
-    // 绘制网格
-    // final Paint originalGridPaint = Paint()
-    //   ..color = gridColor
-    //   ..strokeWidth = 1;
-    // // 垂直网格线（对应Y轴，从右往左）
-    // for (int i = 0; i <= yUnits; i++) {
-    //   double x = (yUnits - i) * dx;
-    //   canvas.drawLine(
-    //     Offset(x, 0),
-    //     Offset(x, size.height),
-    //     originalGridPaint,
-    //   );
-    // }
-    // // 水平网格线（对应X轴，从下往上）
-    // for (int j = 0; j <= xUnits; j++) {
-    //   double y = (xUnits - j) * dy;
-    //   canvas.drawLine(
-    //     Offset(0, y),
-    //     Offset(size.width, y),
-    //     originalGridPaint,
-    //   );
-    // }
+    final Paint gridPaint = Paint()
+      ..color = Colors.grey.withOpacity(0.06)
+      ..strokeWidth = 0.2;
+    
+    // 垂直网格线（对应Y轴，从右往左）
+    for (int i = 0; i <= yUnits; i++) {
+      double x = (yUnits - i) * dx;
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(x, size.height),
+        gridPaint,
+      );
+    }
+    // 水平网格线（对应X轴，从下往上）
+    for (int j = 0; j <= xUnits; j++) {
+      double y = (xUnits - j) * dy;
+      canvas.drawLine(
+        Offset(0, y),
+        Offset(size.width, y),
+        gridPaint,
+      );
+    }
 
-    // 绘制格子
+    // 绘制库位格子
     for (final cell in cells) {
       // 判断cell是否在当前显示区域内
       if (cell.x >= xStart &&
           cell.x <= xStart + xUnits &&
           cell.y >= yStart &&
           cell.y <= yStart + yUnits) {
-        double padding = 5.0;
+        double padding = 6.0; // 适中的内边距
         // 计算格子在画布上的索引（使用实际坐标值）
         final double xIndex = cell.y - yStart;
         final double yIndex = cell.x - xStart;
@@ -134,44 +141,44 @@ class GridPainter extends CustomPainter {
           dx - 2 * padding,
           dy - 2 * padding,
         );
-        final paint = Paint()..color = cell.color;
-        canvas.drawRect(rect, paint);
-        // // 在矩形中显示坐标信息
-        // var textStyle = const TextStyle(
-        //   color: Colors.black,
-        //   fontSize: 8,
-        //   fontWeight: FontWeight.bold,
+
+        final backgroundPaint = Paint()
+          ..color = cell.color.withOpacity(0.85);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
+          backgroundPaint,
+        );
+
+        final borderPaint = Paint()
+          ..color = cell.color.withOpacity(0.9)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.0;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
+          borderPaint,
+        );
+        
+        // // 绘制库位编号
+        // final textStyle = TextStyle(
+        //   color: _getContrastColor(cell.color),
+        //   fontSize: 10,
+        //   fontWeight: FontWeight.w600,
         // );
-        // // 显示xplace
-        // final xTextSpan =
-        //     TextSpan(text: 'x:${cell.x.toStringAsFixed(1)}', style: textStyle);
-        // final xTextPainter = TextPainter(
-        //   text: xTextSpan,
+        // final textSpan = TextSpan(text: cell.id, style: textStyle);
+        // final textPainter = TextPainter(
+        //   text: textSpan,
         //   textAlign: TextAlign.center,
         //   textDirection: TextDirection.ltr,
         // );
-        // xTextPainter.layout();
-        // xTextPainter.paint(
-        //     canvas,
-        //     Offset(
-        //       adjustedX + (rect.width - xTextPainter.width) / 2,
-        //       adjustedY + rect.height / 4 - xTextPainter.height / 2,
-        //     ));
-        // // 显示yplace
-        // final yTextSpan =
-        //     TextSpan(text: 'y:${cell.y.toStringAsFixed(1)}', style: textStyle);
-        // final yTextPainter = TextPainter(
-        //   text: yTextSpan,
-        //   textAlign: TextAlign.center,
-        //   textDirection: TextDirection.ltr,
+        // textPainter.layout();
+        // textPainter.paint(
+        //   canvas,
+        //   Offset(
+        //     adjustedX + (rect.width - textPainter.width) / 2,
+        //     adjustedY + (rect.height - textPainter.height) / 2,
+        //   ),
         // );
-        // yTextPainter.layout();
-        // yTextPainter.paint(
-        //     canvas,
-        //     Offset(
-        //       adjustedX + (rect.width - yTextPainter.width) / 2,
-        //       adjustedY + 3 * rect.height / 4 - yTextPainter.height / 2,
-        //     ));
+        
         cellRects.add(MapEntry(cell, rect)); // 记录
       }
     }
