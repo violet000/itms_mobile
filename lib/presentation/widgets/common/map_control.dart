@@ -91,27 +91,27 @@ class GridPainter extends CustomPainter {
     final double dy = size.height / xUnits;
 
     // 绘制网格
-    final Paint originalGridPaint = Paint()
-      ..color = gridColor
-      ..strokeWidth = 1;
-    // 垂直网格线（对应Y轴，从右往左）
-    for (int i = 0; i <= yUnits; i++) {
-      double x = (yUnits - i) * dx;
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(x, size.height),
-        originalGridPaint,
-      );
-    }
-    // 水平网格线（对应X轴，从下往上）
-    for (int j = 0; j <= xUnits; j++) {
-      double y = (xUnits - j) * dy;
-      canvas.drawLine(
-        Offset(0, y),
-        Offset(size.width, y),
-        originalGridPaint,
-      );
-    }
+    // final Paint originalGridPaint = Paint()
+    //   ..color = gridColor
+    //   ..strokeWidth = 1;
+    // // 垂直网格线（对应Y轴，从右往左）
+    // for (int i = 0; i <= yUnits; i++) {
+    //   double x = (yUnits - i) * dx;
+    //   canvas.drawLine(
+    //     Offset(x, 0),
+    //     Offset(x, size.height),
+    //     originalGridPaint,
+    //   );
+    // }
+    // // 水平网格线（对应X轴，从下往上）
+    // for (int j = 0; j <= xUnits; j++) {
+    //   double y = (xUnits - j) * dy;
+    //   canvas.drawLine(
+    //     Offset(0, y),
+    //     Offset(size.width, y),
+    //     originalGridPaint,
+    //   );
+    // }
 
     // 绘制格子
     for (final cell in cells) {
@@ -188,10 +188,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      tp.paint(
-          canvas,
-          Offset(size.width + 2,
-              size.height - i * size.height / xUnits - tp.height / 2));
+      // tp.paint(
+      //     canvas,
+      //     Offset(size.width + 2,
+      //         size.height - i * size.height / xUnits - tp.height / 2));
     }
     // Y轴刻度（底部，从右往左为正轴）
     for (int j = 0; j <= yUnits; j++) {
@@ -203,10 +203,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      tp.paint(
-          canvas,
-          Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
-              size.height + 2));
+      // tp.paint(
+      //     canvas,
+      //     Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
+      //         size.height + 2));
     }
   }
 
