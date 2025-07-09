@@ -20,7 +20,6 @@ class _LoginPageState extends State<LoginPage> {
   final _labelColor = const Color.fromARGB(255, 215, 211, 211).withOpacity(0.5);
   Service18082? _service;
 
-
   @override
   void initState() {
     super.initState();
@@ -50,11 +49,13 @@ class _LoginPageState extends State<LoginPage> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Color.fromARGB(255, 6, 76, 162),
-            Color.fromARGB(255, 26, 128, 245),
-            Color.fromARGB(255, 60, 154, 255),
+            Color(0xFF313AC6), // 顶部 0%
+            Color(0xFF04A1F7), // 100%
           ],
-          stops: [0.3, 0.8, 1.0],
+          stops: [
+            0.0, // #313AC6
+            1.0, // #04A1F7
+          ],
         ),
       ),
     );
@@ -100,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color:  _labelColor,
+            color: _labelColor,
             width: 1,
           ),
         ),
@@ -131,7 +132,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-  
+
   // 密码输入框控件抽取
   Widget _buildPasswordInput() {
     return Container(
@@ -141,7 +142,7 @@ class _LoginPageState extends State<LoginPage> {
         color: Colors.transparent,
         border: Border(
           bottom: BorderSide(
-            color:  _labelColor,
+            color: _labelColor,
             width: 1,
           ),
         ),
@@ -217,7 +218,8 @@ class _LoginPageState extends State<LoginPage> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleLogin,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 112, 195, 240).withOpacity(0.8),
+                backgroundColor:
+                    const Color.fromARGB(255, 112, 195, 240).withOpacity(0.8),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
@@ -307,7 +309,7 @@ class _LoginPageState extends State<LoginPage> {
                                 const SizedBox(height: 16),
                                 // 密码输入框
                                 _buildPasswordInput(),
-                                const SizedBox(height: 16),  
+                                const SizedBox(height: 16),
                                 // 忘记密码
                                 _buildForgetPassword(),
                               ],
@@ -342,7 +344,6 @@ class _LoginPageState extends State<LoginPage> {
 
   // 登录方法的实现
   Future<void> _handleLogin() async {
-
     setState(() {
       _isLoading = true;
     });
@@ -355,12 +356,12 @@ class _LoginPageState extends State<LoginPage> {
           size: LoadingSize.large,
           text: '登录中...',
         );
-        
+
         final Map<String, dynamic> loginResult1 = await _service!.accountLogin(
           _usernameController.text,
           MD5Util.generateMd5("${_passwordController.text}messi"),
         );
-        
+
         if (!mounted) return;
         LoadingUtils.hideLoading(context);
         Navigator.pushReplacementNamed(context, '/home');
@@ -382,6 +383,5 @@ class _LoginPageState extends State<LoginPage> {
   // 注册方法的实现
   void _handleRegister() {
     context.showErrorMessage('暂时未开发');
-
   }
 }

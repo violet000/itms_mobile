@@ -7,25 +7,25 @@ import 'package:flutter_svg/flutter_svg.dart';
 class PageScaffold extends StatelessWidget {
   /// 页面标题
   final String? title;
-  
+
   /// 页面主体内容
   final Widget child;
-  
+
   /// 是否显示返回按钮
   final bool showBackButton;
-  
+
   /// 返回按钮点击回调
   final VoidCallback? onBackPressed;
 
   /// 返回按钮点击回调
   final VoidCallback? onWillPop;
-  
+
   /// 自定义标题组件
   final Widget? titleWidget;
-  
+
   /// 页面底部组件
   final Widget? bottomWidget;
-  
+
   /// 自定义背景装饰
   final BoxDecoration? backgroundDecoration;
 
@@ -49,17 +49,15 @@ class PageScaffold extends StatelessWidget {
         child: Column(
           children: [
             // 标题区域
-            if (title != null || titleWidget != null)
-              _buildHeader(),
-            
+            if (title != null || titleWidget != null) _buildHeader(),
+
             // 主体内容
             Expanded(
               child: child,
             ),
-            
+
             // 底部组件
-            if (bottomWidget != null)
-              bottomWidget!,
+            if (bottomWidget != null) bottomWidget!,
           ],
         ),
       ),
@@ -94,18 +92,18 @@ class PageScaffold extends StatelessWidget {
               ),
             ),
           Expanded(
-            child: titleWidget ?? Text(
-              title ?? '',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Color.fromARGB(255, 60, 80, 120),
-              ),
-            ),
+            child: titleWidget ??
+                Text(
+                  title ?? '',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color.fromARGB(255, 60, 80, 120),
+                  ),
+                ),
           ),
-          if (showBackButton)
-            const SizedBox(width: 48), // 为了保持标题居中
+          if (showBackButton) const SizedBox(width: 48), // 为了保持标题居中
         ],
       ),
     );
@@ -115,11 +113,19 @@ class PageScaffold extends StatelessWidget {
   BoxDecoration _getDefaultBackgroundDecoration() {
     return BoxDecoration(
       gradient: LinearGradient(
-        begin: Alignment.topRight,
-        end: Alignment.bottomLeft,
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
         colors: [
-          Color.fromARGB(255, 154, 185, 240).withOpacity(0.8), // 右上角淡蓝色
-          Color.fromARGB(255, 255, 255, 255), // 左下角白色
+          Color(0xFFD4E1F4), // 0% 顶部
+          Color(0xFFF4F5F7).withOpacity(0.0), // 30% 渐变到透明
+          Color(0xFFF3F5F9), // 30%~100% 纯色
+          Color(0xFFF3F5F9), // 100%
+        ],
+        stops: [
+          0.0, // #D4E1F4
+          0.3, // #F4F5F7 透明
+          0.3, // #F3F5F9
+          1.0, // #F3F5F9
         ],
       ),
     );
@@ -130,22 +136,22 @@ class PageScaffold extends StatelessWidget {
 class TitledPageScaffold extends StatelessWidget {
   /// 页面标题
   final String title;
-  
+
   /// 页面主体内容
   final Widget child;
-  
+
   /// 是否显示返回按钮
   final bool showBackButton;
-  
+
   /// 返回按钮点击回调
   final VoidCallback? onBackPressed;
 
   /// 返回按钮点击回调
   final VoidCallback? onWillPop;
-  
+
   /// 页面底部组件
   final Widget? bottomWidget;
-  
+
   /// 自定义背景装饰
   final BoxDecoration? backgroundDecoration;
 
