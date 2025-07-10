@@ -11,7 +11,6 @@ import 'package:itms_mobile/presentation/widgets/common/error_page.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 
-// 图例数据类
 class _LegendData {
   final String name;
   final List<GridCell> cells;
@@ -37,6 +36,7 @@ class _HomePageState extends State<HomePage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   List<MenuItem> menus = [];
+  bool _isInitialized = false; // 初始化状态
 
   // 常量定义
   static const double _legendItemHeight = 200.0;
@@ -58,11 +58,77 @@ class _HomePageState extends State<HomePage>
     );
     _fadeAnimation =
         Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    
+    // 延迟初始化，避免阻塞UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializePages();
-      _animationController.forward();
+      _initializeAsync();
     });
-    _getStorageAreas();
+  }
+
+  // 异步初始化
+  Future<void> _initializeAsync() async {
+    _initializeBasicUI();
+
+    await _getStorageAreas();
+    
+    if (mounted) {
+      setState(() {
+        _isInitialized = true;
+      });
+      _animationController.forward();
+    }
+  }
+
+  // 初始化
+  void _initializeBasicUI() {
+    setState(() {
+      menus = [
+        MenuItem(
+          name: '仓储',
+          index: 0,
+          unselectedIcon: 'assets/storage/storage_unselected.svg',
+          selectedIcon: 'assets/storage/storage_selected.svg',
+          color: const Color.fromARGB(255, 255, 255, 255),
+          children: [], // 初始为空，后续异步加载
+        ),
+        MenuItem(
+          name: '库内作业',
+          index: 1,
+          unselectedIcon: 'assets/storage/inner_unselected.svg',
+          selectedIcon: 'assets/storage/inner_selected.svg',
+          route: '/inner_work',
+          children: [
+            MenuItem(
+              name: '点到点搬运',
+              index: 0,
+              imagePath: 'assets/icons/handover_circle.svg',
+              iconPath: 'assets/icons/net_handover_icon.svg',
+              route: '/inner_work/inbound',
+              color:
+                  const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
+            ),
+            MenuItem(
+              name: '搬运任务管理',
+              index: 1,
+              imagePath: 'assets/icons/treasury_reat.svg',
+              iconPath: 'assets/icons/treasury_handover_icon.svg',
+              route: '/inner_work/outbound',
+              color:
+                  const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
+            )
+          ],
+          color: const Color(0xFF0489FE),
+        ),
+        MenuItem(
+          name: '厂商模式',
+          index: 2,
+          icon: Icons.business,
+          route: '/vendor_mode',
+          color: const Color(0xFF0489FE),
+        ),
+      ];
+      _initializePages();
+    });
   }
 
   @override
@@ -71,7 +137,6 @@ class _HomePageState extends State<HomePage>
     super.dispose();
   }
 
-  // 初始化页面
   void _initializePages() {
     setState(() {
       _pages.clear();
@@ -98,15 +163,21 @@ class _HomePageState extends State<HomePage>
   }
 
   // 获取仓储库位信息，根据仓储信息动态的生成仓储区域菜单
-  void _getStorageAreas() async {
+  Future<void> _getStorageAreas() async {
     try {
-      final Map<String, dynamic> response =
-          await StorageService().getStorageAreas();
+      Map<String, dynamic>? response = StorageService.getCachedStorageAreas();
+      
+      if (response == null) {
+        response = await StorageService.instance.getStorageAreas();
+      }
+
+      if (response == null || !response.containsKey('retList')) {
+        return print('仓储数据错误或为空');
+      }
 
       final retList = response['retList'] as List<dynamic>;
       List<MenuItem> storageChildren = [];
 
-      // 清空所有现有数据
       StorageDataManager().clearAllData();
 
       for (var item in retList) {
@@ -114,37 +185,42 @@ class _HomePageState extends State<HomePage>
         String imagePath = 'assets/storage/storage_${map['x']}.svg';
         bool exists = await assetExists(imagePath);
 
-        // 获取区域ID和名称
-        String areaId = map['id'] as String;
-        String areaName = map['name'] as String;
+        String areaId = map['id'] as String? ?? '';
+        String areaName = map['name'] as String? ?? '';
 
-        // 动态创建该区域的单元格数据
+        if (areaId.isEmpty || areaName.isEmpty) {
+          print('区域数据不完整: $map');
+          continue;
+        }
+
         List<GridCell> areaCells = [];
 
-        // 处理该区域的库位数据
         final storageLocationDTOS =
             map['storageLocationDTOS'] as List<dynamic>?;
         if (storageLocationDTOS != null) {
           for (var location in storageLocationDTOS) {
-            final x = double.parse(location['xplace'].toString());
-            final y = double.parse(location['yplace'].toString());
-            final status = location['status'] as int;
+            try {
+              final x = double.parse(location['xplace'].toString());
+              final y = double.parse(location['yplace'].toString());
+              final status = location['status'] as int? ?? 0;
 
-            areaCells.add(GridCell(
-              x: x,
-              y: y,
-              id: location['id'].toString(),
-              color: status == 1 ? Colors.blue : Colors.grey,
-            ));
+              areaCells.add(GridCell(
+                x: x,
+                y: y,
+                id: location['id'].toString(),
+                color: status == 1 ? Colors.blue : Colors.grey,
+              ));
+            } catch (e) {
+              print('处理库位数据失败: $location, 错误: $e');
+            }
           }
         }
-        
-        // 更新该区域的数据
+
         StorageDataManager().updateAreaData(areaId, areaName, areaCells);
 
         storageChildren.add(MenuItem(
           name: areaName,
-          index: int.parse(map['x'].toString()),
+          index: int.tryParse(map['x'].toString()) ?? 0,
           imagePath: exists ? imagePath : null,
           iconPath: 'assets/images/storage_${map['x']}.svg',
           route: '/storage/storage-area',
@@ -152,57 +228,64 @@ class _HomePageState extends State<HomePage>
         ));
       }
 
-
-      setState(() {
-        menus = [
-          MenuItem(
-            name: '仓储',
-            index: 0,
-            unselectedIcon: 'assets/storage/storage_unselected.svg',
-            selectedIcon: 'assets/storage/storage_selected.svg',
-            color: const Color.fromARGB(255, 255, 255, 255),
-            children: storageChildren,
-          ),
-          MenuItem(
-            name: '库内作业',
-            index: 1,
-            unselectedIcon: 'assets/storage/inner_unselected.svg',
-            selectedIcon: 'assets/storage/inner_selected.svg',
-            route: '/inner_work',
-            children: [
-              MenuItem(
-                name: '点到点搬运',
-                index: 0,
-                imagePath: 'assets/icons/handover_circle.svg',
-                iconPath: 'assets/icons/net_handover_icon.svg',
-                route: '/inner_work/inbound',
-                color:
-                    const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
-              ),
-              MenuItem(
-                name: '搬运任务管理',
-                index: 1,
-                imagePath: 'assets/icons/treasury_reat.svg',
-                iconPath: 'assets/icons/treasury_handover_icon.svg',
-                route: '/inner_work/outbound',
-                color:
-                    const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
-              )
-            ],
-            color: const Color(0xFF0489FE),
-          ),
-          MenuItem(
-            name: '厂商模式',
-            index: 2,
-            icon: Icons.business,
-            route: '/vendor_mode',
-            color: const Color(0xFF0489FE),
-          ),
-        ];
-        _initializePages();
-      });
+      if (mounted) {
+        setState(() {
+          menus = [
+            MenuItem(
+              name: '仓储',
+              index: 0,
+              unselectedIcon: 'assets/storage/storage_unselected.svg',
+              selectedIcon: 'assets/storage/storage_selected.svg',
+              color: const Color.fromARGB(255, 255, 255, 255),
+              children: storageChildren,
+            ),
+            MenuItem(
+              name: '库内作业',
+              index: 1,
+              unselectedIcon: 'assets/storage/inner_unselected.svg',
+              selectedIcon: 'assets/storage/inner_selected.svg',
+              route: '/inner_work',
+              children: [
+                MenuItem(
+                  name: '点到点搬运',
+                  index: 0,
+                  imagePath: 'assets/icons/handover_circle.svg',
+                  iconPath: 'assets/icons/net_handover_icon.svg',
+                  route: '/inner_work/inbound',
+                  color:
+                      const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
+                ),
+                MenuItem(
+                  name: '搬运任务管理',
+                  index: 1,
+                  imagePath: 'assets/icons/treasury_reat.svg',
+                  iconPath: 'assets/icons/treasury_handover_icon.svg',
+                  route: '/inner_work/outbound',
+                  color:
+                      const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
+                )
+              ],
+              color: const Color(0xFF0489FE),
+            ),
+            MenuItem(
+              name: '厂商模式',
+              index: 2,
+              icon: Icons.business,
+              route: '/vendor_mode',
+              color: const Color(0xFF0489FE),
+            ),
+          ];
+          _initializePages();
+        });
+      }
     } catch (e) {
       print('获取仓储库位信息失败: $e');
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+        _animationController.forward();
+      }
     }
   }
 
@@ -364,7 +447,7 @@ class _HomePageState extends State<HomePage>
           highlightColor: Colors.transparent,
           onTap: () {
             if (menu.route != null) {
-              // 根据菜单参数获取对应的storageAreas数据
+              // 根据菜单获取对应的storageAreas数据
               final storageAreas = _getStorageAreasByMenuParams(menu.params);
               Navigator.pushNamed(context, menu.route!,
                   arguments: <String, dynamic>{
@@ -433,7 +516,7 @@ class _HomePageState extends State<HomePage>
           },
           borderRadius: BorderRadius.circular(8),
           child: Container(
-            height: 90, // 添加高度约束
+            height: 90,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
               color: menu.color,
@@ -665,10 +748,27 @@ class _HomePageState extends State<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    if (menus.isEmpty || menus.length < 2) {
-      return const PageScaffold(
-        showBackButton: false,
-        child: Center(child: CircularProgressIndicator()),
+    if (!_isInitialized) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF29A8FF)),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '正在加载...',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
       );
     }
     return Scaffold(

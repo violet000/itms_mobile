@@ -1,70 +1,66 @@
+import 'package:itms_mobile/core/utils/storage_utils.dart';
+import 'package:itms_mobile/core/utils/grid_cell.dart';
+import 'package:flutter/services.dart';
 import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
 
-/// 由于仓储库位信息需要实时更新，该类去对仓储库位信息进行缓存以及更新
 class StorageService {
-  static final StorageService _instance = StorageService._internal();
-  factory StorageService() => _instance;
-  StorageService._internal();
+  static StorageService? _instance;
+  static Map<String, dynamic>? _cachedStorageAreas;
+  static bool _isLoading = false;
+  static Service18082? _service18082;
 
-  Map<String, dynamic>? _cachedStorageAreas;
-  DateTime? _lastFetchTime;
-  static const Duration _cacheExpiration = Duration(minutes: 5); // 缓存5分钟
+  StorageService._();
 
-  /// 获取仓储库位信息（带缓存）
+  static StorageService get instance {
+    _instance ??= StorageService._();
+    return _instance!;
+  }
+
+  // 获取Service实例
+  static Future<Service18082> _getService18082() async {
+    if (_service18082 == null) {
+      _service18082 = await Service18082.create();
+    }
+    return _service18082!;
+  }
+
+  // 预加载仓储数据
+  static Future<void> preloadStorageAreas() async {
+    if (_cachedStorageAreas != null || _isLoading) return;
+    
+    _isLoading = true;
+    try {
+      final service = await _getService18082();
+      _cachedStorageAreas = await service.getStorageAreas();
+    } catch (e) {
+      print('预加载仓储数据失败${e}');
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  // 获取缓存数据
+  static Map<String, dynamic>? getCachedStorageAreas() {
+    return _cachedStorageAreas;
+  }
+
+  // 清除缓存
+  static void clearCache() {
+    _cachedStorageAreas = null;
+  }
+
+  // 仓储数据
   Future<Map<String, dynamic>> getStorageAreas() async {
-    // 检查缓存是否有效
-    if (_isCacheValid()) {
+    // 如果有缓存，取缓存数据
+    if (_cachedStorageAreas != null) {
       return _cachedStorageAreas!;
     }
 
-    try {
-      final response = await Service18082().getStorageAreas();
-      
-      // 更新缓存
-      _cachedStorageAreas = response;
-      _lastFetchTime = DateTime.now();
-      
-      return response;
-    } catch (e) {
-      // 如果API调用失败但有缓存数据，返回缓存数据
-      if (_cachedStorageAreas != null) {
-        return _cachedStorageAreas!;
-      }
-      // 没有缓存数据，重新抛出异常
-      rethrow;
-    }
-  }
-
-  /// 强制刷新仓储库位信息
-  Future<Map<String, dynamic>> refreshStorageAreas() async {
-    try {
-      final response = await Service18082().getStorageAreas();
-      
-      // 更新缓存
-      _cachedStorageAreas = response;
-      _lastFetchTime = DateTime.now();
-      
-      return response;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// 清除缓存
-  void clearCache() {
-    _cachedStorageAreas = null;
-    _lastFetchTime = null;
-  }
-
-  /// 检查缓存是否有效
-  bool _isCacheValid() {
-    if (_cachedStorageAreas == null || _lastFetchTime == null) {
-      return false;
-    }
+    // 否则去调取接口数据
+    final service = await _getService18082();
+    final response = await service.getStorageAreas();
     
-    final now = DateTime.now();
-    final timeDifference = now.difference(_lastFetchTime!);
-    
-    return timeDifference < _cacheExpiration;
+    _cachedStorageAreas = response;
+    return response;
   }
 } 

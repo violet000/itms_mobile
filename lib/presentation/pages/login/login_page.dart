@@ -4,6 +4,8 @@ import 'package:itms_mobile/core/utils/hashStr.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/presentation/widgets/common/loading_widget.dart';
 import 'dart:ui';
+import 'package:itms_mobile/presentation/pages/home/home.dart';
+import 'package:itms_mobile/services/storage_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -357,22 +359,58 @@ class _LoginPageState extends State<LoginPage> {
           text: '登录中...',
         );
 
-        final Map<String, dynamic> loginResult1 = await _service!.accountLogin(
+        await _service!.accountLogin(
           _usernameController.text,
           MD5Util.generateMd5("${_passwordController.text}messi"),
         );
-
+        LoadingUtils.hideLoading(context);
+        if (!mounted) return;
+        
+        // 登录后，预加载Home数据
+        LoadingUtils.showFullScreenLoading(
+          context: context,
+          text: '正在初始化...',
+        );
+        
+        try {
+          // 预加载
+          await StorageService.preloadStorageAreas();
+        } catch (e) {
+          print('预加载仓储数据失败: $e');
+        }
+        
         if (!mounted) return;
         LoadingUtils.hideLoading(context);
-        Navigator.pushReplacementNamed(context, '/home');
+        
+        // 页面跳转
+        await Navigator.pushReplacement<void, void>(
+          context,
+          PageRouteBuilder<void>(
+            pageBuilder: (context, animation, secondaryAnimation) => const HomePage(),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              const begin = Offset(1.0, 0.0);
+              const end = Offset.zero;
+              const curve = Curves.fastOutSlowIn;
+              
+              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+              var offsetAnimation = animation.drive(tween);
+              
+              return SlideTransition(
+                position: offsetAnimation,
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 150),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
+        LoadingUtils.hideLoading(context);
         context.showErrorMessage('登录失败: ${e.toString()}');
       }
     } finally {
       if (mounted) {
-        LoadingUtils.hideLoading(context);
         setState(() {
           _isLoading = false;
         });
