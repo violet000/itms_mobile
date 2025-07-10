@@ -10,7 +10,7 @@ class RouteGenerator {
     switch (settings.name) {
       case '/':
       case '/login':
-        return MaterialPageRoute<dynamic>(builder: (_) => const LoginPage());
+        return MaterialPageRoute<dynamic>(builder: (_) => const LoginPage());  
       default:
         return _errorRoute();
     }

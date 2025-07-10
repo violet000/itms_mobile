@@ -29,6 +29,9 @@ class PageScaffold extends StatelessWidget {
   /// 自定义背景装饰
   final BoxDecoration? backgroundDecoration;
 
+  /// 右侧自定义内容
+  final Widget? rightWidget;
+
   const PageScaffold({
     Key? key,
     this.title,
@@ -39,6 +42,7 @@ class PageScaffold extends StatelessWidget {
     this.bottomWidget,
     this.onWillPop,
     this.backgroundDecoration,
+    this.rightWidget,
   }) : super(key: key);
 
   @override
@@ -103,7 +107,8 @@ class PageScaffold extends StatelessWidget {
                   ),
                 ),
           ),
-          if (showBackButton) const SizedBox(width: 48), // 为了保持标题居中
+          if (rightWidget != null) rightWidget!,
+          if (showBackButton) const SizedBox(width: 10),
         ],
       ),
     );
@@ -116,12 +121,12 @@ class PageScaffold extends StatelessWidget {
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
         colors: [
-          Color(0xFFD4E1F4), // 0% 顶部
-          Color(0xFFF4F5F7).withOpacity(0.0), // 30% 渐变到透明
-          Color(0xFFF3F5F9), // 30%~100% 纯色
-          Color(0xFFF3F5F9), // 100%
+          const Color(0xFFD4E1F4), // 0% 顶部
+          const Color(0xFFF4F5F7).withOpacity(0.0), // 30% 渐变到透明
+          const Color(0xFFF3F5F9), // 30%~100% 纯色
+          const Color(0xFFF3F5F9), // 100%
         ],
-        stops: [
+        stops: const [
           0.0, // #D4E1F4
           0.3, // #F4F5F7 透明
           0.3, // #F3F5F9

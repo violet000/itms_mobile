@@ -228,25 +228,42 @@ class CustomDialog {
     EdgeInsetsGeometry? contentPadding,
     Widget? title,
     List<Widget>? actions,
+    List<BoxShadow>? boxShadow,
   }) async {
     return await showDialog<T>(
       context: context,
       barrierDismissible: barrierDismissible,
       barrierColor: barrierColor,
       builder: (BuildContext context) {
-        return AlertDialog(
-          shape: shape ?? RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        return Container(
+          decoration: BoxDecoration(
+            boxShadow: boxShadow ?? [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.18),
+                blurRadius: 32,
+                offset: const Offset(0, 12),
+              ),
+              BoxShadow(
+                color: Colors.blue.withOpacity(0.10),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          backgroundColor: backgroundColor,
-          title: title,
-          titlePadding: titlePadding,
-          content: child,
-          contentPadding: contentPadding,
-          actions: actions,
-          clipBehavior: clipBehavior ?? Clip.none,
-          insetPadding: insetPadding ?? const EdgeInsets.all(16),
-          semanticLabel: semanticLabel,
+          child: AlertDialog(
+            shape: shape ?? RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: backgroundColor,
+            title: title,
+            titlePadding: titlePadding,
+            content: child,
+            contentPadding: contentPadding,
+            actions: actions,
+            clipBehavior: clipBehavior ?? Clip.none,
+            insetPadding: insetPadding ?? const EdgeInsets.all(16),
+            semanticLabel: semanticLabel,
+          ),
         );
       },
     );

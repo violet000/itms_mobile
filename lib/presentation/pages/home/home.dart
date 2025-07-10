@@ -24,7 +24,9 @@ class _LegendData {
 }
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final Map<String, dynamic>? arguments;
+  
+  const HomePage({super.key, this.arguments});
   @override
   State<HomePage> createState() => _HomePageState();
 }
@@ -58,6 +60,11 @@ class _HomePageState extends State<HomePage>
     );
     _fadeAnimation =
         Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    
+    // 检查是否有传入的tab索引参数
+    if (widget.arguments != null && widget.arguments!['selectedTab'] != null) {
+      _selectedIndex = widget.arguments!['selectedTab'] as int;
+    }
     
     // 延迟初始化，避免阻塞UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -103,7 +110,7 @@ class _HomePageState extends State<HomePage>
               index: 0,
               imagePath: 'assets/icons/handover_circle.svg',
               iconPath: 'assets/icons/net_handover_icon.svg',
-              route: '/inner_work/inbound',
+              route: '/inner_work/point-to-point',
               color:
                   const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
             ),
@@ -112,7 +119,7 @@ class _HomePageState extends State<HomePage>
               index: 1,
               imagePath: 'assets/icons/treasury_reat.svg',
               iconPath: 'assets/icons/treasury_handover_icon.svg',
-              route: '/inner_work/outbound',
+              route: '/inner_work/hand-task',
               color:
                   const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
             )
@@ -251,7 +258,7 @@ class _HomePageState extends State<HomePage>
                   index: 0,
                   imagePath: 'assets/icons/handover_circle.svg',
                   iconPath: 'assets/icons/net_handover_icon.svg',
-                  route: '/inner_work/inbound',
+                  route: '/inner_work/point-to-point',
                   color:
                       const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
                 ),
@@ -260,7 +267,7 @@ class _HomePageState extends State<HomePage>
                   index: 1,
                   imagePath: 'assets/icons/treasury_reat.svg',
                   iconPath: 'assets/icons/treasury_handover_icon.svg',
-                  route: '/inner_work/outbound',
+                  route: '/inner_work/hand-task',
                   color:
                       const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
                 )
@@ -502,16 +509,7 @@ class _HomePageState extends State<HomePage>
           highlightColor: Colors.transparent, // 点击时没有高亮效果
           onTap: () {
             if (menu.route != null) {
-              // // 根据菜单名称获取对应的storageAreas数据
-              // final storageAreas = _getStorageAreasByMenuName(menu.name);
-              // Navigator.pushNamed(
-              //   context,
-              //   menu.route!,
-              //   arguments: <String, dynamic>{
-              //     ...menu.params ?? <String, dynamic>{},
-              //     if (storageAreas != null) 'storageAreas': storageAreas,
-              //   }
-              // );
+              Navigator.pushNamed(context, menu.route!);
             }
           },
           borderRadius: BorderRadius.circular(8),
