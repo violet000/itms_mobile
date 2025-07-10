@@ -79,13 +79,9 @@ class _StorageAreaState extends State<StorageArea> {
                             width: double.infinity,
                             height: _legendItemHeight,
                             child: MapControl(
-                              // 在父级容器的时候就做好网格区域轴的绘制， +1，-1 为了防止网格数组溢出
-                              xUnits: (areaInfo['xUnits'] as int) -
-                                  (areaInfo['xStart'] as int) +
-                                  1,
-                              yUnits: (areaInfo['yUnits'] as int) -
-                                  (areaInfo['yStart'] as int) +
-                                  1,
+                              // 使用全局最大范围作为网格大小，当前区域的起始点作为偏移
+                              xUnits: (areaInfo['xUnits'] as int) - (areaInfo['xStart'] as int) + 1,
+                              yUnits: (areaInfo['yUnits'] as int) - (areaInfo['yStart'] as int) + 1,
                               xStart: (areaInfo['xStart'] as int) - 1,
                               yStart: (areaInfo['yStart'] as int) - 1,
                               cells: StorageArea.cells,

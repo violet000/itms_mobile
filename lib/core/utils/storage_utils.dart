@@ -9,20 +9,6 @@ class StorageUtils {
         : const Color.fromARGB(255, 238, 137, 4);
   }
 
-  static Map<String, int> calcUnits(List<GridCell> cells) {
-    int xUnits = 1;
-    int yUnits = 1;
-    if (cells.isNotEmpty) {
-      double maxX = cells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
-      double maxY = cells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
-      xUnits = maxX.ceil();
-      yUnits = maxY.ceil();
-      xUnits = xUnits < 1 ? 1 : xUnits;
-      yUnits = yUnits < 1 ? 1 : yUnits;
-    }
-    return {'xUnits': xUnits, 'yUnits': yUnits};
-  }
-
   static Map<String, dynamic> getCellsByAreaId(Map<String, dynamic> args) {
     final areaId = args['id'] as String?;
     final areaName = args['name'] as String?;
@@ -41,7 +27,7 @@ class StorageUtils {
 
   // 计算区域的坐标范围
   static Map<String, int> calculateAreaRange(
-      List<GridCell> cells, List<GridCell> allCellList) {
+      List<GridCell> cells, List<GridCell> allCellList, [String? areaId]) {
     if (cells.isEmpty) {
       return <String, int>{
         'xStart': 0,
@@ -51,24 +37,32 @@ class StorageUtils {
       };
     }
 
-    double minX = cells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
-    double maxX = cells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
-    double minY = cells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
+    // 计算当前区域的X和Y坐标的最小值作为起始点
+    double currentMinX =
+        cells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
+    double currentMinY =
+        cells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
 
-    // 动态计算所有区域中Y坐标的最大值
-    final allCells = allCellList;
-    double maxY;
-    if (allCells.isEmpty) {
-      maxY = minY; // 如果没有其他区域的数据，使用当前区域的最大Y值
-    } else {
-      maxY = allCells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
+    // 使用指定区域的最大范围，如果没有指定则使用全局最大范围
+    double maxRangeX = StorageDataManager().getMaxRangeX(areaId);
+    double maxRangeY = StorageDataManager().getMaxRangeY(areaId);
+
+    if (areaId != null) {
+      print('计算区域: $areaId');
     }
 
+    // 计算绘制范围：从最小值到最小值+范围
+    int xUnits = currentMinX.floor().toInt() + maxRangeX.ceil().toInt();
+    int yUnits = currentMinY.floor().toInt() + maxRangeY.ceil().toInt();
+
+    print('currentMinX: $currentMinX, currentMinY: $currentMinY, xUnits: $xUnits, yUnits: $yUnits');
+    print('maxRangeX: $maxRangeX, maxRangeY: $maxRangeY');
+
     return <String, int>{
-      'xStart': minX.toInt(),
-      'xUnits': maxX.ceil().toInt(),
-      'yStart': minY.toInt(),
-      'yUnits': maxY.ceil().toInt(),
+      'xStart': currentMinX.floor().toInt(), // 使用当前区域的X轴最小值作为起始点
+      'xUnits': xUnits, // X轴绘制到：起始点 + 范围
+      'yStart': currentMinY.floor().toInt(), // 使用当前区域的Y轴最小值作为起始点
+      'yUnits': yUnits, // Y轴绘制到：起始点 + 范围
     };
   }
 
@@ -97,6 +91,11 @@ class StorageDataManager {
   final Map<String, List<GridCell>> _areaCells = {};
   final Map<String, String> _areaNames = {};
 
+  // 为每个区域分别缓存最大范围值
+  final Map<String, double> _cachedMaxRangeX = {};
+  final Map<String, double> _cachedMaxRangeY = {};
+  final Map<String, bool> _isCacheValid = {};
+
   // 获取所有区域ID
   List<String> get areaIds => _areaCells.keys.toList();
 
@@ -105,7 +104,7 @@ class StorageDataManager {
     return _areaCells[areaId] ?? [];
   }
 
-  // 获取指定区域的名称
+  // 获取区域名称
   String getAreaName(String areaId) {
     return _areaNames[areaId] ?? '未知区域';
   }
@@ -114,12 +113,17 @@ class StorageDataManager {
   void updateAreaData(String areaId, String areaName, List<GridCell> cells) {
     _areaCells[areaId] = cells;
     _areaNames[areaId] = areaName;
+    // 数据更新后，该区域的缓存失效
+    _isCacheValid[areaId] = false;
   }
 
   // 清空所有数据
   void clearAllData() {
     _areaCells.clear();
     _areaNames.clear();
+    _cachedMaxRangeX.clear();
+    _cachedMaxRangeY.clear();
+    _isCacheValid.clear();
   }
 
   // 获取所有区域的单元格数据（用于计算全局范围）
@@ -131,15 +135,76 @@ class StorageDataManager {
     return allCells;
   }
 
+  // 获取指定区域的最大范围X
+  double getMaxRangeX([String? areaId]) {
+    if (areaId != null) {
+      return _getAreaMaxRangeX(areaId);
+    }
+    // 如果没有指定区域，返回所有区域中的最大值
+    double maxRange = 0;
+    for (String id in _areaCells.keys) {
+      double range = _getAreaMaxRangeX(id);
+      if (range > maxRange) {
+        maxRange = range;
+      }
+    }
+    return maxRange;
+  }
+
+  // 获取指定区域的最大范围Y
+  double getMaxRangeY([String? areaId]) {
+    if (areaId != null) {
+      return _getAreaMaxRangeY(areaId);
+    }
+    // 如果没有指定区域，返回所有区域中的最大值
+    double maxRange = 0;
+    for (String id in _areaCells.keys) {
+      double range = _getAreaMaxRangeY(id);
+      if (range > maxRange) {
+        maxRange = range;
+      }
+    }
+    return maxRange;
+  }
+
+  // 获取指定区域的最大范围X（内部方法）
+  double _getAreaMaxRangeX(String areaId) {
+    if (_isCacheValid[areaId] != true) {
+      _calculateAreaMaxRanges(areaId);
+    }
+    return _cachedMaxRangeX[areaId] ?? 0;
+  }
+
+  // 获取指定区域的最大范围Y（内部方法）
+  double _getAreaMaxRangeY(String areaId) {
+    if (_isCacheValid[areaId] != true) {
+      _calculateAreaMaxRanges(areaId);
+    }
+    return _cachedMaxRangeY[areaId] ?? 0;
+  }
+
+  // 计算并缓存指定区域的最大范围
+  void _calculateAreaMaxRanges(String areaId) {
+    List<GridCell> areaCells = getCellsByAreaId(areaId);
+    
+    if (areaCells.isEmpty) {
+      _cachedMaxRangeX[areaId] = 0;
+      _cachedMaxRangeY[areaId] = 0;
+    } else {
+      double maxX = areaCells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
+      double minX = areaCells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
+      double maxY = areaCells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
+      double minY = areaCells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
+
+      _cachedMaxRangeX[areaId] = maxX - minX;
+      _cachedMaxRangeY[areaId] = maxY - minY;
+    }
+    
+    _isCacheValid[areaId] = true;
+  }
+
   // 向后兼容的方法（为了不破坏现有代码）
   List<GridCell> get cells => getCellsByAreaId('A001');
   List<GridCell> get cells2 => getCellsByAreaId('A002');
   List<GridCell> get cells3 => getCellsByAreaId('A003');
-
-  void updateCells(
-      List<GridCell> area1, List<GridCell> area2, List<GridCell> area3) {
-    updateAreaData('A001', '仓储一区', area1);
-    updateAreaData('A002', '仓储二区', area2);
-    updateAreaData('A003', '仓储三区', area3);
-  }
 }

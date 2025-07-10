@@ -659,6 +659,7 @@ class _HomePageState extends State<HomePage>
   List<_LegendData> _getLegendData() {
     final storageManager = StorageDataManager();
     final areaIds = storageManager.areaIds;
+    print('areaIds: ${storageManager.getAllCells()}');
 
     return areaIds.map((areaId) {
       final cells = storageManager.getCellsByAreaId(areaId);
@@ -705,13 +706,9 @@ class _HomePageState extends State<HomePage>
                   width: _legendItemWidth,
                   height: _legendItemHeight,
                   child: MapControl(
-                    // 在父级容器的时候就做好网格区域轴的绘制， +1，-1 为了防止网格数组溢出
-                    xUnits: (rangeInfo['xUnits'] as int) -
-                        (rangeInfo['xStart'] as int) +
-                        1,
-                    yUnits: (rangeInfo['yUnits'] as int) -
-                        (rangeInfo['yStart'] as int) +
-                        1,
+                    // 使用计算出的范围，确保每个区域显示正确的格子数量
+                    xUnits: (rangeInfo['xUnits'] as int) - (rangeInfo['xStart'] as int) + 1,
+                    yUnits: (rangeInfo['yUnits'] as int) - (rangeInfo['yStart'] as int) + 1,
                     xStart: (rangeInfo['xStart'] as int) - 1,
                     yStart: (rangeInfo['yStart'] as int) - 1,
                     cells: cells

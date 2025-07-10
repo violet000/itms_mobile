@@ -121,16 +121,20 @@ class GridPainter extends CustomPainter {
 
     // 绘制库位格子
     for (final cell in cells) {
+      // 将实际坐标转换为显示坐标（从0开始）
+      final double displayX = cell.x - xStart;
+      final double displayY = cell.y - yStart;
+      
       // 判断cell是否在当前显示区域内
-      if (cell.x >= xStart &&
-          cell.x <= xStart + xUnits &&
-          cell.y >= yStart &&
-          cell.y <= yStart + yUnits) {
-        double padding = 6.0; // 适中的内边距
-        // 计算格子在画布上的索引（使用实际坐标值）
-        final double xIndex = cell.y - yStart;
-        final double yIndex = cell.x - xStart;
-        // 画布位置（直接使用坐标值计算，不需要额外的小数偏移）
+      if (displayX >= 0 &&
+          displayX <= xUnits &&
+          displayY >= 0 &&
+          displayY <= yUnits) {
+        double padding = 2.0; // 适中的内边距
+        // 计算格子在画布上的索引（使用显示坐标）
+        final double xIndex = displayY; // Y轴对应画布的X方向
+        final double yIndex = displayX; // X轴对应画布的Y方向
+        // 画布位置
         final double baseX = (yUnits - xIndex) * dx;
         final double baseY = (xUnits - yIndex) * dy;
         final double adjustedX = baseX + padding;
