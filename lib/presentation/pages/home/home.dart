@@ -598,6 +598,7 @@ class _HomePageState extends State<HomePage>
   void _showLegendDialog(BuildContext context) {
     showDialog<void>(
       context: context,
+      barrierDismissible: true, // 关闭弹窗
       builder: (BuildContext context) => _buildLegendDialog(),
     );
   }
@@ -632,7 +633,11 @@ class _HomePageState extends State<HomePage>
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         IconButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
+          },
           icon: const Icon(Icons.close, color: Colors.grey),
           padding: EdgeInsets.zero,
           constraints: const BoxConstraints(),
