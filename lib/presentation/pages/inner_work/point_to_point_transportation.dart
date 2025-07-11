@@ -367,6 +367,8 @@ class _PointToPointPageState extends State<PointToPointPage> {
             yStart: (currentAreaRange['yStart'] ?? 0) - 1,
             cells: currentAreaCells,
             onCellTap: _onCellTap,
+            startLocationId: startStorageLocationId,
+            endLocationId: endStorageLocationId,
           ),
         ),
       ),
