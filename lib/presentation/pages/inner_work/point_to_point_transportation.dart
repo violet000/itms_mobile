@@ -95,26 +95,178 @@ class _PointToPointPageState extends State<PointToPointPage> {
   void _showSelectionDialog(GridCell cell) {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('选择库位 ${cell.id}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      barrierDismissible: true,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 8,
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // 标题区域
+              Container(
+                padding: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(
+                      color: Colors.grey.shade200,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${cell.id}库位',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+              // 选项按钮
+              _buildSelectionOption(
+                icon: Icons.play_arrow,
+                title: '设为起始库位',
+                subtitle: '设置搬运任务的起点',
+                color: Colors.blue,
+                onTap: () {
+                  Navigator.pop(context);
+                  _setSelectedLocation(cell.id, 'start');
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildSelectionOption(
+                icon: Icons.flag,
+                title: '设为终点库位',
+                subtitle: '设置搬运任务的终点',
+                color: Colors.red,
+                onTap: () {
+                  Navigator.pop(context);
+                  _setSelectedLocation(cell.id, 'end');
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildSelectionOption(
+                icon: Icons.details,
+                title: '库位详情',
+                subtitle: '查看当前库位详细信息',
+                color: const Color.fromARGB(255, 67, 67, 68),
+                onTap: () {
+                  AppLogger.info('库位详情: ${cell.id}');
+                },
+              ),
+              const SizedBox(height: 12),
+              // 取消按钮
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    '取消',
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 构建选择选项
+  Widget _buildSelectionOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
           children: [
-            ListTile(
-              leading: const Icon(Icons.play_arrow, color: Colors.blue),
-              title: const Text('设为起始库位'),
-              onTap: () {
-                Navigator.pop(context);
-                _setSelectedLocation(cell.id, 'start');
-              },
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                icon,
+                color: color,
+                size: 20,
+              ),
             ),
-            ListTile(
-              leading: const Icon(Icons.flag, color: Colors.red),
-              title: const Text('设为终点库位'),
-              onTap: () {
-                Navigator.pop(context);
-                _setSelectedLocation(cell.id, 'end');
-              },
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: color.withOpacity(0.6),
+              size: 16,
             ),
           ],
         ),
