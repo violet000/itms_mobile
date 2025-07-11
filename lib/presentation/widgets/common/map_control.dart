@@ -9,6 +9,8 @@ class MapControl extends StatelessWidget {
   final int yStart;
   final List<GridCell> cells;
   final void Function(GridCell)? onCellTap;
+  final String? startLocationId; // 起始库位ID
+  final String? endLocationId; // 终点库位ID
 
   // 存储 cell 和 rect 的映射
   final List<MapEntry<GridCell, Rect>> cellRects = [];
@@ -21,6 +23,8 @@ class MapControl extends StatelessWidget {
     this.yStart = 0,
     this.cells = const [],
     this.onCellTap,
+    this.startLocationId,
+    this.endLocationId,
   }) : super(key: key);
 
   @override
@@ -44,6 +48,8 @@ class MapControl extends StatelessWidget {
                 yStart: yStart,
                 cells: cells,
                 cellRects: cellRects,
+                startLocationId: startLocationId,
+                endLocationId: endLocationId,
               ),
               size: Size.infinite,
             ),
@@ -73,6 +79,8 @@ class GridPainter extends CustomPainter {
   final Color gridColor = Colors.grey;
   final List<GridCell> cells;
   final List<MapEntry<GridCell, Rect>> cellRects;
+  final String? startLocationId;
+  final String? endLocationId;
 
   GridPainter({
     required this.xUnits,
@@ -81,13 +89,18 @@ class GridPainter extends CustomPainter {
     required this.yStart,
     required this.cells,
     required this.cellRects,
+    this.startLocationId,
+    this.endLocationId,
   });
 
-  // 根据背景色计算对比色，确保文字清晰可见
-  Color _getContrastColor(Color backgroundColor) {
-    // 计算亮度
-    final double luminance = backgroundColor.computeLuminance();
-    return luminance > 0.5 ? Colors.black87 : Colors.white;
+  // 获取库位的标记颜色
+  Color _getCellMarkColor(GridCell cell) {
+    if (cell.id == startLocationId) {
+      return Colors.blue; // 起始库位用蓝色
+    } else if (cell.id == endLocationId) {
+      return Colors.red; // 终点库位用红色
+    }
+    return cell.color; // 其他库位保持原色
   }
 
   @override
@@ -146,42 +159,69 @@ class GridPainter extends CustomPainter {
           dy - 2 * padding,
         );
 
+        // 获取库位的标记颜色
+        final Color cellColor = _getCellMarkColor(cell);
+        final bool isStartLocation = cell.id == startLocationId;
+        final bool isEndLocation = cell.id == endLocationId;
+
+        // 绘制背景
         final backgroundPaint = Paint()
-          ..color = cell.color.withOpacity(0.85);
+          ..color = cellColor.withOpacity(isStartLocation || isEndLocation ? 0.9 : 0.85);
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
           backgroundPaint,
         );
 
+        // 绘制边框
         final borderPaint = Paint()
-          ..color = cell.color.withOpacity(0.9)
+          ..color = cellColor.withOpacity(0.9)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.0;
+          ..strokeWidth = isStartLocation || isEndLocation ? 2.0 : 1.0; // 选中库位边框更粗
         canvas.drawRRect(
           RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
           borderPaint,
         );
-        
-        // // 绘制库位编号
-        // final textStyle = TextStyle(
-        //   color: _getContrastColor(cell.color),
-        //   fontSize: 10,
-        //   fontWeight: FontWeight.w600,
-        // );
-        // final textSpan = TextSpan(text: cell.id, style: textStyle);
-        // final textPainter = TextPainter(
-        //   text: textSpan,
-        //   textAlign: TextAlign.center,
-        //   textDirection: TextDirection.ltr,
-        // );
-        // textPainter.layout();
-        // textPainter.paint(
-        //   canvas,
-        //   Offset(
-        //     adjustedX + (rect.width - textPainter.width) / 2,
-        //     adjustedY + (rect.height - textPainter.height) / 2,
-        //   ),
-        // );
+
+        // 为选中的库位添加特殊标记
+        if (isStartLocation || isEndLocation) {
+          // 绘制标记图标
+          final double iconSize = rect.width * 0.3;
+          final double iconX = rect.left + (rect.width - iconSize) / 2;
+          final double iconY = rect.top + (rect.height - iconSize) / 2;
+          
+          final Paint iconPaint = Paint()
+            ..color = Colors.white
+            ..style = PaintingStyle.fill;
+          
+          if (isStartLocation) {
+            // 绘制起始标记（三角形）
+            final Path startPath = Path();
+            startPath.moveTo(iconX + iconSize / 2, iconY);
+            startPath.lineTo(iconX, iconY + iconSize);
+            startPath.lineTo(iconX + iconSize, iconY + iconSize);
+            startPath.close();
+            canvas.drawPath(startPath, iconPaint);
+          } else if (isEndLocation) {
+            // 绘制终点标记（旗帜）
+            final Paint flagPaint = Paint()
+              ..color = Colors.white
+              ..style = PaintingStyle.fill;
+            
+            // 绘制旗杆
+            canvas.drawRect(
+              Rect.fromLTWH(iconX + iconSize * 0.4, iconY, iconSize * 0.1, iconSize),
+              flagPaint,
+            );
+            
+            // 绘制旗帜
+            final Path flagPath = Path();
+            flagPath.moveTo(iconX + iconSize * 0.5, iconY);
+            flagPath.lineTo(iconX + iconSize, iconY + iconSize * 0.3);
+            flagPath.lineTo(iconX + iconSize * 0.5, iconY + iconSize * 0.6);
+            flagPath.close();
+            canvas.drawPath(flagPath, flagPaint);
+          }
+        }
         
         cellRects.add(MapEntry(cell, rect)); // 记录
       }

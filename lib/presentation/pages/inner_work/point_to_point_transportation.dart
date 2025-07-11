@@ -173,7 +173,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 subtitle: '查看当前库位详细信息',
                 color: const Color.fromARGB(255, 67, 67, 68),
                 onTap: () {
-                  AppLogger.info('库位详情: ${cell.id}');
+                  // AppLogger.info('库位详情: ${cell.id}');
                 },
               ),
               const SizedBox(height: 12),
@@ -286,7 +286,6 @@ class _PointToPointPageState extends State<PointToPointPage> {
     });
     
     final typeText = type == 'start' ? '起始' : '终点';
-    context.showSuccessMessage('已设置${typeText}库位: $locationId');
   }
 
   // 构建顶部选择器
@@ -378,6 +377,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
   // 构建选中状态显示
   Widget _buildSelectionStatus() {
     return Container(
+      height: 40,
       padding: const EdgeInsets.all(4.0),
       child: Row(
         children: [
@@ -403,18 +403,19 @@ class _PointToPointPageState extends State<PointToPointPage> {
                     color: startStorageLocationId != null 
                         ? Colors.blue 
                         : Colors.grey,
-                    size: 20,
+                    size: 14,
                   ),
                   const SizedBox(width: 2),
                   Expanded(
                     child: Text(
                       startStorageLocationId != null 
-                          ? '起点: $startStorageLocationId' 
-                          : '起始库位',
+                          ? '起:$startStorageLocationId' 
+                          : '起始库位号',
                       style: TextStyle(
                         color: startStorageLocationId != null 
                             ? Colors.blue 
                             : Colors.grey,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -425,7 +426,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                           startStorageLocationId = null;
                         });
                       },
-                      icon: const Icon(Icons.clear, size: 8),
+                      icon: const Icon(Icons.clear, size: 14),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -433,7 +434,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
               ),
             ),
           ),
-          const SizedBox(width: 2), // 添加间距
+          const SizedBox(width: 8), // 添加间距
           // 终点库位
           Expanded(
             child: Container(
@@ -456,18 +457,19 @@ class _PointToPointPageState extends State<PointToPointPage> {
                     color: endStorageLocationId != null 
                         ? Colors.red 
                         : Colors.grey,
-                    size: 20,
+                    size: 14,
                   ),
                   const SizedBox(width: 2),
                   Expanded(
                     child: Text(
                       endStorageLocationId != null 
-                          ? '终点: $endStorageLocationId' 
-                          : '终点库位',
+                          ? '终:$endStorageLocationId' 
+                          : '终点库位号',
                       style: TextStyle(
                         color: endStorageLocationId != null 
                             ? Colors.red 
                             : Colors.grey,
+                        fontSize: 12,
                       ),
                     ),
                   ),
@@ -478,7 +480,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                           endStorageLocationId = null;
                         });
                       },
-                      icon: const Icon(Icons.clear, size: 8),
+                      icon: const Icon(Icons.clear, size: 14),
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -515,7 +517,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 ),
               ),
               onPressed: canStartTask ? () {
-                AppLogger.info('开始任务 - 起始库位: ${startStorageLocationId}, 终点库位: ${endStorageLocationId}');
+                // AppLogger.info('开始任务 - 起始库位: ${startStorageLocationId}, 终点库位: ${endStorageLocationId}');
                 context.showSuccessMessage('任务已开始');
               } : null,
               child: Text(
@@ -546,7 +548,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
         children: [
           _buildTopSelectors(), // 仓储区域选择
           _buildStorageMap(), // 仓储区域地图
-          _buildSelectionStatus(), // 起始和终点库位选择
+          _buildSelectionStatus(), // 起始和终点库位显示
           _buildBottomButton(), // 任务发起按钮
         ],
       ),
