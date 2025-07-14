@@ -72,30 +72,40 @@ class PageScaffold extends StatelessWidget {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.fromLTRB(10, 20, 10, 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          if (showBackButton)
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: onBackPressed,
-              color: const Color.fromARGB(255, 60, 80, 120),
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-                highlightColor: Colors.transparent,
+          // 左侧按钮
+          if (showBackButton || onWillPop != null)
+            Positioned(
+              left: 0,
+              child: Row(
+                children: [
+                  if (showBackButton)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: onBackPressed,
+                      color: const Color.fromARGB(255, 60, 80, 120),
+                      style: IconButton.styleFrom(
+                        splashFactory: NoSplash.splashFactory,
+                        highlightColor: Colors.transparent,
+                      ),
+                    ),
+                  if (onWillPop != null)
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: onWillPop,
+                      color: const Color.fromARGB(255, 60, 80, 120),
+                      style: IconButton.styleFrom(
+                        splashFactory: NoSplash.splashFactory,
+                        highlightColor: Colors.transparent,
+                      ),
+                    ),
+                ],
               ),
             ),
-          if (onWillPop != null)
-            IconButton(
-              icon: const Icon(Icons.arrow_back),
-              onPressed: onWillPop,
-              color: const Color.fromARGB(255, 60, 80, 120),
-              style: IconButton.styleFrom(
-                splashFactory: NoSplash.splashFactory,
-                highlightColor: Colors.transparent,
-              ),
-            ),
-          Expanded(
+          // 居中的标题
+          Center(
             child: titleWidget ??
                 Text(
                   title ?? '',
@@ -107,8 +117,12 @@ class PageScaffold extends StatelessWidget {
                   ),
                 ),
           ),
-          if (rightWidget != null) rightWidget!,
-          if (showBackButton) const SizedBox(width: 10),
+          // 右侧组件
+          if (rightWidget != null)
+            Positioned(
+              right: 0,
+              child: rightWidget!,
+            ),
         ],
       ),
     );

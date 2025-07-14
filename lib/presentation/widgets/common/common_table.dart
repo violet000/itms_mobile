@@ -10,6 +10,9 @@ class CommonTable extends StatefulWidget {
   final List<Widget Function(int rowIndex)> actionBuilders; // 操作按钮生成器（每行）
   final bool paginated; // 是否分页
   final int rowsPerPage; // 每页行数（分页时有效）
+  final Map<int, TableColumnWidth>? columnWidths; // 新增：自定义列宽
+  final int fixedColumnCount; // 新增：固定前几列
+  final bool fixedFirstAndLastColumn; // 新增：固定首尾列
 
   const CommonTable({
     Key? key,
@@ -21,6 +24,9 @@ class CommonTable extends StatefulWidget {
     required this.actionBuilders,
     this.paginated = false,
     this.rowsPerPage = 10,
+    this.columnWidths, // 新增
+    this.fixedColumnCount = 0, // 新增
+    this.fixedFirstAndLastColumn = false, // 新增
   }) : super(key: key);
 
   @override
@@ -56,9 +62,13 @@ class _CommonTableState extends State<CommonTable> {
       });
     }
 
-    Widget buildTable(List<List<String>> rows) {
+    Widget buildTable(List<List<String>> rows, {bool left = false, bool right = false}) {
+      // left: 只渲染固定列，right: 只渲染可滑动列
+      int leftCount = widget.fixedColumnCount;
+      int rightStart = leftCount;
+      int rightCount = widget.headers.length - leftCount;
       return Table(
-        columnWidths: {
+        columnWidths: widget.columnWidths ?? {
           for (int i = 0; i < widget.headers.length; i++) i: const FlexColumnWidth(),
           widget.headers.length: const IntrinsicColumnWidth(),
         },
@@ -67,18 +77,169 @@ class _CommonTableState extends State<CommonTable> {
           TableRow(
             decoration: BoxDecoration(color: widget.headerColor),
             children: [
-              ...widget.headers.map((h) => Padding(
+              if (left)
+                ...widget.headers.take(leftCount).map((h) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      child: Text(h, style: widget.headerTextStyle),
+                    )),
+              if (right)
+                ...widget.headers.skip(rightStart).map((h) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                      child: Text(h, style: widget.headerTextStyle),
+                    )),
+              if (right)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  child: Text('操作'),
+                ),
+            ],
+          ),
+          ...List.generate(rows.length, (rowIdx) {
+            final row = rows[rowIdx];
+            return TableRow(
+              children: [
+                if (left)
+                  ...row.take(leftCount).map((cell) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        child: Text(cell, style: widget.cellTextStyle),
+                      )),
+                if (right)
+                  ...row.skip(rightStart).map((cell) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                        child: Text(cell, style: widget.cellTextStyle),
+                      )),
+                if (right)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: widget.actionBuilders.map((builder) => builder(rowIdx)).toList(),
+                    ),
+                  ),
+              ],
+            );
+          }),
+        ],
+      );
+    }
+
+    // 新增：首尾固定列模式
+    if (widget.fixedFirstAndLastColumn && widget.headers.length >= 3) {
+      // 左侧：第0列
+      Widget leftTable = Table(
+        columnWidths: const {0: FlexColumnWidth()},
+        border: TableBorder.all(color: Colors.grey.shade300),
+        children: [
+          TableRow(
+            decoration: BoxDecoration(color: widget.headerColor),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Text(widget.headers[0], style: widget.headerTextStyle),
+              ),
+            ],
+          ),
+          ...List.generate(widget.data.length, (rowIdx) => TableRow(
+                children: [
+                  Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                    child: Text(h, style: widget.headerTextStyle),
-                  )),
+                    child: Text(widget.data[rowIdx][0], style: widget.cellTextStyle),
+                  ),
+                ],
+              )),
+        ],
+      );
+      // 中间：1~n-2列
+      Widget centerTable = SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          columnWidths: {
+            for (int i = 1; i < widget.headers.length - 1; i++)
+              i - 1: widget.columnWidths != null && widget.columnWidths!.containsKey(i)
+                  ? widget.columnWidths![i]!
+                  : const FlexColumnWidth(),
+          },
+          border: TableBorder.all(color: Colors.grey.shade300),
+          children: [
+            TableRow(
+              decoration: BoxDecoration(color: widget.headerColor),
+              children: [
+                ...widget.headers
+                    .sublist(1, widget.headers.length - 1)
+                    .map((h) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                          child: Text(h, style: widget.headerTextStyle),
+                        )),
+              ],
+            ),
+            ...List.generate(widget.data.length, (rowIdx) => TableRow(
+                  children: [
+                    ...widget.data[rowIdx]
+                        .sublist(1, widget.headers.length - 1)
+                        .map((cell) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                              child: Text(cell, style: widget.cellTextStyle),
+                            )),
+                  ],
+                )),
+          ],
+        ),
+      );
+      // 右侧：最后一列+操作
+      Widget rightTable = Table(
+        columnWidths: const {0: FlexColumnWidth(), 1: IntrinsicColumnWidth()},
+        border: TableBorder.all(color: Colors.grey.shade300),
+        children: [
+          TableRow(
+            decoration: BoxDecoration(color: widget.headerColor),
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                child: Text(widget.headers.last, style: widget.headerTextStyle),
+              ),
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                 child: Text('操作'),
               ),
             ],
           ),
-          ...buildRows(rows),
+          ...List.generate(widget.data.length, (rowIdx) => TableRow(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                    child: Text(widget.data[rowIdx].last, style: widget.cellTextStyle),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: widget.actionBuilders.map((builder) => builder(rowIdx)).toList(),
+                  ),
+                ],
+              )),
         ],
+      );
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          leftTable,
+          centerTable,
+          rightTable,
+        ],
+      );
+    }
+
+    if (widget.fixedColumnCount > 0) {
+      // 固定列+可滑动列
+      Widget leftTable = buildTable(widget.data, left: true);
+      Widget rightTable = buildTable(widget.data, right: true);
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            leftTable,
+            rightTable,
+          ],
+        ),
       );
     }
 

@@ -146,6 +146,9 @@ buildTypes {
 }
 ```
 
+### 将源码的cell_widget.dart文件进行修改调整(AppData -> Local -> Pub -> Cache -> hosted -> pub.flutter-io.cn)
+```Overlay.of(context).context.findRenderObject()! as RenderBox;```替换为```Overlay.of(context)?.context.findRenderObject()! as RenderBox;```
+
 ### 2. 打包步骤
 
 1. 将 key.jks 文件放置在 android/app 目录下

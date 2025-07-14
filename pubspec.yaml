@@ -21,8 +21,9 @@ dependencies:
   network_info_plus: ^3.0.3
   sim_data: ^0.0.2
   crypto: ^3.0.2
-  sm_crypto: ^1.0.3  
+  sm_crypto: ^1.0.3
   flutter_svg: ^1.1.6
+  syncfusion_flutter_datagrid: ^20.2.49
 
 dev_dependencies:
   flutter_test:
