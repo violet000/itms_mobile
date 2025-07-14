@@ -356,7 +356,7 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         LoadingUtils.showFullScreenLoading(
           context: context,
-          text: '登录中...',
+          text: '',
         );
 
         await _service!.accountLogin(
@@ -369,7 +369,7 @@ class _LoginPageState extends State<LoginPage> {
         // 登录后，预加载Home数据
         LoadingUtils.showFullScreenLoading(
           context: context,
-          text: '正在初始化...',
+          text: '',
         );
         
         try {

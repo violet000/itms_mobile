@@ -7,11 +7,17 @@ class HandTask {
     required this.status, // 状态
     required this.startLocationId, // 起始库位
     required this.endLocationId, // 终点库位
+    required this.agvNo, // AGV编号
+    required this.startTime, // 开始时间
+    required this.endTime, // 结束时间
   });
   final String taskType;
   final String status;
   final String startLocationId;
   final String endLocationId;
+  final String agvNo;
+  final String startTime;
+  final String endTime;
 }
 
 // 搬运任务数据源适配
@@ -28,7 +34,7 @@ class HandTaskDataSource extends DataGridSource {
               DataGridCell<String>(columnName: 'status', value: e.status),
               DataGridCell<String>(columnName: 'startLocationId', value: e.startLocationId),
               DataGridCell<String>(columnName: 'endLocationId', value: e.endLocationId),
-              DataGridCell<String>(columnName: 'actions', value: 'actions'), // 操作列
+              DataGridCell<String>(columnName: 'actions', value: ''), // 添加actions单元格
             ]))
         .toList();
   }
@@ -107,12 +113,15 @@ class HandTaskDataSource extends DataGridSource {
   HandTask? _getHandTaskFromRow(DataGridRow row) {
     try {
       final cells = row.getCells();
-      if (cells.length >= 4) {
+      if (cells.length >= 5) {
         return HandTask(
           taskType: cells[0].value.toString(),
           status: cells[1].value.toString(),
           startLocationId: cells[2].value.toString(),
           endLocationId: cells[3].value.toString(),
+          agvNo: '', // 隐藏字段，设为空字符串
+          startTime: '', // 隐藏字段，设为空字符串
+          endTime: '', // 隐藏字段，设为空字符串
         );
       }
     } catch (e) {
