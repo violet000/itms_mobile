@@ -1,23 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:itms_mobile/core/constants/constant.dart';
 
 class HandTask {
   HandTask({
-    required this.taskType, // 作业类型
+    required this.operateType, // 作业类型
     required this.status, // 状态
-    required this.startLocationId, // 起始库位
-    required this.endLocationId, // 终点库位
-    required this.agvNo, // AGV编号
-    required this.startTime, // 开始时间
-    required this.endTime, // 结束时间
+    required this.origCell, // 起始库位
+    required this.destCell, // 终点库位
+    required this.carryContainerType, // AGV编号
+    required this.execStartTime, // 开始时间
+    required this.execEndTime, // 结束时间
   });
-  final String taskType;
-  final String status;
-  final String startLocationId;
-  final String endLocationId;
-  final String agvNo;
-  final String startTime;
-  final String endTime;
+  final String operateType;
+  final int status;
+  final String origCell;
+  final String destCell;
+  final String carryContainerType;
+  final String execStartTime;
+  final String execEndTime;
 }
 
 // 搬运任务数据源适配
@@ -30,10 +31,22 @@ class HandTaskDataSource extends DataGridSource {
   }) {
     _employees = handTasks
         .map<DataGridRow>((e) => DataGridRow(cells: [
-              DataGridCell<String>(columnName: 'taskType', value: e.taskType),
-              DataGridCell<String>(columnName: 'status', value: e.status),
-              DataGridCell<String>(columnName: 'startLocationId', value: e.startLocationId),
-              DataGridCell<String>(columnName: 'endLocationId', value: e.endLocationId),
+              DataGridCell<String>(
+                columnName: 'taskType',
+                value: OperateType.values.firstWhere(
+                  (OperateType v) => v.value == e.operateType,
+                  orElse: () => OperateType.values.first,
+                ).displayName,
+              ),
+              DataGridCell<String>(
+                columnName: 'status',
+                value: JobStatus.values.firstWhere(
+                  (JobStatus v) => v.code == e.status,
+                  orElse: () => JobStatus.values.first,
+                ).displayName,
+              ),
+              DataGridCell<String>(columnName: 'startLocationId', value: e.origCell),
+              DataGridCell<String>(columnName: 'endLocationId', value: e.destCell),
               DataGridCell<String>(columnName: 'actions', value: ''), // 添加actions单元格
             ]))
         .toList();
@@ -115,13 +128,13 @@ class HandTaskDataSource extends DataGridSource {
       final cells = row.getCells();
       if (cells.length >= 5) {
         return HandTask(
-          taskType: cells[0].value.toString(),
-          status: cells[1].value.toString(),
-          startLocationId: cells[2].value.toString(),
-          endLocationId: cells[3].value.toString(),
-          agvNo: '', // 隐藏字段，设为空字符串
-          startTime: '', // 隐藏字段，设为空字符串
-          endTime: '', // 隐藏字段，设为空字符串
+          operateType: cells[0].value.toString(),
+          status: cells[1].value as int,
+          origCell: cells[2].value.toString(),
+          destCell: cells[3].value.toString(),
+          carryContainerType: '', // 隐藏字段，设为空字符串
+          execStartTime: '', // 隐藏字段，设为空字符串
+          execEndTime: '', // 隐藏字段，设为空字符串
         );
       }
     } catch (e) {

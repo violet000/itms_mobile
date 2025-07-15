@@ -3,7 +3,7 @@ import 'package:itms_mobile/presentation/pages/login/login_page.dart';
 import 'package:itms_mobile/presentation/pages/home/home.dart';
 import 'package:itms_mobile/presentation/pages/inner_work/hand_task.dart';
 import 'package:itms_mobile/presentation/pages/inner_work/point_to_point_transportation.dart';
-import 'package:itms_mobile/presentation/pages/vendor_mode/vendor_mode_page.dart';
+import 'package:itms_mobile/presentation/pages/personal_center/personal_center_page.dart';
 import 'package:itms_mobile/presentation/pages/storage/storage_area.dart';
 
 class AppRoutes {
@@ -12,7 +12,7 @@ class AppRoutes {
   static const String storageArea = '/storage/storage-area';
   static const String handTask = '/inner_work/hand-task';
   static const String pointToPoint = '/inner_work/point-to-point';
-  static const String vendorMode = '/vendor_mode';
+  static const String personalCenter = '/personal_center';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -28,8 +28,8 @@ class AppRoutes {
       // 库内作业
       handTask: (context) => const HandTaskPage(),
       pointToPoint: (context) => const PointToPointPage(),
-      // 厂商模式
-      vendorMode: (context) => const VendorModePage(),
+      // 个人中心
+      personalCenter: (context) => const PersonalCenterPage(),
     };
   }
 } 

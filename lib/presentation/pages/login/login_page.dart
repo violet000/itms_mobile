@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
+import 'package:itms_mobile/data/datasources/api/8062/service_8062.dart';
 import 'package:itms_mobile/core/utils/hashStr.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/presentation/widgets/common/loading_widget.dart';
@@ -20,7 +20,7 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   final _labelColor = const Color.fromARGB(255, 215, 211, 211).withOpacity(0.5);
-  Service18082? _service;
+  Service8062? _service;
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _initializeService() async {
     _usernameController.text = 'admin';
     _passwordController.text = '123456';
-    _service = await Service18082.create();
+    _service = await Service8062.create();
   }
 
   @override
@@ -220,7 +220,8 @@ class _LoginPageState extends State<LoginPage> {
             child: ElevatedButton(
               onPressed: _isLoading ? null : _handleLogin,
               style: ButtonStyle(
-                backgroundColor: MaterialStateProperty.all(const Color(0XFFFF86BDFF).withOpacity(0.8)),
+                backgroundColor: MaterialStateProperty.all(
+                    const Color(0XFFFF86BDFF).withOpacity(0.8)),
                 shape: MaterialStateProperty.all(
                   RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(4),
@@ -229,23 +230,14 @@ class _LoginPageState extends State<LoginPage> {
                 splashFactory: NoSplash.splashFactory,
                 overlayColor: MaterialStateProperty.all(Colors.transparent),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                  : const Text(
-                      '登录',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+              child: const Text(
+                '登录',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -359,42 +351,45 @@ class _LoginPageState extends State<LoginPage> {
           text: '',
         );
 
-        await _service!.accountLogin(
-          _usernameController.text,
-          MD5Util.generateMd5("${_passwordController.text}messi"),
-        );
+        // await _service!.accountLogin(
+        //   _usernameController.text,
+        //   MD5Util.generateMd5("${_passwordController.text}messi"),
+        // );
         LoadingUtils.hideLoading(context);
         if (!mounted) return;
-        
+
         // 登录后，预加载Home数据
         LoadingUtils.showFullScreenLoading(
           context: context,
           text: '',
         );
-        
+
         try {
           // 预加载
           await StorageService.preloadStorageAreas();
         } catch (e) {
           print('预加载仓储数据失败: $e');
         }
-        
+
         if (!mounted) return;
         LoadingUtils.hideLoading(context);
-        
+
         // 页面跳转
         await Navigator.pushReplacement<void, void>(
           context,
           PageRouteBuilder<void>(
-            pageBuilder: (context, animation, secondaryAnimation) => const HomePage(),
-            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const HomePage(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
               const begin = Offset(1.0, 0.0);
               const end = Offset.zero;
               const curve = Curves.fastOutSlowIn;
-              
-              var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+              var tween =
+                  Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
               var offsetAnimation = animation.drive(tween);
-              
+
               return SlideTransition(
                 position: offsetAnimation,
                 child: child,

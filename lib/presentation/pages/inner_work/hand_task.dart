@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/dataview/HandTaskSource.dart';
+import 'package:itms_mobile/data/datasources/api/8062/service_8062.dart';
+import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
+import 'package:itms_mobile/core/constants/constant.dart';
 
 class HandTaskPage extends StatefulWidget {
   const HandTaskPage({super.key});
@@ -12,94 +15,127 @@ class HandTaskPage extends StatefulWidget {
 
 class _HandTaskPageState extends State<HandTaskPage> {
   late HandTaskDataSource _handTaskDataSource;
+  static Service8062? _service8062;
+
   // 下拉选项和当前选中
-  List<String> _taskTypeOptions = [];
-  List<String> _statusOptions = [];
-  String _selectedTaskType = '全部';
-  String _selectedStatus = '全部';
-  
+  // 作业类型选项
+  final List<OperateType> _taskTypeOptions = OperateType.values;
+
+  // 状态选项
+  final List<JobStatus> _statusOptions = JobStatus.values;
+  OperateType? _selectedTaskType;
+  JobStatus? _selectedStatus;
+
   // 分页相关
   int _currentPage = 0;
   int _rowsPerPage = 10;
   int _totalRows = 0;
-  
+
+  // 数据状态
+  bool _isLoading = false;
+  String? _errorMessage;
+
   // 原始数据
-  final List<HandTask> _allHandTasks = [
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV001', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV002', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV003', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV004', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV005', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV006', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV007', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV008', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV009', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV010', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV011', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV012', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV013', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV014', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV015', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV016', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV017', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV018', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV019', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV020', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV021', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV022', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV023', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV024', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV025', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV026', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV027', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03204', endLocationId: 'A-03301', agvNo: 'AGV028', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区至二区', status: '执行中', startLocationId: 'A-03205', endLocationId: 'A-03302', agvNo: 'AGV029', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-    HandTask(taskType: '一区内调整', status: '待执行', startLocationId: 'A-03207', endLocationId: 'A-03304', agvNo: 'AGV030', startTime: '2025-01-01 10:00:00', endTime: '2025-01-01 10:00:00'),
-  ];
-  
+  List<HandTask> _allHandTasks = [];
+
   // 过滤后的数据
   List<HandTask> _filteredHandTasks = [];
 
   @override
   void initState() {
     super.initState();
-    _taskTypeOptions = ['全部', ..._allHandTasks.map((e) => e.taskType).toSet()];
-    _statusOptions = ['全部', ..._allHandTasks.map((e) => e.status).toSet()];
-    _filteredHandTasks = List.from(_allHandTasks);
-    _totalRows = _filteredHandTasks.length;
-    _updateDataSource();
+    _handTaskDataSource = HandTaskDataSource(
+      handTasks: [],
+      onDetailTap: _onDetailTap,
+    );
+    _initService();
+    _loadData();
+  }
+
+  // 初始化服务
+  void _initService() async {
+    _service8062 = await Service8062.create();
+  }
+
+  // 加载数据
+  Future<void> _loadData() async {
+    _service8062 ??= await Service8062.create();
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      // 调用接口获取数据
+      // final response = await _service8062!.qryJobByParams(<String, dynamic>{
+      //   'status': _selectedStatus?.value ?? '',
+      //   'operateType': _selectedTaskType?.value ?? '',
+      //   'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
+      //   'pageSize': _rowsPerPage
+      // });
+
+      final response = await _service8062!.qryJobStatus();
+
+      if (response['retCode'] == HTTPCode.success.code) {
+        final List<dynamic> retList =
+            (response['retList'] as List<dynamic>?) ?? <dynamic>[];
+        final int total = (response['totalRow'] as int?) ?? 0;
+        AppLogger.info('retList: $retList');
+        // 转换数据格式
+        _allHandTasks = retList.map<HandTask>((dynamic record) {
+          final recordMap = record as Map<String, dynamic>;
+          return HandTask(
+            operateType: (recordMap['operateType'] as String?) ?? '',
+            status: int.tryParse('${recordMap['status']}') ?? 0,
+            origCell: (recordMap['origCell'] as String?) ?? '',
+            destCell: (recordMap['destCell'] as String?) ?? '',
+            carryContainerType:
+                (recordMap['carryContainerType'] as String?) ?? '',
+            execStartTime: (recordMap['execStartTime'] as String?) ?? '',
+            execEndTime: (recordMap['execEndTime'] as String?) ?? '',
+          );
+        }).toList();
+
+        setState(() {
+          _filteredHandTasks = List<HandTask>.from(_allHandTasks);
+          _handTaskDataSource = HandTaskDataSource(
+            handTasks: _filteredHandTasks,
+            onDetailTap: _onDetailTap,
+          );
+          _totalRows = total;
+        });
+      } else {
+        setState(() {
+          _errorMessage = (response['message'] as String?) ?? '获取数据失败';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = '网络请求失败: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   // 过滤数据
   void _filterData() {
-    _filteredHandTasks = _allHandTasks.where((task) {
-      final taskTypeMatch = _selectedTaskType == '全部' || task.taskType == _selectedTaskType;
-      final statusMatch = _selectedStatus == '全部' || task.status == _selectedStatus;
-      return taskTypeMatch && statusMatch;
-    }).toList();
-    _totalRows = _filteredHandTasks.length;
-    _currentPage = 0;
-    _updateDataSource();
+    _loadData();
   }
 
   // 更新数据源
   void _updateDataSource() {
-    final startIndex = _currentPage * _rowsPerPage;
-    final endIndex = (startIndex + _rowsPerPage).clamp(0, _filteredHandTasks.length);
-    final pageData = _filteredHandTasks.sublist(startIndex, endIndex);
-    
-    setState(() {
-      _handTaskDataSource = HandTaskDataSource(
-        handTasks: pageData,
-        onDetailTap: _onDetailTap,
-      );
-    });
+    // 直接重新查询接口
+    _loadData();
   }
 
   // 处理详情按钮点击
   void _onDetailTap(HandTask handTask) {
-    print('查看详情: ${handTask.taskType}');
-    
+    print('查看详情: ${handTask.operateType}');
+
     showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -109,13 +145,25 @@ class _HandTaskPageState extends State<HandTaskPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('作业类型: ${handTask.taskType}'),
+              Text('作业类型: ${handTask.operateType}'),
               const SizedBox(height: 8),
               Text('状态: ${handTask.status}'),
               const SizedBox(height: 8),
-              Text('起始库位: ${handTask.startLocationId}'),
+              Text('起始库位: ${handTask.origCell}'),
               const SizedBox(height: 8),
-              Text('终点库位: ${handTask.endLocationId}'),
+              Text('终点库位: ${handTask.destCell}'),
+              if (handTask.carryContainerType.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('搬运类型: ${handTask.carryContainerType}'),
+              ],
+              if (handTask.execStartTime.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('开始时间: ${handTask.execStartTime}'),
+              ],
+              if (handTask.execEndTime.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text('结束时间: ${handTask.execEndTime}'),
+              ],
             ],
           ),
           actions: [
@@ -148,6 +196,11 @@ class _HandTaskPageState extends State<HandTaskPage> {
     }
   }
 
+  // 刷新数据
+  Future<void> _refreshData() async {
+    await _loadData();
+  }
+
   final headers = ['作业类型', '状态', '起始库位', '终点库位', '操作'];
 
   @override
@@ -155,7 +208,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
     // 获取屏幕宽度
     final screenWidth = MediaQuery.of(context).size.width;
     final availableWidth = screenWidth;
-    
+
     // 动态计算列宽
     final taskTypeWidth = availableWidth * 0.24; // 24%
     final statusWidth = availableWidth * 0.16; // 16%
@@ -177,300 +230,504 @@ class _HandTaskPageState extends State<HandTaskPage> {
         children: [
           // 搜索区域
           Container(
-            padding: const EdgeInsets.all(12.0),
+            margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
             decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                bottom: BorderSide(color: Colors.white!),
-              ),
+              color: const Color(0xFFF7F8FA),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.08),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+              border: Border.all(color: const Color(0xFFE0E3E8)),
             ),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // 作业类型下拉
-                  SizedBox(
-                    width: 150,
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedTaskType,
-                      items: _taskTypeOptions.map((type) => DropdownMenuItem(
-                        value: type,
-                        child: Text(type, style: const TextStyle(fontSize: 14)),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedTaskType = value!;
-                          _filterData();
-                        });
-                      },
-                      style: const TextStyle(fontSize: 14, color: Colors.black),
-                      decoration: const InputDecoration(
-                        labelText: '作业类型',
-                        labelStyle: TextStyle(fontSize: 14, color: Colors.black),
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 状态下拉
-                  SizedBox(
-                    width: 110,
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedStatus,
-                      items: _statusOptions.map((status) => DropdownMenuItem(
-                        value: status,
-                        child: Text(status, style: const TextStyle(fontSize: 14)),
-                      )).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedStatus = value!;
-                          _filterData();
-                        });
-                      },
-                      style: const TextStyle(fontSize: 14, color: Colors.black),
-                      decoration: const InputDecoration(
-                        labelText: '状态',
-                        labelStyle: TextStyle(fontSize: 14, color: Colors.black),
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  // 清空按钮
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        _selectedTaskType = '全部';
-                        _selectedStatus = '全部';
-                        _filterData();
-                      });
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                      textStyle: const TextStyle(fontSize: 14),
-                      minimumSize: const Size(0, 38),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      elevation: 0,
-                    ),
-                    child: const Text('清空'),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          
-          // 表格区域
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(2.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: availableWidth, // 保证宽度
-                  child: SfDataGrid(
-                    source: _handTaskDataSource,
-                    gridLinesVisibility: GridLinesVisibility.both,
-                    headerGridLinesVisibility: GridLinesVisibility.both,
-                    columnWidthMode: ColumnWidthMode.none,
-                    headerRowHeight: 50,
-                    rowHeight: 40,
-                    columns: [
-                      GridColumn(
-                        columnName: 'taskType',
-                        label: Container(
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                          ),
-                          child: const Text(
-                            '作业类型',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // 左侧：下拉框组
+                Expanded(
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: 200,
+                        child: DropdownButtonFormField<OperateType?>(
+                          value: _selectedTaskType,
+                          items: [
+                            DropdownMenuItem<OperateType?>(
+                              value: null,
+                              child: Row(
+                                children: [
+                                  Icon(Icons.list_alt,
+                                      size: 18, color: Colors.blueGrey),
+                                  SizedBox(width: 6),
+                                  Text('全部'),
+                                ],
+                              ),
                             ),
+                            ..._taskTypeOptions
+                                .map((type) => DropdownMenuItem<OperateType?>(
+                                      value: type,
+                                      child: Row(
+                                        children: [
+                                          Icon(Icons.assignment,
+                                              size: 18, color: Colors.blueGrey),
+                                          SizedBox(width: 6),
+                                          Text(type.displayName),
+                                        ],
+                                      ),
+                                    )),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedTaskType = value;
+                              _filterData();
+                            });
+                          },
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black87),
+                          decoration: InputDecoration(
+                            labelText: '作业类型',
+                            labelStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.blueGrey),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Color(0xFFE0E3E8)), // 选中时同未选中
+                            ),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 8),
                           ),
                         ),
-                        width: taskTypeWidth,
                       ),
-                      GridColumn(
-                        columnName: 'status',
-                        label: Container(
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                          ),
-                          child: const Text(
-                            '状态',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                      SizedBox(
+                        width: 200,
+                        child: DropdownButtonFormField<JobStatus?>(
+                          value: _selectedStatus,
+                          items: [
+                            DropdownMenuItem<JobStatus?>(
+                              value: null,
+                              child: Row(
+                                children: const [
+                                  Icon(Icons.flag,
+                                      size: 18, color: Colors.blueGrey),
+                                  SizedBox(width: 6),
+                                  Text('全部'),
+                                ],
+                              ),
                             ),
+                            ..._statusOptions
+                                .map((status) => DropdownMenuItem<JobStatus?>(
+                                      value: status,
+                                      child: Row(
+                                        children: [
+                                          const SizedBox(width: 6),
+                                          Text(status.displayName),
+                                        ],
+                                      ),
+                                    )),
+                          ],
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedStatus = value;
+                              _filterData();
+                            });
+                          },
+                          style: const TextStyle(
+                              fontSize: 13, color: Colors.black87),
+                          decoration: InputDecoration(
+                            labelText: '状态',
+                            labelStyle: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                                color: Colors.blueGrey),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: Color(0xFFE0E3E8)), // 选中时同未选中
+                            ),
+                            isDense: true,
+                            contentPadding: EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 8),
                           ),
                         ),
-                        width: statusWidth,
-                      ),
-                      GridColumn(
-                        columnName: 'startLocationId',
-                        label: Container(
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                          ),
-                          child: const Text(
-                            '起始库位',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        width: startLocationWidth,
-                      ),
-                      GridColumn(
-                        columnName: 'endLocationId',
-                        label: Container(
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                          ),
-                          child: const Text(
-                            '终点库位',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        width: endLocationWidth,
-                      ),
-                      GridColumn(
-                        columnName: 'actions',
-                        label: Container(
-                          alignment: Alignment.center,
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                          ),
-                          child: const Text(
-                            '操作',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        width: actionsWidth,
-                        allowSorting: false,
-                        allowFiltering: false,
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-          ),
-          
-          // 分页控件
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-            // margin: const EdgeInsets.only(top: 2, bottom: 4),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.06),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
-                ),
-              ],
-              // border: Border.all(color: Colors.grey[200]!),
-            ),
-            child: Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 10, // 间距
-              runSpacing: 8,
-              children: [
-                // 每页行数选择
-                Row(
+                // 右侧：按钮组
+                Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Text('每页', style: TextStyle(fontSize: 14, color: Colors.black87)),
-                    const SizedBox(width: 4),
-                    DropdownButton<int>(
-                      value: _rowsPerPage,
-                      underline: const SizedBox(),
-                      style: const TextStyle(fontSize: 14, color: Colors.black87),
-                      items: [5, 10, 20, 50].map((int value) {
-                        return DropdownMenuItem<int>(
-                          value: value,
-                          child: Text('$value'),
-                        );
-                      }).toList(),
-                      onChanged: _onRowsPerPageChanged,
-                    ),
-                    const SizedBox(width: 4),
-                    const Text('条', style: TextStyle(fontSize: 14, color: Colors.black87)),
-                    const SizedBox(width: 10),
-                    Text('共 $_totalRows 条', style: const TextStyle(fontSize: 14, color: Colors.black54)),
-                  ],
-                ),
-                // 分页按钮
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 上一页
-                    IconButton(
-                      onPressed: _currentPage > 0 ? () => _onPageChanged(_currentPage - 1) : null,
-                      icon: const Icon(Icons.chevron_left),
-                      color: Colors.blue,
-                      splashRadius: 20,
-                      tooltip: '上一页',
-                    ),
-                    // 页码显示
-                    Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 6),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        '${_currentPage + 1} / ${(_totalRows / _rowsPerPage).ceil()}',
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                    OutlinedButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _selectedTaskType = null;
+                          _selectedStatus = null;
+                          _filterData();
+                        });
+                      },
+                      icon: const Icon(Icons.clear, size: 16),
+                      label: SizedBox(
+                        width: 30, // 固定宽度
+                        height: 24,
+                        child: Center(
+                          child: _isLoading
+                              ? CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                )
+                              : const Text('重置'),
                         ),
                       ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.blueGrey,
+                        minimumSize: const Size(30, 24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 10),
+                        textStyle: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w500),
+                        side: const BorderSide(color: Color(0xFF90CAF9)),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
                     ),
-                    // 下一页
-                    IconButton(
-                      onPressed: _currentPage < (_totalRows / _rowsPerPage).ceil() - 1
-                          ? () => _onPageChanged(_currentPage + 1)
-                          : null,
-                      icon: const Icon(Icons.chevron_right),
-                      color: Colors.blue,
-                      splashRadius: 20,
-                      tooltip: '下一页',
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _refreshData,
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: SizedBox(
+                        width: 30, // 固定宽度
+                        height: 24,
+                        child: Center(
+                          child: _isLoading
+                              ? CircularProgressIndicator(
+                                  strokeWidth: 1,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                )
+                              : const Text('刷新'),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(30, 24),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 15, vertical: 10),
+                        textStyle: const TextStyle(
+                            fontSize: 13, fontWeight: FontWeight.w500),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                        elevation: 0,
+                      ),
                     ),
                   ],
                 ),
               ],
             ),
           ),
+
+          // 错误信息显示
+          if (_errorMessage != null)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12.0),
+              margin: const EdgeInsets.all(8.0),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.error_outline, color: Colors.red[600], size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _errorMessage!,
+                      style: TextStyle(color: Colors.red[700], fontSize: 14),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _errorMessage = null;
+                      });
+                    },
+                    icon: Icon(Icons.close, color: Colors.red[600], size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ),
+
+          // 表格区域
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(2.0),
+              child: _isLoading
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('正在加载数据...'),
+                        ],
+                      ),
+                    )
+                  : _filteredHandTasks.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox_outlined,
+                                  size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text('暂无数据',
+                                  style: TextStyle(color: Colors.grey)),
+                            ],
+                          ),
+                        )
+                      : SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: SizedBox(
+                            width: availableWidth, // 保证宽度
+                            child: SfDataGrid(
+                              source: _handTaskDataSource,
+                              gridLinesVisibility: GridLinesVisibility.both,
+                              headerGridLinesVisibility:
+                                  GridLinesVisibility.both,
+                              columnWidthMode: ColumnWidthMode.none,
+                              headerRowHeight: 50,
+                              rowHeight: 50,
+                              columns: [
+                                GridColumn(
+                                  columnName: 'taskType',
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    child: const Text(
+                                      '作业类型',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  width: taskTypeWidth,
+                                ),
+                                GridColumn(
+                                  columnName: 'status',
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    child: const Text(
+                                      '状态',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  width: statusWidth,
+                                ),
+                                GridColumn(
+                                  columnName: 'startLocationId',
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    child: const Text(
+                                      '起始库位',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  width: startLocationWidth,
+                                ),
+                                GridColumn(
+                                  columnName: 'endLocationId',
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    child: const Text(
+                                      '终点库位',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  width: endLocationWidth,
+                                ),
+                                GridColumn(
+                                  columnName: 'actions',
+                                  label: Container(
+                                    alignment: Alignment.center,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.blue,
+                                    ),
+                                    child: const Text(
+                                      '操作',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                  width: actionsWidth,
+                                  allowSorting: false,
+                                  allowFiltering: false,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+            ),
+          ),
+
+          // 分页控件
+          if (!_isLoading && _filteredHandTasks.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.06),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
+              ),
+              child: Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 10,
+                runSpacing: 8,
+                children: [
+                  // 每页行数选择
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('每页',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.black87)),
+                      const SizedBox(width: 4),
+                      DropdownButton<int>(
+                        value: _rowsPerPage,
+                        underline: const SizedBox(),
+                        style: const TextStyle(
+                            fontSize: 14, color: Colors.black87),
+                        items: [5, 10, 20, 50].map((int value) {
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text('$value'),
+                          );
+                        }).toList(),
+                        onChanged: _onRowsPerPageChanged,
+                      ),
+                      const SizedBox(width: 4),
+                      const Text('条',
+                          style:
+                              TextStyle(fontSize: 14, color: Colors.black87)),
+                      const SizedBox(width: 10),
+                      Text('共 $_totalRows 条',
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black54)),
+                    ],
+                  ),
+                  // 分页按钮
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // 上一页
+                      IconButton(
+                        onPressed: _currentPage > 0
+                            ? () => _onPageChanged(_currentPage - 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_left),
+                        color: Colors.blue,
+                        splashRadius: 20,
+                        tooltip: '上一页',
+                      ),
+                      // 页码显示
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          '${_currentPage + 1} / ${(_totalRows / _rowsPerPage).ceil()}',
+                          style: const TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      // 下一页
+                      IconButton(
+                        onPressed: _currentPage <
+                                (_totalRows / _rowsPerPage).ceil() - 1
+                            ? () => _onPageChanged(_currentPage + 1)
+                            : null,
+                        icon: const Icon(Icons.chevron_right),
+                        color: Colors.blue,
+                        splashRadius: 20,
+                        tooltip: '下一页',
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

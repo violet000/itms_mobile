@@ -137,7 +137,7 @@ class PageScaffold extends StatelessWidget {
         colors: [
           const Color(0xFFD4E1F4), // 0% 顶部
           const Color(0xFFF4F5F7).withOpacity(0.0), // 30% 渐变到透明
-          const Color(0xFFF3F5F9), // 30%~100% 纯色
+          const Color(0xFFF4F5F7).withOpacity(0.0), // 30%~100% 纯色
           const Color(0xFFF3F5F9), // 100%
         ],
         stops: const [

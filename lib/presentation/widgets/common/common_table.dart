@@ -123,7 +123,6 @@ class _CommonTableState extends State<CommonTable> {
       );
     }
 
-    // 新增：首尾固定列模式
     if (widget.fixedFirstAndLastColumn && widget.headers.length >= 3) {
       // 左侧：第0列
       Widget leftTable = Table(

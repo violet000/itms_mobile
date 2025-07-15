@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
@@ -6,6 +7,7 @@ import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
+import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
 
 class PointToPointPage extends StatefulWidget {
   const PointToPointPage({super.key});
@@ -18,6 +20,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
   List<Map<String, dynamic>> itemList = [];
   String? startStorageLocationId;
   String? endStorageLocationId;
+  String? startShelfId;
   int selectedAreaIndex = 0; // 当前选中的库区索引
   String? activeSelect; // 'start' or 'end'，当前激活的库位选择
   List<GridCell> currentAreaCells = []; // 当前库区的库位数据
@@ -87,7 +90,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
       _showSelectionDialog(cell);
     } else {
       // 直接设置选中的库位
-      _setSelectedLocation(cell.id, activeSelect!);
+      _setSelectedLocation(cell.id, activeSelect!, cell.shelfId);
     }
   }
 
@@ -152,7 +155,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 color: Colors.blue,
                 onTap: () {
                   Navigator.pop(context);
-                  _setSelectedLocation(cell.id, 'start');
+                  _setSelectedLocation(cell.id, 'start', cell.shelfId);
                 },
               ),
               const SizedBox(height: 12),
@@ -163,7 +166,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 color: Colors.red,
                 onTap: () {
                   Navigator.pop(context);
-                  _setSelectedLocation(cell.id, 'end');
+                  _setSelectedLocation(cell.id, 'end', cell.shelfId);
                 },
               ),
               const SizedBox(height: 12),
@@ -275,10 +278,11 @@ class _PointToPointPageState extends State<PointToPointPage> {
   }
 
   // 设置选中的库位
-  void _setSelectedLocation(String locationId, String type) {
+  void _setSelectedLocation(String locationId, String type, String? shelfId) {
     setState(() {
       if (type == 'start') {
         startStorageLocationId = locationId;
+        startShelfId = shelfId;
       } else {
         endStorageLocationId = locationId;
       }
@@ -379,7 +383,8 @@ class _PointToPointPageState extends State<PointToPointPage> {
                       child: TextButton(
                         onPressed: () {
                           Navigator.pop(context); // 关闭确认对话框
-                          context.showSuccessMessage('任务已开始');
+                          _launchCarry();
+                          // context.showSuccessMessage('任务已开始');
                         },
                         style: TextButton.styleFrom(
                           backgroundColor: const Color.fromARGB(255, 12, 124, 235),
@@ -403,6 +408,30 @@ class _PointToPointPageState extends State<PointToPointPage> {
         ),
       ),
     );
+  }
+
+  // 下发搬运指令
+  Future<void> _launchCarry() async {
+    try {
+      final service = await Service9087.create();
+      final Map<String, dynamic> response = await service.qryLineByEscortNo(<String, dynamic>{
+        'operateType': 'location2location',
+        'origCell': startStorageLocationId,
+        'destCell': endStorageLocationId,
+        'carryContainerType': '1',
+        'carryContainerId': startShelfId,
+      });
+      if (response['retCode'] == HTTPCode.success.code) {
+        if (!mounted) return; // 如果页面已卸载，则不进行刷新
+        context.showSuccessMessage(response['retMsg']?.toString() ?? '操作成功');
+        await _getStorageAreas(); // 下发成功后刷新库位信息
+      } else {
+        if (!mounted) return;
+        context.showErrorMessage(response['retMsg']?.toString() ?? '操作失败');
+      }
+    } catch (e) { 
+      AppLogger.error('下发搬运指令失败: $e');
+    }
   }
 
   // 构建顶部选择器

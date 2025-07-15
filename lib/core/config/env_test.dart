@@ -4,7 +4,7 @@ import 'env_config.dart';
 class TestConfig {
   static EnvConfig get config => EnvConfig(
         apiBaseUrl: 'https://test-api.example.com',
-        appName: 'TMS Mobile Test',
+        appName: '智慧仓储系统(测试环境)',
         enableLogging: true,
         environment: Environment.test,
       );

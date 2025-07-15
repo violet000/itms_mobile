@@ -10,6 +10,7 @@ import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/error_page.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
+import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 
 class _LegendData {
   final String name;
@@ -130,7 +131,7 @@ class _HomePageState extends State<HomePage>
           name: '厂商模式',
           index: 2,
           icon: Icons.business,
-          route: '/vendor_mode',
+          route: '/personal_center',
           color: const Color(0xFF0489FE),
         ),
       ];
@@ -189,7 +190,7 @@ class _HomePageState extends State<HomePage>
 
       for (var item in retList) {
         final map = item as Map<String, dynamic>;
-        String imagePath = 'assets/storage/storage_${map['x']}.svg';
+        String imagePath = 'assets/storage/storage_${map['id']}.svg';
         bool exists = await assetExists(imagePath);
 
         String areaId = map['id'] as String? ?? '';
@@ -229,7 +230,7 @@ class _HomePageState extends State<HomePage>
           name: areaName,
           index: int.tryParse(map['x'].toString()) ?? 0,
           imagePath: exists ? imagePath : null,
-          iconPath: 'assets/images/storage_${map['x']}.svg',
+          iconPath: 'assets/images/storage_${map['id']}.svg',
           route: '/storage/storage-area',
           params: item,
         ));
@@ -278,7 +279,7 @@ class _HomePageState extends State<HomePage>
               name: '厂商模式',
               index: 2,
               icon: Icons.business,
-              route: '/vendor_mode',
+              route: '/personal_center',
               color: const Color(0xFF0489FE),
             ),
           ];
@@ -809,6 +810,7 @@ class _HomePageState extends State<HomePage>
               onTap: (index) {
                 setState(() {
                   _selectedIndex = index;
+                  AppLogger.info('selectedIndex: $_selectedIndex');
                 });
               },
               items: menus

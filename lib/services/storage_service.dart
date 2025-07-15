@@ -1,13 +1,10 @@
-import 'package:itms_mobile/core/utils/storage_utils.dart';
-import 'package:itms_mobile/core/utils/grid_cell.dart';
-import 'package:flutter/services.dart';
-import 'package:itms_mobile/data/datasources/api/18082/service_18082.dart';
+import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
 
 class StorageService {
   static StorageService? _instance;
   static Map<String, dynamic>? _cachedStorageAreas;
   static bool _isLoading = false;
-  static Service18082? _service18082;
+  static Service9087? _service9087;
 
   StorageService._();
 
@@ -17,11 +14,9 @@ class StorageService {
   }
 
   // 获取Service实例
-  static Future<Service18082> _getService18082() async {
-    if (_service18082 == null) {
-      _service18082 = await Service18082.create();
-    }
-    return _service18082!;
+  static Future<Service9087> _getService9087() async {
+    _service9087 ??= await Service9087.create();
+    return _service9087!;
   }
 
   // 预加载仓储数据
@@ -30,7 +25,7 @@ class StorageService {
     
     _isLoading = true;
     try {
-      final service = await _getService18082();
+      final service = await _getService9087();
       _cachedStorageAreas = await service.getStorageAreas();
     } catch (e) {
       print('预加载仓储数据失败${e}');
@@ -57,7 +52,7 @@ class StorageService {
     }
 
     // 否则去调取接口数据
-    final service = await _getService18082();
+    final service = await _getService9087();
     final response = await service.getStorageAreas();
     
     _cachedStorageAreas = response;

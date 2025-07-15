@@ -71,11 +71,13 @@ class StorageUtils {
     return storageLocationDTOS.map((dynamic storageLocationDTO) {
       final x = double.parse(storageLocationDTO['xplace'].toString());
       final y = double.parse(storageLocationDTO['yplace'].toString());
+      final shelfId = storageLocationDTO['storageShelfDTO']?['shelfId']?.toString();
       return GridCell(
         x: x,
         y: y,
         id: storageLocationDTO['id'].toString(),
         color: getStatusColor(storageLocationDTO['status'] as int),
+        shelfId: shelfId,
       );
     }).toList();
   }

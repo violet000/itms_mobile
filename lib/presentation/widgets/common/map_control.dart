@@ -182,7 +182,31 @@ class GridPainter extends CustomPainter {
           borderPaint,
         );
 
-        // 为选中的库位添加特殊标记
+        // 在绘制库位格子循环内，绘制完rect后，先绘制shelfId文本：
+        if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
+          final textSpan = TextSpan(
+            text: cell.shelfId,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+            ),
+          );
+          final tp = TextPainter(
+            text: textSpan,
+            textAlign: TextAlign.center,
+            textDirection: TextDirection.ltr,
+          );
+          tp.layout();
+          tp.paint(
+            canvas,
+            Offset(
+              rect.left + (rect.width - tp.width) / 2,
+              rect.top + (rect.height - tp.height) / 2,
+            ),
+          );
+        }
+        // 然后绘制特殊标记（保持原有特殊标记绘制逻辑不变）
         if (isStartLocation || isEndLocation) {
           // 绘制标记图标
           final double iconSize = rect.width * 0.3;
@@ -238,10 +262,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset(size.width + 2,
-      //         size.height - i * size.height / xUnits - tp.height / 2));
+      tp.paint(
+          canvas,
+          Offset(size.width + 2,
+              size.height - i * size.height / xUnits - tp.height / 2));
     }
     // Y轴刻度（底部，从右往左为正轴）
     for (int j = 0; j <= yUnits; j++) {
@@ -253,10 +277,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
-      //         size.height + 2));
+      tp.paint(
+          canvas,
+          Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
+              size.height + 2));
     }
   }
 
