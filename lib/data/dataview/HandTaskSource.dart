@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:itms_mobile/core/constants/constant.dart';
@@ -29,7 +31,7 @@ class HandTaskDataSource extends DataGridSource {
     required List<HandTask> handTasks,
     this.onDetailTap,
   }) {
-    _employees = handTasks
+    _handtasks = handTasks
         .map<DataGridRow>((e) => DataGridRow(cells: [
               DataGridCell<String>(
                 columnName: 'taskType',
@@ -38,12 +40,9 @@ class HandTaskDataSource extends DataGridSource {
                   orElse: () => OperateType.values.first,
                 ).displayName,
               ),
-              DataGridCell<String>(
+              DataGridCell<int>(
                 columnName: 'status',
-                value: JobStatus.values.firstWhere(
-                  (JobStatus v) => v.code == e.status,
-                  orElse: () => JobStatus.values.first,
-                ).displayName,
+                value: e.status,
               ),
               DataGridCell<String>(columnName: 'startLocationId', value: e.origCell),
               DataGridCell<String>(columnName: 'endLocationId', value: e.destCell),
@@ -52,10 +51,10 @@ class HandTaskDataSource extends DataGridSource {
         .toList();
   }
 
-  List<DataGridRow> _employees = [];
+  List<DataGridRow> _handtasks = [];
 
   @override
-  List<DataGridRow> get rows => _employees;
+  List<DataGridRow> get rows => _handtasks;
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
@@ -63,8 +62,9 @@ class HandTaskDataSource extends DataGridSource {
       cells: row.getCells().map<Widget>((cell) {
         if (cell.columnName == 'actions') {
           // 操作列显示详情按钮
-          final rowIndex = _employees.indexOf(row);
-          final handTask = rowIndex >= 0 && rowIndex < _employees.length 
+          final rowIndex = _handtasks.indexOf(row);
+          print("rowIndex: ${rowIndex}");
+          final handTask = rowIndex >= 0 && rowIndex < _handtasks.length 
               ? _getHandTaskFromRow(row) 
               : null;
           
@@ -76,16 +76,15 @@ class HandTaskDataSource extends DataGridSource {
               child: InkWell(
                 borderRadius: BorderRadius.circular(6.0),
                 onTap: () {
+                  print("onDetailTap: ${onDetailTap}, ${handTask}");
                   if (onDetailTap != null && handTask != null) {
                     onDetailTap!(handTask);
-                  } else {
-                    print('查看详情: ${row.getCells()[0].value}');
                   }
                 },
                 child: Container(
                   constraints: const BoxConstraints(
                     minWidth: 44.0, 
-                    minHeight: 32.0, 
+                    minHeight: 32.0,
                   ),
                   padding: const EdgeInsets.symmetric(horizontal: 6.0, vertical: 4.0),
                   decoration: BoxDecoration( // 透明背景，用于增大触摸目标
@@ -107,6 +106,20 @@ class HandTaskDataSource extends DataGridSource {
               ),
             ),
           );
+        } else if (cell.columnName == 'status') {
+          final statusInt = cell.value as int;
+          final displayName = JobStatus.values.firstWhere(
+            (v) => v.code == statusInt,
+            orElse: () => JobStatus.values.first,
+          ).displayName;
+          return Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(4.0),
+            child: Text(
+              displayName,
+              style: const TextStyle(fontSize: 12),
+            ),
+          );
         } else {
           // 其他列显示文本
           return Container(
@@ -126,6 +139,7 @@ class HandTaskDataSource extends DataGridSource {
   HandTask? _getHandTaskFromRow(DataGridRow row) {
     try {
       final cells = row.getCells();
+      print("cells: ${cells}");
       if (cells.length >= 5) {
         return HandTask(
           operateType: cells[0].value.toString(),

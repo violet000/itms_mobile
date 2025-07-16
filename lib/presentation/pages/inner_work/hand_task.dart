@@ -134,47 +134,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
 
   // 处理详情按钮点击
   void _onDetailTap(HandTask handTask) {
-    print('查看详情: ${handTask.operateType}');
-
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('任务详情'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('作业类型: ${handTask.operateType}'),
-              const SizedBox(height: 8),
-              Text('状态: ${handTask.status}'),
-              const SizedBox(height: 8),
-              Text('起始库位: ${handTask.origCell}'),
-              const SizedBox(height: 8),
-              Text('终点库位: ${handTask.destCell}'),
-              if (handTask.carryContainerType.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('搬运类型: ${handTask.carryContainerType}'),
-              ],
-              if (handTask.execStartTime.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('开始时间: ${handTask.execStartTime}'),
-              ],
-              if (handTask.execEndTime.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text('结束时间: ${handTask.execEndTime}'),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('关闭'),
-            ),
-          ],
-        );
-      },
-    );
+    print('查看详情1: ${handTask.operateType}');
   }
 
   // 分页处理
