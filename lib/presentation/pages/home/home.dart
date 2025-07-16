@@ -11,6 +11,7 @@ import 'package:itms_mobile/presentation/widgets/common/error_page.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
+import 'package:itms_mobile/presentation/pages/personal_center/personal_center_page.dart';
 
 class _LegendData {
   final String name;
@@ -129,7 +130,7 @@ class _HomePageState extends State<HomePage>
           name: '厂商模式',
           index: 2,
           icon: Icons.business,
-          route: '/personal_center',
+          route: '/personal_center_page',
           color: const Color(0xFF0489FE),
         ),
       ];
@@ -150,7 +151,12 @@ class _HomePageState extends State<HomePage>
         if (menu.children != null) {
           _pages.add(_buildSubMenuPage(menu));
         } else if (menu.route != null) {
-          _pages.add(buildPlaceholderPage(menu));
+          // TODO: 这里需要优化，如果路由是/personal_center_page，则直接跳转到PersonalCenterPage，否则跳转到buildPlaceholderPage
+          if (menu.route == '/personal_center_page') {
+            _pages.add(const PersonalCenterPage());
+          } else {
+            _pages.add(buildPlaceholderPage(menu));
+          }
         } else {
           _pages.add(buildEmptyPage(menu));
         }
@@ -277,7 +283,7 @@ class _HomePageState extends State<HomePage>
               name: '厂商模式',
               index: 2,
               icon: Icons.business,
-              route: '/personal_center',
+              route: '/personal_center_page',
               color: const Color(0xFF0489FE),
             ),
           ];
