@@ -64,7 +64,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
     
     if (storageLocationDTOS != null) {
       currentAreaCells = StorageUtils.buildGridCells(storageLocationDTOS);
-      currentAreaRange = StorageUtils.calculateAreaRange(
+      currentAreaRange = StorageUtils.calculateAreaMaxRange(
         currentAreaCells, 
         currentAreaCells
       );

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 
-class MapControl extends StatelessWidget {
+class MapControlLengend extends StatelessWidget {
   final int xUnits;
   final int yUnits;
   final int xStart;
@@ -11,11 +11,13 @@ class MapControl extends StatelessWidget {
   final void Function(GridCell)? onCellTap;
   final String? startLocationId; // 起始库位ID
   final String? endLocationId; // 终点库位ID
+  final double cellWidth;
+  final double cellHeight;
 
   // 存储 cell 和 rect 的映射
   final List<MapEntry<GridCell, Rect>> cellRects = [];
 
-  MapControl({
+  MapControlLengend({
     Key? key,
     this.xUnits = 9,
     this.yUnits = 10,
@@ -25,36 +27,49 @@ class MapControl extends StatelessWidget {
     this.onCellTap,
     this.startLocationId,
     this.endLocationId,
+    this.cellWidth = 32,
+    this.cellHeight = 32,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return GestureDetector(
-            onTapDown: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
-              final Offset localPosition =
-                  box.globalToLocal(details.globalPosition);
-              _handleTap(localPosition, constraints.biggest);
-            },
-            child: CustomPaint(
-              painter: GridPainter(
-                xUnits: xUnits,
-                yUnits: yUnits,
-                xStart: xStart,
-                yStart: yStart,
-                cells: cells,
-                cellRects: cellRects,
-                startLocationId: startLocationId,
-                endLocationId: endLocationId,
+    final double gridWidth = cellWidth * yUnits;
+    final double gridHeight = cellHeight * xUnits;
+    final Size screenSize = MediaQuery.of(context).size;
+    return SizedBox(
+      width: screenSize.width,
+      height: screenSize.height,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: GestureDetector(
+              onTapDown: (details) {
+                final RenderBox box = context.findRenderObject() as RenderBox;
+                final Offset localPosition =
+                    box.globalToLocal(details.globalPosition);
+                _handleTap(localPosition, Size(gridWidth, gridHeight));
+              },
+              child: CustomPaint(
+                painter: GridPainter(
+                  xUnits: xUnits,
+                  yUnits: yUnits,
+                  xStart: xStart,
+                  yStart: yStart,
+                  cells: cells,
+                  cellRects: cellRects,
+                  startLocationId: startLocationId,
+                  endLocationId: endLocationId,
+                  cellWidth: cellWidth,
+                  cellHeight: cellHeight,
+                ),
+                size: Size(gridWidth, gridHeight),
               ),
-              size: Size.infinite,
             ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }
@@ -81,6 +96,8 @@ class GridPainter extends CustomPainter {
   final List<MapEntry<GridCell, Rect>> cellRects;
   final String? startLocationId;
   final String? endLocationId;
+  final double cellWidth;
+  final double cellHeight;
 
   GridPainter({
     required this.xUnits,
@@ -91,6 +108,8 @@ class GridPainter extends CustomPainter {
     required this.cellRects,
     this.startLocationId,
     this.endLocationId,
+    required this.cellWidth,
+    required this.cellHeight,
   });
 
   // 获取库位的标记颜色
@@ -106,8 +125,8 @@ class GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     cellRects.clear(); // 每次重绘前清空
-    final double dx = size.width / yUnits;
-    final double dy = size.height / xUnits;
+    final double dx = cellWidth;
+    final double dy = cellHeight;
 
     final Paint gridPaint = Paint()
       ..color = Colors.grey.withOpacity(0.06)

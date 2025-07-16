@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itms_mobile/core/utils/storage_utils.dart';
 
 class VendorModePage extends StatefulWidget {
   const VendorModePage({super.key});
@@ -8,6 +9,9 @@ class VendorModePage extends StatefulWidget {
 }
 
 class _VendorModePageState extends State<VendorModePage> {
+  double cellWidth = 40.0;
+  double cellHeight = 40.0;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,12 +80,222 @@ class _VendorModePageState extends State<VendorModePage> {
                         Icons.account_balance_wallet,
                         Colors.red,
                       ),
+                      _buildStorageSettingsCard(),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStorageSettingsCard() {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.indigo.withOpacity(0.1),
+              Colors.indigo.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.indigo,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.settings,
+                    size: 32,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        '库位显示设置',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        '调整库位显示尺寸和样式',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            
+            // 库位宽度设置
+            Row(
+              children: [
+                const Text(
+                  '库位宽度: ',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: cellWidth,
+                    min: 20.0,
+                    max: 100.0,
+                    divisions: 16,
+                    label: '${cellWidth.toStringAsFixed(0)}px',
+                    onChanged: (value) {
+                      setState(() {
+                        cellWidth = value;
+                      });
+                      _saveCellSettings();
+                    },
+                  ),
+                ),
+                Text(
+                  '${cellWidth.toStringAsFixed(0)}px',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 库位高度设置
+            Row(
+              children: [
+                const Text(
+                  '库位高度: ',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Expanded(
+                  child: Slider(
+                    value: cellHeight,
+                    min: 20.0,
+                    max: 100.0,
+                    divisions: 16,
+                    label: '${cellHeight.toStringAsFixed(0)}px',
+                    onChanged: (value) {
+                      setState(() {
+                        cellHeight = value;
+                      });
+                      _saveCellSettings();
+                    },
+                  ),
+                ),
+                Text(
+                  '${cellHeight.toStringAsFixed(0)}px',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // 预览区域
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey[300]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '预览效果:',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        width: cellWidth,
+                        height: cellHeight,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 213, 213, 213),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.grey[400]!),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '空闲',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        width: cellWidth,
+                        height: cellHeight,
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 238, 137, 4),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: Colors.grey[400]!),
+                        ),
+                        child: const Center(
+                          child: Text(
+                            '占用',
+                            style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -162,5 +376,25 @@ class _VendorModePageState extends State<VendorModePage> {
         ),
       ),
     );
+  }
+
+  // 保存库位设置
+  void _saveCellSettings() {
+    StorageDataManager().updateCellSettings(cellWidth, cellHeight);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCellSettings();
+  }
+
+  // 加载库位设置
+  void _loadCellSettings() {
+    final settings = StorageDataManager().getCellSettings();
+    setState(() {
+      cellWidth = settings['width'] ?? 40.0;
+      cellHeight = settings['height'] ?? 40.0;
+    });
   }
 } 

@@ -25,9 +25,44 @@ class StorageUtils {
     };
   }
 
-  // 计算区域的坐标范围
-  static Map<String, int> calculateAreaRange(
-      List<GridCell> cells, List<GridCell> allCellList, [String? areaId]) {
+  // 计算独立的区域的坐标范围
+  static Map<String, int> calculateAreaMinRange(
+      List<GridCell> cells, List<GridCell> allCellList) {
+    if (cells.isEmpty) {
+      return <String, int>{
+        'xStart': 0,
+        'xUnits': 1,
+        'yStart': 0,
+        'yUnits': 1,
+      };
+    }
+
+    double minX = cells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
+    double maxX = cells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
+    double minY = cells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
+
+    // 动态计算所有区域中Y坐标的最大值
+    final allCells = allCellList;
+    double maxY;
+    if (allCells.isEmpty) {
+      maxY = minY; // 如果没有其他区域的数据，使用当前区域的最大Y值
+    } else {
+      maxY = allCells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
+    }
+
+    return <String, int>{
+      'xStart': minX.toInt(),
+      'xUnits': maxX.ceil().toInt(),
+      'yStart': minY.toInt(),
+      'yUnits': maxY.ceil().toInt(),
+    };
+  }
+
+
+  // 计算极值区域的坐标范围
+  static Map<String, int> calculateAreaMaxRange(
+      List<GridCell> cells, List<GridCell> allCellList,
+      [String? areaId]) {
     if (cells.isEmpty) {
       return <String, int>{
         'xStart': 0,
@@ -55,7 +90,8 @@ class StorageUtils {
     int xUnits = currentMinX.floor().toInt() + maxRangeX.ceil().toInt();
     int yUnits = currentMinY.floor().toInt() + maxRangeY.ceil().toInt();
 
-    print('currentMinX: $currentMinX, currentMinY: $currentMinY, xUnits: $xUnits, yUnits: $yUnits');
+    print(
+        'currentMinX: $currentMinX, currentMinY: $currentMinY, xUnits: $xUnits, yUnits: $yUnits');
     print('maxRangeX: $maxRangeX, maxRangeY: $maxRangeY');
 
     return <String, int>{
@@ -71,7 +107,8 @@ class StorageUtils {
     return storageLocationDTOS.map((dynamic storageLocationDTO) {
       final x = double.parse(storageLocationDTO['xplace'].toString());
       final y = double.parse(storageLocationDTO['yplace'].toString());
-      final shelfId = storageLocationDTO['storageShelfDTO']?['shelfId']?.toString();
+      final shelfId =
+          storageLocationDTO['storageShelfDTO']?['shelfId']?.toString();
       return GridCell(
         x: x,
         y: y,
@@ -188,20 +225,24 @@ class StorageDataManager {
   // 计算并缓存指定区域的最大范围
   void _calculateAreaMaxRanges(String areaId) {
     List<GridCell> areaCells = getCellsByAreaId(areaId);
-    
+
     if (areaCells.isEmpty) {
       _cachedMaxRangeX[areaId] = 0;
       _cachedMaxRangeY[areaId] = 0;
     } else {
-      double maxX = areaCells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
-      double minX = areaCells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
-      double maxY = areaCells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
-      double minY = areaCells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
+      double maxX =
+          areaCells.map((cell) => cell.x).reduce((a, b) => a > b ? a : b);
+      double minX =
+          areaCells.map((cell) => cell.x).reduce((a, b) => a < b ? a : b);
+      double maxY =
+          areaCells.map((cell) => cell.y).reduce((a, b) => a > b ? a : b);
+      double minY =
+          areaCells.map((cell) => cell.y).reduce((a, b) => a < b ? a : b);
 
       _cachedMaxRangeX[areaId] = maxX - minX;
       _cachedMaxRangeY[areaId] = maxY - minY;
     }
-    
+
     _isCacheValid[areaId] = true;
   }
 

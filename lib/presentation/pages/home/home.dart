@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart' show NoSplash;
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
+import 'package:itms_mobile/presentation/widgets/common/map_control_lengend.dart';
 import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'dart:ui';
@@ -42,8 +42,6 @@ class _HomePageState extends State<HomePage>
   bool _isInitialized = false; // 初始化状态
 
   // 常量定义
-  static const double _legendItemHeight = 200.0;
-  static const double _legendItemWidth = 190.0;
   static const double _legendItemMargin = 8.0;
   static const double _legendPadding = 10.0;
   static const double _borderStrokeWidth = 2.0;
@@ -668,7 +666,7 @@ class _HomePageState extends State<HomePage>
     return areaIds.map((areaId) {
       final cells = storageManager.getCellsByAreaId(areaId);
       final areaName = storageManager.getAreaName(areaId);
-      final rangeInfo = StorageUtils.calculateAreaRange(cells, storageManager.getAllCells().cast<GridCell>());
+      final rangeInfo = StorageUtils.calculateAreaMinRange(cells, storageManager.getAllCells().cast<GridCell>());
       return _LegendData(
         name: areaName,
         cells: cells,
@@ -683,6 +681,17 @@ class _HomePageState extends State<HomePage>
     required List<GridCell> cells,
     required Map<String, int> rangeInfo,
   }) {
+    // 动态计算图例尺寸
+    const double cellWidth = 14.0;
+    const double cellHeight = 14.0;
+    
+    // 计算实际的格子数量
+    final int xUnits = (rangeInfo['xUnits'] as int) - (rangeInfo['xStart'] as int) + 1;
+    final int yUnits = (rangeInfo['yUnits'] as int) - (rangeInfo['yStart'] as int) + 1;
+    
+    // 动态计算宽度和高度
+    final double legendItemWidth = yUnits * cellWidth;
+    final double legendItemHeight = xUnits * cellHeight;
     
     return Container(
       // margin: const EdgeInsets.only(bottom: _legendItemMargin),
@@ -707,14 +716,16 @@ class _HomePageState extends State<HomePage>
                 ),
               ),
               SizedBox(
-                  width: _legendItemWidth,
-                  height: _legendItemHeight,
-                  child: MapControl(
+                  width: legendItemWidth,
+                  height: legendItemHeight,
+                  child: MapControlLengend(
                     // 使用计算出的范围，确保每个区域显示正确的格子数量
-                    xUnits: (rangeInfo['xUnits'] as int) - (rangeInfo['xStart'] as int) + 1,
-                    yUnits: (rangeInfo['yUnits'] as int) - (rangeInfo['yStart'] as int) + 1,
+                    xUnits: xUnits,
+                    yUnits: yUnits,
                     xStart: (rangeInfo['xStart'] as int) - 1,
                     yStart: (rangeInfo['yStart'] as int) - 1,
+                    cellWidth: cellWidth,
+                    cellHeight: cellHeight,
                     cells: cells
                   ))
             ],
@@ -742,7 +753,7 @@ class _HomePageState extends State<HomePage>
       areaId: <String, dynamic>{
         'name': areaName,
         'cells': cells,
-        'rangeInfo': StorageUtils.calculateAreaRange(cells, storageManager.getAllCells().cast<GridCell>()),
+        'rangeInfo': StorageUtils.calculateAreaMaxRange(cells, storageManager.getAllCells().cast<GridCell>()),
       },
     };
   }
