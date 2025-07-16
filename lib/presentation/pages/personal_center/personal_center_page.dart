@@ -12,10 +12,9 @@ class PersonalCenterPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const SizedBox(height: 24),
-          // 个人信息卡片
-          _buildProfileCard(),
-          const SizedBox(height: 24),
+          // 顶部渐变信息区
+          _buildTopProfile(context),
+          const SizedBox(height: 28),
           // 功能区块
           ..._buildMenuList(context),
           const Spacer(),
@@ -26,49 +25,49 @@ class PersonalCenterPage extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-          child: Row(
-            children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundImage: const AssetImage('assets/icon/icon.png'),
-                backgroundColor: Colors.white,
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      'admin',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF222222),
-                      ),
-                    ),
-                    SizedBox(height: 6),
-                    Text(
-                      '角色: 超级管理员',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
+  Widget _buildTopProfile(BuildContext context) {
+    return Stack(
+      children: [
+        // 渐变背景
+        Container(
+          height: 140,
+        ),
+        // 头像和信息
+        Positioned.fill(
+          child: Align(
+            alignment: Alignment.bottomCenter,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  child: const CircleAvatar(
+                    radius: 38,
+                    backgroundColor: Color.fromARGB(255, 128, 189, 243),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 10),
+                const Text(
+                  'admin',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 107, 106, 106),
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  '角色: 超级管理员',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color.fromARGB(255, 107, 106, 106),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
+      ],
     );
   }
 
@@ -76,6 +75,7 @@ class PersonalCenterPage extends StatelessWidget {
     final List<_MenuItemData> menuItems = [
       _MenuItemData(
         icon: Icons.settings,
+        iconBg: const Color(0xFF4FC3F7),
         title: '设置图例库位宽高',
         onTap: () {
           // TODO: 跳转到设置图例库位宽高页面
@@ -83,6 +83,7 @@ class PersonalCenterPage extends StatelessWidget {
       ),
       _MenuItemData(
         icon: Icons.devices,
+        iconBg: const Color(0xFF81C784),
         title: '设备管理',
         onTap: () {
           // TODO: 跳转到设备管理页面
@@ -90,6 +91,7 @@ class PersonalCenterPage extends StatelessWidget {
       ),
       _MenuItemData(
         icon: Icons.widgets,
+        iconBg: const Color(0xFFFFB74D),
         title: '托盘管理',
         onTap: () {
           // TODO: 跳转到托盘管理页面
@@ -97,6 +99,7 @@ class PersonalCenterPage extends StatelessWidget {
       ),
       _MenuItemData(
         icon: Icons.place,
+        iconBg: const Color(0xFFBA68C8),
         title: '地标管理',
         onTap: () {
           // TODO: 跳转到地标管理页面
@@ -105,20 +108,33 @@ class PersonalCenterPage extends StatelessWidget {
     ];
     return menuItems
         .map((item) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4), // 左右间距24，上下间距8
               child: Card(
-                elevation: 1,
+                elevation: 2,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                child: ListTile(
-                  leading: Icon(item.icon, size: 32, color: const Color(0xFF0489FE)),
-                  title: Text(
-                    item.title,
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child: ListTile(
+                    leading: Container(
+                      width: 44,
+                      height: 54,
+                      decoration: BoxDecoration(
+                        color: item.iconBg.withOpacity(0.15),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Icon(item.icon, size: 20, color: item.iconBg),
+                      ),
+                    ),
+                    title: Text(
+                      item.title,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                    ),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: item.onTap,
                   ),
-                  trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                  onTap: item.onTap,
                 ),
               ),
             ))
@@ -127,10 +143,10 @@ class PersonalCenterPage extends StatelessWidget {
 
   Widget _buildLogoutButton() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 22), // 底部留白
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 18), // 底部留白
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Color.fromARGB(255, 200, 199, 199),
+          backgroundColor: const Color.fromARGB(255, 200, 199, 199),
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
           elevation: 4,
@@ -141,7 +157,7 @@ class PersonalCenterPage extends StatelessWidget {
         onPressed: () {
           SystemNavigator.pop(); // 退出APP
         },
-        child: const Text('退出登录', style: TextStyle(fontSize: 18)),
+        child: const Text('退出登录', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
       ),
     );
   }
@@ -149,7 +165,8 @@ class PersonalCenterPage extends StatelessWidget {
 
 class _MenuItemData {
   final IconData icon;
+  final Color iconBg;
   final String title;
   final VoidCallback onTap;
-  const _MenuItemData({required this.icon, required this.title, required this.onTap});
+  const _MenuItemData({required this.icon, required this.iconBg, required this.title, required this.onTap});
 } 
