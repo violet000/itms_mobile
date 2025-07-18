@@ -53,11 +53,11 @@ class Service9087 {
   /// pageSize - 页面大小
   Future<Map<String, dynamic>> qryPageByParams(
       Map<String, dynamic> params) async {
-    return _dioService.get('/warehousing/v2/shelf/qryPageByParams',
+    return _dioService.get('/storage/v2/shelf/qryPageByParams',
         queryParameters: <String, dynamic>{
           'shelfId': params['shelfId'],
           'shelfType': params['shelfType'],
-          'status': params['status'],
+          if (params['status'] is int) 'status': params['status'],
           'clrCenterNo': params['clrCenterNo'],
           'locationId': params['locationId'],
           'note': params['note'],
@@ -76,7 +76,7 @@ class Service9087 {
   /// locationId - 所在地标ID
   /// note - 备注
   Future<Map<String, dynamic>> addShelf(Map<String, dynamic> params) async {
-    return _dioService.post('/warehousing/v2/shelf/addShelfInfo', body: params);
+    return _dioService.post('/storage/v2/shelf/addShelfInfo', body: params);
   }
 
   /// 修改托盘
