@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/datasources/api/8062/service_8062.dart';
-import 'package:itms_mobile/core/utils/hashStr.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
-import 'package:itms_mobile/presentation/widgets/common/loading_widget.dart';
 import 'dart:ui';
 import 'package:itms_mobile/presentation/pages/home/home.dart';
 import 'package:itms_mobile/services/storage_service.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -346,23 +345,14 @@ class _LoginPageState extends State<LoginPage> {
 
     try {
       if (mounted) {
-        LoadingUtils.showFullScreenLoading(
-          context: context,
-          text: '',
-        );
+        EasyLoading.show(status: '登录中...');
+
 
         // await _service!.accountLogin(
         //   _usernameController.text,
         //   MD5Util.generateMd5("${_passwordController.text}messi"),
         // );
-        LoadingUtils.hideLoading(context);
         if (!mounted) return;
-
-        // 登录后，预加载Home数据
-        LoadingUtils.showFullScreenLoading(
-          context: context,
-          text: '',
-        );
 
         try {
           // 预加载
@@ -372,7 +362,7 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         if (!mounted) return;
-        LoadingUtils.hideLoading(context);
+        EasyLoading.dismiss();
 
         // 页面跳转
         await Navigator.pushReplacement<void, void>(
@@ -401,7 +391,6 @@ class _LoginPageState extends State<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        LoadingUtils.hideLoading(context);
         context.showErrorMessage('登录失败: ${e.toString()}');
       }
     } finally {

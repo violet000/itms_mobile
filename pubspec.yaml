@@ -24,6 +24,7 @@ dependencies:
   sm_crypto: ^1.0.3
   flutter_svg: ^1.1.6
   syncfusion_flutter_datagrid: ^20.2.49
+  flutter_easyloading: ^3.0.5
 
 dev_dependencies:
   flutter_test:

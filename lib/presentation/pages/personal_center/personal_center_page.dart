@@ -30,7 +30,7 @@ class PersonalCenterPage extends StatelessWidget {
       children: [
         // 渐变背景
         Container(
-          height: 140,
+          height: 100,
         ),
         // 头像和信息
         Positioned.fill(
@@ -38,15 +38,15 @@ class PersonalCenterPage extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  child: const CircleAvatar(
-                    radius: 38,
-                    backgroundColor: Color.fromARGB(255, 128, 189, 243),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
+              children: const [
+                // Container(
+                //   child: const CircleAvatar(
+                //     radius: 38,
+                //     backgroundColor: Color.fromARGB(255, 128, 189, 243),
+                //   ),
+                // ),
+                // const SizedBox(height: 10),
+                Text(
                   'admin',
                   style: TextStyle(
                     fontSize: 20,
@@ -55,8 +55,8 @@ class PersonalCenterPage extends StatelessWidget {
                     letterSpacing: 1.2,
                   ),
                 ),
-                const SizedBox(height: 4),
-                const Text(
+                SizedBox(height: 4),
+                Text(
                   '角色: 超级管理员',
                   style: TextStyle(
                     fontSize: 14,
@@ -73,6 +73,14 @@ class PersonalCenterPage extends StatelessWidget {
 
   List<Widget> _buildMenuList(BuildContext context) {
     final List<_MenuItemData> menuItems = [
+      _MenuItemData(
+        icon: Icons.settings,
+        iconBg: const Color.fromARGB(255, 118, 209, 72),
+        title: '库位色块值设置',
+        onTap: () {
+          Navigator.pushNamed(context, '/personal_center/landmark-color-settings');
+        },
+      ),
       _MenuItemData(
         icon: Icons.settings,
         iconBg: const Color(0xFF4FC3F7),
@@ -94,7 +102,7 @@ class PersonalCenterPage extends StatelessWidget {
         iconBg: const Color(0xFFFFB74D),
         title: '托盘管理',
         onTap: () {
-          // TODO: 跳转到托盘管理页面
+          Navigator.pushNamed(context, '/personal_center/shelf-management');
         },
       ),
       _MenuItemData(
@@ -108,14 +116,16 @@ class PersonalCenterPage extends StatelessWidget {
     ];
     return menuItems
         .map((item) => Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 4), // 左右间距24，上下间距8
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14.0, vertical: 4), // 左右间距24，上下间距8
               child: Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // 左右间距10，上下间距10
                   child: ListTile(
                     leading: Container(
                       width: 44,
@@ -130,9 +140,11 @@ class PersonalCenterPage extends StatelessWidget {
                     ),
                     title: Text(
                       item.title,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.normal),
                     ),
-                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    trailing:
+                        const Icon(Icons.chevron_right, color: Colors.grey),
                     onTap: item.onTap,
                   ),
                 ),
@@ -157,7 +169,9 @@ class PersonalCenterPage extends StatelessWidget {
         onPressed: () {
           SystemNavigator.pop(); // 退出APP
         },
-        child: const Text('退出登录', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
+        child: const Text('退出登录',
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1)),
       ),
     );
   }
@@ -168,5 +182,9 @@ class _MenuItemData {
   final Color iconBg;
   final String title;
   final VoidCallback onTap;
-  const _MenuItemData({required this.icon, required this.iconBg, required this.title, required this.onTap});
-} 
+  const _MenuItemData(
+      {required this.icon,
+      required this.iconBg,
+      required this.title,
+      required this.onTap});
+}

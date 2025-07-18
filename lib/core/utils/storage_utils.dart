@@ -1,14 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart'; // 用于GridCell
+import 'package:itms_mobile/core/utils/util.dart';
 
 class StorageUtils {
-  /// 根据 status 返回颜色
-  static Color getStatusColor(int status) {
-    return status == 1
-        ? const Color.fromARGB(255, 213, 213, 213)
-        : const Color.fromARGB(255, 238, 137, 4);
-  }
-
   static Map<String, dynamic> getCellsByAreaId(Map<String, dynamic> args) {
     final areaId = args['id'] as String?;
     final areaName = args['name'] as String?;
@@ -90,10 +84,6 @@ class StorageUtils {
     int xUnits = currentMinX.floor().toInt() + maxRangeX.ceil().toInt();
     int yUnits = currentMinY.floor().toInt() + maxRangeY.ceil().toInt();
 
-    print(
-        'currentMinX: $currentMinX, currentMinY: $currentMinY, xUnits: $xUnits, yUnits: $yUnits');
-    print('maxRangeX: $maxRangeX, maxRangeY: $maxRangeY');
-
     return <String, int>{
       'xStart': currentMinX.floor().toInt(), // 使用当前区域的X轴最小值作为起始点
       'xUnits': xUnits, // X轴绘制到：起始点 + 范围
@@ -113,8 +103,9 @@ class StorageUtils {
         x: x,
         y: y,
         id: storageLocationDTO['id'].toString(),
-        color: getStatusColor(storageLocationDTO['status'] as int),
+        color: Util.getStatusColor(storageLocationDTO['status'] as int),
         shelfId: shelfId,
+        status: storageLocationDTO['status'] as int,
       );
     }).toList();
   }
@@ -245,9 +236,4 @@ class StorageDataManager {
 
     _isCacheValid[areaId] = true;
   }
-
-  // 向后兼容的方法（为了不破坏现有代码）
-  List<GridCell> get cells => getCellsByAreaId('A001');
-  List<GridCell> get cells2 => getCellsByAreaId('A002');
-  List<GridCell> get cells3 => getCellsByAreaId('A003');
 }

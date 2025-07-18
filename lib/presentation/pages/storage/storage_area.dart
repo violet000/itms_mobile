@@ -5,6 +5,8 @@ import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/custom_dialog.dart';
+import 'package:itms_mobile/core/constants/constant.dart';
+import 'package:itms_mobile/core/utils/util.dart';
 
 /// 仓储库位控件封装
 class StorageArea extends StatefulWidget {
@@ -86,19 +88,19 @@ class _StorageAreaState extends State<StorageArea> {
                               yStart: (areaInfo['yStart'] as int) - 1,
                               cells: StorageArea.cells,
                               onCellTap: (cell) async {
-                                final result = await CustomDialog.showConfirm(
-                                  context: context,
-                                  title: '确认操作',
-                                  content: '您确定要执行此操作吗？',
-                                  confirmText: '确定',
-                                  cancelText: '取消',
-                                  confirmColor: Colors.red,
-                                );
-                                if (result == ConfirmResult.confirm) {
-                                  context.showSuccessMessage('用户确认了操作');
-                                } else if (result == ConfirmResult.cancel) {
-                                  context.showInfoMessage('用户取消了操作');
-                                }
+                                // final result = await CustomDialog.showConfirm(
+                                //   context: context,
+                                //   title: '确认操作',
+                                //   content: '您确定要执行此操作吗？',
+                                //   confirmText: '确定',
+                                //   cancelText: '取消',
+                                //   confirmColor: Colors.red,
+                                // );
+                                // if (result == ConfirmResult.confirm) {
+                                //   context.showSuccessMessage('用户确认了操作');
+                                // } else if (result == ConfirmResult.cancel) {
+                                //   context.showInfoMessage('用户取消了操作');
+                                // }
                               },
                             ))
                       ]),
@@ -111,32 +113,20 @@ class _StorageAreaState extends State<StorageArea> {
             color: Colors.transparent,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Row(
+              children: LandmarkStatus.values.map((status) {
+                return Row(
                   children: [
                     Container(
-                      width: 30,
-                      height: 18,
-                      color: const Color.fromARGB(255, 213, 213, 213),
+                      width: 20,
+                      height: 12,
+                      color: Util.hexToColor(status.color),
                     ),
+                    const SizedBox(width: 2),
+                    Text(status.displayName),
                     const SizedBox(width: 8),
-                    const Text('空闲'),
                   ],
-                ),
-                const SizedBox(width: 24),
-                Row(
-                  children: [
-                    Container(
-                      width: 30,
-                      height: 18,
-                      color: const Color.fromARGB(255, 238, 137, 4),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('占用'),
-                  ],
-                ),
-                const SizedBox(width: 10)
-              ],
+                );
+              }).toList(),
             ),
           ),
         ],

@@ -6,6 +6,7 @@ class GridCell {
   final String id;
   final Color color;
   final String? shelfId; 
+  final int status; // 新增：库位状态 0-禁用 1-空闲 2-锁定 3-占用
 
   GridCell({
     required this.x,
@@ -13,5 +14,6 @@ class GridCell {
     required this.id,
     required this.color,
     this.shelfId,
+    required this.status,
   });
 }

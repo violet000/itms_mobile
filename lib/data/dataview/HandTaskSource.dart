@@ -10,27 +10,36 @@ class HandTask {
     required this.status, // 状态
     required this.origCell, // 起始库位
     required this.destCell, // 终点库位
-    required this.carryContainerType, // AGV编号
+    required this.origArea, // 起始库区
+    required this.destArea, // 终点库区
+    required this.carryContainerType, // 搬运类型
     required this.execStartTime, // 开始时间
     required this.execEndTime, // 结束时间
+    required this.jobId, // 任务号
+    required this.carryContainerId, // 托盘编号
   });
   final String operateType;
   final int status;
   final String origCell;
   final String destCell;
+  final String origArea;
+  final String destArea;
   final String carryContainerType;
   final String execStartTime;
   final String execEndTime;
+  final String jobId;
+  final String carryContainerId;
 }
 
 // 搬运任务数据源适配
 class HandTaskDataSource extends DataGridSource {
+  final List<HandTask> _originHandTasks;
   final Function(HandTask)? onDetailTap; // 添加详情点击回调
 
   HandTaskDataSource({
     required List<HandTask> handTasks,
     this.onDetailTap,
-  }) {
+  }) : _originHandTasks = handTasks {
     _handtasks = handTasks
         .map<DataGridRow>((e) => DataGridRow(cells: [
               DataGridCell<String>(
@@ -63,9 +72,8 @@ class HandTaskDataSource extends DataGridSource {
         if (cell.columnName == 'actions') {
           // 操作列显示详情按钮
           final rowIndex = _handtasks.indexOf(row);
-          print("rowIndex: ${rowIndex}");
-          final handTask = rowIndex >= 0 && rowIndex < _handtasks.length 
-              ? _getHandTaskFromRow(row) 
+          final handTask = rowIndex >= 0 && rowIndex < _originHandTasks.length
+              ? _originHandTasks[rowIndex]
               : null;
           
           return Container(
@@ -76,7 +84,6 @@ class HandTaskDataSource extends DataGridSource {
               child: InkWell(
                 borderRadius: BorderRadius.circular(6.0),
                 onTap: () {
-                  print("onDetailTap: ${onDetailTap}, ${handTask}");
                   if (onDetailTap != null && handTask != null) {
                     onDetailTap!(handTask);
                   }
@@ -139,16 +146,19 @@ class HandTaskDataSource extends DataGridSource {
   HandTask? _getHandTaskFromRow(DataGridRow row) {
     try {
       final cells = row.getCells();
-      print("cells: ${cells}");
       if (cells.length >= 5) {
         return HandTask(
           operateType: cells[0].value.toString(),
           status: cells[1].value as int,
           origCell: cells[2].value.toString(),
           destCell: cells[3].value.toString(),
-          carryContainerType: '', // 隐藏字段，设为空字符串
-          execStartTime: '', // 隐藏字段，设为空字符串
-          execEndTime: '', // 隐藏字段，设为空字符串
+          origArea: '',
+          destArea: '',
+          carryContainerType: '',
+          execStartTime: '',
+          execEndTime: '', 
+          jobId: '',
+          carryContainerId: '',
         );
       }
     } catch (e) {

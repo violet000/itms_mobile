@@ -52,15 +52,15 @@ enum JobStatus {
   String get colorCode {
     switch (this) {
       case JobStatus.pending:
-        return '#FFA500'; // 橙色
+        return '#FFA07A'; // 橙色
       case JobStatus.running:
-        return '#007BFF'; // 蓝色
+        return '#87CEFA'; // 蓝色
       case JobStatus.completed:
-        return '#28A745'; // 绿色
+        return '#90EE90'; // 绿色
       case JobStatus.cancelled:
-        return '#6C757D'; // 灰色
+        return '#D3D3D3'; // 灰色
       case JobStatus.failed:
-        return '#DC3545'; // 红色
+        return '#CD5C5C'; // 红色
     }
   }
 }
@@ -107,4 +107,67 @@ enum HTTPCode {
   const HTTPCode(this.code);
   final String code;
 }
+
+
+/// 地标状态 0-禁用 1-空闲 2-锁定 3-占用
+enum LandmarkStatus {
+  disabled(0, '禁用', '#708090'),
+  idle(1, '空闲', '#32CD32'),
+  locked(2, '锁定', '#DC143C'),
+  occupied(3, '占用', '#FFA500');
+
+  const LandmarkStatus(this.code, this.displayName, this.color);
+  final int code;
+  final String displayName;
+  final String color;
+
+  static LandmarkStatus fromCode(int code) {
+    return LandmarkStatus.values.firstWhere(
+      (status) => status.code == code,
+      orElse: () => LandmarkStatus.disabled,
+    );
+  }
+}
+
+/// 地标类型 0-NULL(空) 1-FIXED_SHELF（固定货架) 2-MOVE_SHELF(移动货架) 3-虚拟库位(潜伏式AGV) 4-CHARGER(充电桩)
+enum LandmarkType {
+  none(0, '空'),
+  fixedShelf(1, '固定货架'),
+  moveShelf(2, '移动货架'),
+  virtualLocation(3, '虚拟库位'),
+  charger(4, '充电桩');
+
+  const LandmarkType(this.code, this.displayName);
+  final int code;
+  final String displayName;
+
+  static LandmarkType fromCode(int code) {
+    return LandmarkType.values.firstWhere(
+      (type) => type.code == code,
+      orElse: () => LandmarkType.none,
+    );
+  }
+}
+
+/// 托盘状态 0-禁用 1-空闲 2-锁定 3-占用 4-满载
+enum PalletStatus {
+  disabled(0, '禁用', '#708090'),
+  idle(1, '空闲', '#32CD32'),
+  locked(2, '锁定', '#DC143C'),
+  occupied(3, '占用', '#FFA500'),
+  full(4, '满载', '#8B0000');
+
+  const PalletStatus(this.code, this.displayName, this.color);
+  final int code;
+  final String displayName;
+  final String color;
+
+  static PalletStatus fromCode(int code) {
+    return PalletStatus.values.firstWhere(
+      (status) => status.code == code,
+      orElse: () => PalletStatus.disabled,
+    );
+  }
+}
+
 

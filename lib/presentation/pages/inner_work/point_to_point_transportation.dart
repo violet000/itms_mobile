@@ -8,6 +8,8 @@ import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
+import 'package:itms_mobile/core/utils/util.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class PointToPointPage extends StatefulWidget {
   const PointToPointPage({super.key});
@@ -96,6 +98,64 @@ class _PointToPointPageState extends State<PointToPointPage> {
 
   // 显示选择对话框
   void _showSelectionDialog(GridCell cell) {
+    // 判断锁定状态
+    if (cell.status == LandmarkStatus.locked.code) {
+      showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 8,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              color: Colors.white,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  '该库位处于锁定状态，无法选择为起点或终点',
+                  style: TextStyle(fontSize: 16, color: Colors.red),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text(
+                      '关闭',
+                      style: TextStyle(
+                        color: Colors.grey.shade600,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return;
+    }
     showDialog<void>(
       context: context,
       barrierDismissible: true,
@@ -154,6 +214,10 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 subtitle: '标记为起点库位',
                 color: Colors.blue,
                 onTap: () {
+                  if (cell.status != LandmarkStatus.occupied.code) {
+                    context.showErrorMessage('只能选择占用状态为起点');
+                    return;
+                  }
                   Navigator.pop(context);
                   _setSelectedLocation(cell.id, 'start', cell.shelfId);
                 },
@@ -165,6 +229,10 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 subtitle: '标记为终点库位',
                 color: Colors.red,
                 onTap: () {
+                  if (cell.status != LandmarkStatus.idle.code) {
+                    context.showErrorMessage('只能选择空闲状态为终点');
+                    return;
+                  }
                   Navigator.pop(context);
                   _setSelectedLocation(cell.id, 'end', cell.shelfId);
                 },
@@ -412,6 +480,7 @@ class _PointToPointPageState extends State<PointToPointPage> {
 
   // 下发搬运指令
   Future<void> _launchCarry() async {
+    EasyLoading.show(status: '发起任务中...');
     try {
       final service = await Service9087.create();
       final Map<String, dynamic> response = await service.qryLineByEscortNo(<String, dynamic>{
@@ -422,15 +491,25 @@ class _PointToPointPageState extends State<PointToPointPage> {
         'carryContainerId': startShelfId,
       });
       if (response['retCode'] == HTTPCode.success.code) {
-        if (!mounted) return; // 如果页面已卸载，则不进行刷新
-        context.showSuccessMessage(response['retMsg']?.toString() ?? '操作成功');
-        await _getStorageAreas(); // 下发成功后刷新库位信息
+        if (!mounted) return;
+        context.showSuccessMessage('${response['retMsg']?.toString()}');
+
+        startStorageLocationId = null;
+        endStorageLocationId = null;
+        startShelfId = null;
+        activeSelect = null;
+        selectedAreaIndex = 0;
+        await StorageService.preloadStorageAreas(forceRefresh: true);
+        await _getStorageAreas();
+        setState(() {});
       } else {
         if (!mounted) return;
         context.showErrorMessage(response['retMsg']?.toString() ?? '操作失败');
       }
     } catch (e) { 
-      AppLogger.error('下发搬运指令失败: $e');
+      context.showErrorMessage('${e.toString()}');
+    } finally {
+      EasyLoading.dismiss();
     }
   }
 

@@ -6,7 +6,7 @@ import 'package:itms_mobile/core/config/env.dart';
 class Service8062 {
   Service8062()
       : _dioService =
-            DioServiceManager().getService('${Env.config.apiBaseUrl}:18082');
+            DioServiceManager().getService('${Env.config.apiBaseUrl}:8062');
 
   final DioService _dioService;
 
@@ -15,7 +15,7 @@ class Service8062 {
   static Future<Service8062> create() async {
     final config = await Env.config;
     return Service8062._(
-        DioServiceManager().getService('${config.apiBaseUrl}:18082'));
+        DioServiceManager().getService('${config.apiBaseUrl}:8062'));
   }
 
   /// 用户登陆
@@ -82,7 +82,7 @@ class Service8062 {
   }
 
   /// 取消搬运任务
-  Future<Map<String, dynamic>> getEscortInfo(String jobId) async {
+  Future<Map<String, dynamic>> cancelJob(String jobId) async {
     return _dioService.get('/job/v2Inner/device/cancelJob',
         queryParameters: <String, String>{'jobId': jobId});
   }
@@ -100,7 +100,60 @@ class Service8062 {
         .post('/job/v2Inner/device/manualCompleteJob', body: <String, dynamic>{
       'jobId': params['jobId'],
       'origCell': params['origCell'],
-      'destCell': params['destCell']
+      'destCell': params['destCell'],
+      'carryContainerId': params['carryContainerId']
+    });
+  }
+
+  /// 分页查询托盘信息
+  Future<Map<String, dynamic>> qryPageByParams(
+      Map<String, dynamic> params) async {
+    return _dioService
+        .get('/shelf/v2/shelf/qryPageByParams', queryParameters: <String, dynamic>{
+      if (params['shelfId'] != null && params['shelfId'].toString().isNotEmpty) 
+        'shelfId': params['shelfId'],
+      if (params['status'] != null) 'status': params['status'],
+      'curPage': params['curPage'],
+      'pageSize': params['pageSize']
+    });
+  }
+
+  /// 新增托盘
+  Future<Map<String, dynamic>> addShelf(Map<String, dynamic> params) async {
+    return _dioService
+        .post('/shelf/v2/shelf/addShelf', body: <String, dynamic>{
+      'shelfId': params['shelfId'],
+      'status': params['status'],
+      'landmarkId': params['landmarkId'],
+      'landmarkName': params['landmarkName'],
+    });
+  }
+
+  /// 修改托盘
+  Future<Map<String, dynamic>> updateShelf(Map<String, dynamic> params) async {
+    return _dioService
+        .post('/shelf/v2/shelf/updateShelf', body: <String, dynamic>{
+      'shelfId': params['shelfId'],
+      'status': params['status'],
+      'landmarkId': params['landmarkId'],
+      'landmarkName': params['landmarkName'],
+    });
+  }
+
+  /// 删除托盘
+  Future<Map<String, dynamic>> deleteShelf(String shelfId) async {
+    return _dioService
+        .get('/shelf/v2/shelf/deleteShelf', 
+        queryParameters: <String, String>{'shelfId': shelfId});
+  }
+
+  /// 查询所有地标信息
+  Future<Map<String, dynamic>> qryAllByParams(
+      Map<String, dynamic> params) async {
+    return _dioService
+        .get('/landmark/v2/landmark/qryAllByParams', 
+        queryParameters: <String, dynamic>{
+      if (params['status'] != null) 'status': params['status'],
     });
   }
 }

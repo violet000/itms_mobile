@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/dataview/HandTaskSource.dart';
 import 'package:itms_mobile/data/datasources/api/8062/service_8062.dart';
-import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/core/constants/constant.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class HandTaskPage extends StatefulWidget {
   const HandTaskPage({super.key});
@@ -17,28 +17,20 @@ class _HandTaskPageState extends State<HandTaskPage> {
   late HandTaskDataSource _handTaskDataSource;
   static Service8062? _service8062;
 
-  // 下拉选项和当前选中
-  // 作业类型选项
   final List<OperateType> _taskTypeOptions = OperateType.values;
 
-  // 状态选项
   final List<JobStatus> _statusOptions = JobStatus.values;
   OperateType? _selectedTaskType;
   JobStatus? _selectedStatus;
 
-  // 分页相关
   int _currentPage = 0;
-  int _rowsPerPage = 10;
+  int _rowsPerPage = 8;
   int _totalRows = 0;
 
-  // 数据状态
-  bool _isLoading = false;
-  String? _errorMessage;
 
-  // 原始数据
+  String? _errorMessage;
   List<HandTask> _allHandTasks = [];
 
-  // 过滤后的数据
   List<HandTask> _filteredHandTasks = [];
 
   @override
@@ -61,27 +53,20 @@ class _HandTaskPageState extends State<HandTaskPage> {
   Future<void> _loadData() async {
     _service8062 ??= await Service8062.create();
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+    EasyLoading.show(status: '正在加载数据...');
 
     try {
-      // 调用接口获取数据
-      // final response = await _service8062!.qryJobByParams(<String, dynamic>{
-      //   'status': _selectedStatus?.value ?? '',
-      //   'operateType': _selectedTaskType?.value ?? '',
-      //   'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
-      //   'pageSize': _rowsPerPage
-      // });
-
-      final response = await _service8062!.qryJobStatus();
+      final response = await _service8062!.qryJobByParams(<String, dynamic>{
+        'status': _selectedStatus?.value ?? '',
+        'operateType': _selectedTaskType?.value ?? '',
+        'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
+        'pageSize': _rowsPerPage
+      });
 
       if (response['retCode'] == HTTPCode.success.code) {
         final List<dynamic> retList =
             (response['retList'] as List<dynamic>?) ?? <dynamic>[];
         final int total = (response['totalRow'] as int?) ?? 0;
-        AppLogger.info('retList: $retList');
         // 转换数据格式
         _allHandTasks = retList.map<HandTask>((dynamic record) {
           final recordMap = record as Map<String, dynamic>;
@@ -90,10 +75,14 @@ class _HandTaskPageState extends State<HandTaskPage> {
             status: int.tryParse('${recordMap['status']}') ?? 0,
             origCell: (recordMap['origCell'] as String?) ?? '',
             destCell: (recordMap['destCell'] as String?) ?? '',
+            origArea: (recordMap['origArea'] as String?) ?? '',
+            destArea: (recordMap['destArea'] as String?) ?? '',
             carryContainerType:
                 (recordMap['carryContainerType'] as String?) ?? '',
             execStartTime: (recordMap['execStartTime'] as String?) ?? '',
             execEndTime: (recordMap['execEndTime'] as String?) ?? '',
+            jobId: (recordMap['jobId'] as String?) ?? '',
+            carryContainerId: (recordMap['carryContainerId'] as String?) ?? '',
           );
         }).toList();
 
@@ -115,9 +104,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
         _errorMessage = '网络请求失败: $e';
       });
     } finally {
-      setState(() {
-        _isLoading = false;
-      });
+      EasyLoading.dismiss();
     }
   }
 
@@ -134,7 +121,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
 
   // 处理详情按钮点击
   void _onDetailTap(HandTask handTask) {
-    print('查看详情1: ${handTask.operateType}');
+    Navigator.pushNamed(context, '/inner_work/hand-task-detail', arguments: handTask);
   }
 
   // 分页处理
@@ -352,17 +339,11 @@ class _HandTaskPageState extends State<HandTaskPage> {
                         });
                       },
                       icon: const Icon(Icons.clear, size: 16),
-                      label: SizedBox(
+                      label: const SizedBox(
                         width: 30, // 固定宽度
                         height: 24,
                         child: Center(
-                          child: _isLoading
-                              ? CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                )
-                              : const Text('重置'),
+                          child: Text('重置'),
                         ),
                       ),
                       style: OutlinedButton.styleFrom(
@@ -379,19 +360,13 @@ class _HandTaskPageState extends State<HandTaskPage> {
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton.icon(
-                      onPressed: _isLoading ? null : _refreshData,
+                      onPressed: _refreshData,
                       icon: const Icon(Icons.refresh, size: 16),
-                      label: SizedBox(
+                      label: const SizedBox(
                         width: 30, // 固定宽度
                         height: 24,
                         child: Center(
-                          child: _isLoading
-                              ? CircularProgressIndicator(
-                                  strokeWidth: 1,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white),
-                                )
-                              : const Text('刷新'),
+                          child: Text('刷新'),
                         ),
                       ),
                       style: ElevatedButton.styleFrom(
@@ -450,20 +425,9 @@ class _HandTaskPageState extends State<HandTaskPage> {
 
           // 表格区域
           Expanded(
-            child: Padding(
+                        child: Padding(
               padding: const EdgeInsets.all(2.0),
-              child: _isLoading
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CircularProgressIndicator(),
-                          SizedBox(height: 16),
-                          Text('正在加载数据...'),
-                        ],
-                      ),
-                    )
-                  : _filteredHandTasks.isEmpty
+              child: _filteredHandTasks.isEmpty
                       ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
@@ -589,7 +553,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
           ),
 
           // 分页控件
-          if (!_isLoading && _filteredHandTasks.isNotEmpty)
+          if (_filteredHandTasks.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               decoration: BoxDecoration(
@@ -622,7 +586,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
                         underline: const SizedBox(),
                         style: const TextStyle(
                             fontSize: 14, color: Colors.black87),
-                        items: [5, 10, 20, 50].map((int value) {
+                        items: [5, 8, 10, 20].map((int value) {
                           return DropdownMenuItem<int>(
                             value: value,
                             child: Text('$value'),

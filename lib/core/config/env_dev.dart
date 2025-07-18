@@ -9,7 +9,7 @@ class DevConfig {
     // final locationData = await locationConfig;
     // print('locationData: $locationData');
     return EnvConfig(
-      apiBaseUrl: 'http://192.168.0.100',
+      apiBaseUrl: 'http://10.7.100.73',
       appName: '智慧仓储系统(开发环境)',
       enableLogging: true,
       environment: Environment.dev,

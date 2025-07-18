@@ -11,7 +11,7 @@ enum MessageType {
 /// 消息提示控件封装
 /// 不同类型的消息提示，使用不同的颜色和图标，可以对其进行扩展
 class MessageToast {
-  static const Duration _defaultDuration = Duration(seconds: 3);
+  static const Duration _defaultDuration = Duration(seconds: 1);
   
   /// 成功
   static void showSuccess(

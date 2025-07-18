@@ -89,6 +89,9 @@ class PageScaffold extends StatelessWidget {
                       style: IconButton.styleFrom(
                         splashFactory: NoSplash.splashFactory,
                         highlightColor: Colors.transparent,
+                        minimumSize: const Size(48, 48), // 增大点击区域
+                        padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                   if (onWillPop != null)
@@ -99,6 +102,9 @@ class PageScaffold extends StatelessWidget {
                       style: IconButton.styleFrom(
                         splashFactory: NoSplash.splashFactory,
                         highlightColor: Colors.transparent,
+                        minimumSize: const Size(48, 48), // 增大点击区域
+                        padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                     ),
                 ],

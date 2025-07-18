@@ -20,13 +20,13 @@ class StorageService {
   }
 
   // 预加载仓储数据
-  static Future<void> preloadStorageAreas() async {
-    if (_cachedStorageAreas != null || _isLoading) return;
+  static Future<void> preloadStorageAreas({bool forceRefresh = false}) async {
+    if ((!forceRefresh && _cachedStorageAreas != null) || _isLoading) return;
     
     _isLoading = true;
     try {
       final service = await _getService9087();
-      _cachedStorageAreas = await service.getStorageAreas();
+      _cachedStorageAreas = await service.qryWarehousing('');
     } catch (e) {
       print('预加载仓储数据失败${e}');
     } finally {
@@ -53,7 +53,7 @@ class StorageService {
 
     // 否则去调取接口数据
     final service = await _getService9087();
-    final response = await service.getStorageAreas();
+    final response = await service.qryWarehousing('');
     
     _cachedStorageAreas = response;
     return response;

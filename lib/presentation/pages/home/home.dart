@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/material.dart' show NoSplash;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control_lengend.dart';
 import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
@@ -12,6 +11,8 @@ import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/personal_center_page.dart';
+import 'package:itms_mobile/core/utils/util.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class _LegendData {
   final String name;
@@ -27,7 +28,7 @@ class _LegendData {
 
 class HomePage extends StatefulWidget {
   final Map<String, dynamic>? arguments;
-  
+
   const HomePage({super.key, this.arguments});
   @override
   State<HomePage> createState() => _HomePageState();
@@ -60,12 +61,12 @@ class _HomePageState extends State<HomePage>
     );
     _fadeAnimation =
         Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
-    
+
     // 检查是否有传入的tab索引参数
     if (widget.arguments != null && widget.arguments!['selectedTab'] != null) {
       _selectedIndex = widget.arguments!['selectedTab'] as int;
     }
-    
+
     // 延迟初始化，避免阻塞UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeAsync();
@@ -77,7 +78,7 @@ class _HomePageState extends State<HomePage>
     _initializeBasicUI();
 
     await _getStorageAreas();
-    
+
     if (mounted) {
       setState(() {
         _isInitialized = true;
@@ -96,7 +97,7 @@ class _HomePageState extends State<HomePage>
           unselectedIcon: 'assets/storage/storage_unselected.svg',
           selectedIcon: 'assets/storage/storage_selected.svg',
           color: const Color.fromARGB(255, 255, 255, 255),
-          children: [], // 初始为空，后续异步加载
+          children: [],
         ),
         MenuItem(
           name: '库内作业',
@@ -111,8 +112,7 @@ class _HomePageState extends State<HomePage>
               imagePath: 'assets/icons/handover_circle.svg',
               iconPath: 'assets/icons/net_handover_icon.svg',
               route: '/inner_work/point-to-point',
-              color:
-                  const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
+              color: const Color.fromARGB(255, 115, 190, 240).withOpacity(0.1),
             ),
             MenuItem(
               name: '搬运任务管理',
@@ -120,8 +120,7 @@ class _HomePageState extends State<HomePage>
               imagePath: 'assets/icons/treasury_reat.svg',
               iconPath: 'assets/icons/treasury_handover_icon.svg',
               route: '/inner_work/hand-task',
-              color:
-                  const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
+              color: const Color.fromARGB(255, 134, 221, 245).withOpacity(0.1),
             )
           ],
           color: const Color(0xFF0489FE),
@@ -178,7 +177,7 @@ class _HomePageState extends State<HomePage>
   Future<void> _getStorageAreas() async {
     try {
       Map<String, dynamic>? response = StorageService.getCachedStorageAreas();
-      
+
       if (response == null) {
         response = await StorageService.instance.getStorageAreas();
       }
@@ -220,7 +219,8 @@ class _HomePageState extends State<HomePage>
                 x: x,
                 y: y,
                 id: location['id'].toString(),
-                color: status == 1 ? Colors.blue : Colors.grey,
+                color: Util.getStatusColor(status),
+                status: status,
               ));
             } catch (e) {
               print('处理库位数据失败: $location, 错误: $e');
@@ -310,23 +310,51 @@ class _HomePageState extends State<HomePage>
               width: double.infinity,
               padding:
                   const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
-              child: TextButton(
-                onPressed: () {
-                  _showLegendDialog(context);
-                },
-                style: TextButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  splashFactory: NoSplash.splashFactory,
-                ),
-                child: Text(
-                  "图例",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[600],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  TextButton(
+                    onPressed: () async {
+                      EasyLoading.show(status: '刷新中...');
+                      await StorageService.preloadStorageAreas(forceRefresh: true);
+                      await _getStorageAreas();
+                      setState(() {});
+                      EasyLoading.dismiss();
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      splashFactory: NoSplash.splashFactory,
+                    ),
+                    child: Text(
+                      "库位刷新",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 10),
+                  TextButton(
+                    onPressed: () {
+                      _showLegendDialog(context);
+                    },
+                    style: TextButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      splashFactory: NoSplash.splashFactory,
+                    ),
+                    child: Text(
+                      "图例",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  )
+                ],
               ),
             )
           : null,
@@ -672,7 +700,8 @@ class _HomePageState extends State<HomePage>
     return areaIds.map((areaId) {
       final cells = storageManager.getCellsByAreaId(areaId);
       final areaName = storageManager.getAreaName(areaId);
-      final rangeInfo = StorageUtils.calculateAreaMinRange(cells, storageManager.getAllCells().cast<GridCell>());
+      final rangeInfo = StorageUtils.calculateAreaMinRange(
+          cells, storageManager.getAllCells().cast<GridCell>());
       return _LegendData(
         name: areaName,
         cells: cells,
@@ -690,15 +719,17 @@ class _HomePageState extends State<HomePage>
     // 动态计算图例尺寸
     const double cellWidth = 14.0;
     const double cellHeight = 14.0;
-    
+
     // 计算实际的格子数量
-    final int xUnits = (rangeInfo['xUnits'] as int) - (rangeInfo['xStart'] as int) + 1;
-    final int yUnits = (rangeInfo['yUnits'] as int) - (rangeInfo['yStart'] as int) + 1;
-    
+    final int xUnits =
+        (rangeInfo['xUnits'] as int) - (rangeInfo['xStart'] as int) + 1;
+    final int yUnits =
+        (rangeInfo['yUnits'] as int) - (rangeInfo['yStart'] as int) + 1;
+
     // 动态计算宽度和高度
     final double legendItemWidth = yUnits * cellWidth;
     final double legendItemHeight = xUnits * cellHeight;
-    
+
     return Container(
       // margin: const EdgeInsets.only(bottom: _legendItemMargin),
       child: CustomPaint(
@@ -725,15 +756,14 @@ class _HomePageState extends State<HomePage>
                   width: legendItemWidth,
                   height: legendItemHeight,
                   child: MapControlLengend(
-                    // 使用计算出的范围，确保每个区域显示正确的格子数量
-                    xUnits: xUnits,
-                    yUnits: yUnits,
-                    xStart: (rangeInfo['xStart'] as int) - 1,
-                    yStart: (rangeInfo['yStart'] as int) - 1,
-                    cellWidth: cellWidth,
-                    cellHeight: cellHeight,
-                    cells: cells
-                  ))
+                      // 使用计算出的范围，确保每个区域显示正确的格子数量
+                      xUnits: xUnits,
+                      yUnits: yUnits,
+                      xStart: (rangeInfo['xStart'] as int) - 1,
+                      yStart: (rangeInfo['yStart'] as int) - 1,
+                      cellWidth: cellWidth,
+                      cellHeight: cellHeight,
+                      cells: cells))
             ],
           ),
         ),
@@ -759,7 +789,8 @@ class _HomePageState extends State<HomePage>
       areaId: <String, dynamic>{
         'name': areaName,
         'cells': cells,
-        'rangeInfo': StorageUtils.calculateAreaMaxRange(cells, storageManager.getAllCells().cast<GridCell>()),
+        'rangeInfo': StorageUtils.calculateAreaMaxRange(
+            cells, storageManager.getAllCells().cast<GridCell>()),
       },
     };
   }
