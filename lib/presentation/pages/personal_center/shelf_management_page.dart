@@ -133,9 +133,28 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: Colors.red,
-    ).then((result) {
+    ).then((result) async {
       if (result == ConfirmResult.confirm) {
-        // _deleteShelf(shelf);
+        _service9087 ??= await Service9087.create();
+        EasyLoading.show(status: '正在删除...');
+        try {
+          // 构建删除托盘的参数，将locationId设置为空，其他参数保持正常
+          final deleteParams = <String, dynamic>{
+            'shelfId': shelf.shelfId,
+            'shelfType': shelf.shelfType,
+            'status': shelf.status,
+            'clrCenterNo': shelf.clrCenterNo,
+            'locationId': '', // 设置为空字符串
+            'note': shelf.note, // 备注设置为空
+          };
+          final response = await _service9087!.updateShelf(deleteParams);
+          EasyLoading.dismiss();
+          EasyLoading.showSuccess('删除成功');
+          _loadData(); // 重新加载数据
+        } catch (e) {
+          EasyLoading.dismiss();
+          EasyLoading.showError('删除失败: $e');
+        }
       }
     });
   }
@@ -169,16 +188,16 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     final remarkController = TextEditingController();
 
     LandmarkModel? selectedLandmark;
-    if (shelf != null && _availableLandmarks.isNotEmpty) {
+    if (isEdit && shelf != null && _availableLandmarks.isNotEmpty) {
       try {
         selectedLandmark = _availableLandmarks.firstWhere(
-          (landmark) => landmark.id == shelf.locationId,
+          (landmark) => landmark.id.toString() == shelf.locationId.toString(),
         );
       } catch (e) {
-        selectedLandmark = _availableLandmarks.first;
+        selectedLandmark = null;
       }
-    } else if (_availableLandmarks.isNotEmpty) {
-      selectedLandmark = _availableLandmarks.first;
+    } else {
+      selectedLandmark = null;
     }
 
     showDialog<void>(
@@ -225,9 +244,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: TextField(
                           controller: shelfIdController,
-                          style: const TextStyle(fontSize: 14),
+                          enabled: !isEdit, // 编辑模式下禁用托盘编号输入
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isEdit ? Colors.grey[600] : Colors.black87, // 编辑模式下显示灰色
+                          ),
                           decoration: InputDecoration(
-                            hintText: '请输入托盘编号',
+                            hintText: isEdit ? '托盘编号不可修改' : '请输入托盘编号',
                             // prefixIcon: const Icon(Icons.confirmation_number, color: Colors.blue, size: 18), // 移除图标
                             labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color.fromARGB(255, 215, 215, 215)),
                             border: OutlineInputBorder(
@@ -242,6 +265,12 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Color(0xFFE0E3E8)), // 保持淡灰色
                             ),
+                            disabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            filled: isEdit, // 编辑模式下填充背景色
+                            fillColor: isEdit ? Colors.grey[100] : null, // 编辑模式下填充灰色背景
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           ),
@@ -373,11 +402,10 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       ),
                       const SizedBox(width: 5),
                       Expanded(
-                        child: DropdownButtonFormField<LandmarkModel>(
+                        child: DropdownButtonFormField<LandmarkModel?>(
                           value: selectedLandmark,
                           style: const TextStyle(fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
-                            // prefixIcon: const Icon(Icons.location_on, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
@@ -393,17 +421,25 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           ),
-                          items: _availableLandmarks.map((landmark) {
-                            return DropdownMenuItem(
-                              value: landmark,
-                              child: Text('${landmark.id}', style: const TextStyle(fontSize: 14)),
-                            );
-                          }).toList(),
+                          items: [
+                            const DropdownMenuItem<LandmarkModel?>(
+                              value: null,
+                              child: Text('请选择'),
+                            ),
+                            ..._availableLandmarks.map((landmark) {
+                              return DropdownMenuItem(
+                                value: landmark,
+                                child: Text('${landmark.id}', style: const TextStyle(fontSize: 14)),
+                              );
+                            }).toList(),
+                          ],
                           onChanged: (value) {
                             setState(() {
                               selectedLandmark = value;
                               if (value != null) {
                                 landmarkNameController.text = value.id;
+                              } else {
+                                landmarkNameController.text = '';
                               }
                             });
                           },
@@ -412,7 +448,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // 仓库编号
+                  // 所属仓库
                   Row(
                     children: [
                       const SizedBox(
@@ -429,11 +465,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       ),
                       const SizedBox(width: 5),
                       Expanded(
-                        child: TextField(
-                          controller: clrCenterNoController,
-                          style: const TextStyle(fontSize: 14),
+                        child: DropdownButtonFormField<StorageCenter>(
+                          value: StorageCenter.values.firstWhere(
+                            (center) => center.clrCenterNo == clrCenterNoController.text,
+                            orElse: () => StorageCenter.haikang,
+                          ),
+                          style: const TextStyle(fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
-                            hintText: '请输入仓库编号',
                             // prefixIcon: const Icon(Icons.warehouse, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -450,6 +488,19 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             isDense: true,
                             contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
                           ),
+                          items: StorageCenter.values.map((center) {
+                            return DropdownMenuItem(
+                              value: center,
+                              child: Text(center.clrCenterName, style: const TextStyle(fontSize: 14)),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              if (value != null) {
+                                clrCenterNoController.text = value.clrCenterNo;
+                              }
+                            });
+                          },
                         ),
                       ),
                     ],
@@ -513,13 +564,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       const SizedBox(width: 12),
                       ElevatedButton(
                         onPressed: () async {
-                          if (shelfIdController.text.isEmpty || selectedLandmark == null) {
+                          if (shelfIdController.text.isEmpty) {
                             context.showErrorMessage('请填写完整信息');
                             return;
                           }
-                          if (_service9087 == null) {
-                            _service9087 = await Service9087.create();
-                          }
+                          _service9087 ??= await Service9087.create();
                           EasyLoading.show(status: isEdit ? '正在修改...' : '正在新增...');
                           try {
                             final params = <String, dynamic>{
@@ -527,7 +576,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                               'shelfType': selectedShelfType.index,
                               'status': selectedStatus.code,
                               'clrCenterNo': clrCenterNoController.text,
-                              'locationId': selectedLandmark!.id,
+                              'clrCenterName': StorageCenter.fromCode(clrCenterNoController.text).clrCenterName,
+                              'locationId': selectedLandmark?.id ?? '', 
                               'note': remarkController.text,
                             };
                             Map<String, dynamic> response;
@@ -574,10 +624,10 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final availableWidth = screenWidth;
-    final shelfIdWidth = availableWidth * 0.28;
+    final shelfIdWidth = availableWidth * 0.26;
     final statusWidth = availableWidth * 0.18;
-    final landmarkWidth = availableWidth * 0.34;
-    final actionsWidth = availableWidth * 0.20;
+    final landmarkWidth = availableWidth * 0.28;
+    final actionsWidth = availableWidth * 0.30;
 
     return PageScaffold(
       title: '托盘管理',
@@ -647,7 +697,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                                 horizontal: 8, vertical: 8),
                           ),
                           style: const TextStyle(
-                              fontSize: 13, color: Colors.black87),
+                              fontSize: 13, color: Color.fromARGB(221, 92, 92, 92)),
                         ),
                       ),
                       SizedBox(

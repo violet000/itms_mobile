@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:flutter/services.dart'; // 顶部引入
+import 'package:itms_mobile/presentation/pages/personal_center/import_excel_page.dart';
 
 class PersonalCenterPage extends StatelessWidget {
   const PersonalCenterPage({super.key});
@@ -14,7 +15,7 @@ class PersonalCenterPage extends StatelessWidget {
         children: [
           // 顶部渐变信息区
           _buildTopProfile(context),
-          const SizedBox(height: 28),
+          const SizedBox(height: 5),
           // 功能区块
           ..._buildMenuList(context),
           const Spacer(),
@@ -30,7 +31,7 @@ class PersonalCenterPage extends StatelessWidget {
       children: [
         // 渐变背景
         Container(
-          height: 100,
+          height: 80,
         ),
         // 头像和信息
         Positioned.fill(
@@ -84,9 +85,12 @@ class PersonalCenterPage extends StatelessWidget {
       _MenuItemData(
         icon: Icons.settings,
         iconBg: const Color(0xFF4FC3F7),
-        title: '设置图例库位宽高',
+        title: '导入EXCEL表',
         onTap: () {
-          // TODO: 跳转到设置图例库位宽高页面
+          Navigator.push<void>(
+            context,
+            MaterialPageRoute<void>(builder: (context) => const ImportExcelPage()),
+          );
         },
       ),
       _MenuItemData(
@@ -117,7 +121,7 @@ class PersonalCenterPage extends StatelessWidget {
     return menuItems
         .map((item) => Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: 14.0, vertical: 4), // 左右间距24，上下间距8
+                  horizontal: 14.0, vertical: 4), // 左右间距24，上下间距4
               child: Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(
@@ -158,7 +162,7 @@ class PersonalCenterPage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 18), // 底部留白
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 200, 199, 199),
+          backgroundColor: const Color.fromARGB(255, 225, 20, 20),
           foregroundColor: Colors.white,
           minimumSize: const Size(double.infinity, 52),
           elevation: 4,

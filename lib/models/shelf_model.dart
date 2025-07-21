@@ -4,6 +4,7 @@ class ShelfModel {
   final int status; // 托盘状态
   final String clrCenterNo; // 清分中心编号
   final String locationId; // 位置ID
+  final String note; // 备注
 
   ShelfModel({
     required this.shelfId,
@@ -11,6 +12,7 @@ class ShelfModel {
     required this.status,
     required this.clrCenterNo,
     required this.locationId,
+    required this.note,
   });
 
   factory ShelfModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +22,7 @@ class ShelfModel {
       status: int.tryParse(json['status']?.toString() ?? '0') ?? 0,
       clrCenterNo: json['clrCenterNo']?.toString() ?? '',
       locationId: json['locationId']?.toString() ?? '',
+      note: json['note']?.toString() ?? '',
     );
   }
 

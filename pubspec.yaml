@@ -23,6 +23,7 @@ dependencies:
   crypto: ^3.0.2
   sm_crypto: ^1.0.3
   flutter_svg: ^1.1.6
+  file_picker: ^5.2.11
   syncfusion_flutter_datagrid: ^20.2.49
   flutter_easyloading: ^3.0.5
 
@@ -45,11 +46,14 @@ flutter_native_splash:
     icon_background_color: "#FFFFFF"
     image_dark: assets/splash/splash.png
     icon_background_color_dark: "#FFFFFF"
-  web: false
+  web: true
   fullscreen: true
-  android_gravity: fill 
-  ios_content_mode: scaleAspectFill
+  android_gravity: center
+  ios_content_mode: center
   remove_after: true
+  # 添加以下配置来改善图片质量
+  android_adaptive_icon_background: "#FFFFFF"
+  android_adaptive_icon_foreground: assets/splash/splash.png
 
 flutter:
   uses-material-design: true

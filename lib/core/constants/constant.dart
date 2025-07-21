@@ -170,4 +170,19 @@ enum PalletStatus {
   }
 }
 
+/// 所属仓库 
+enum StorageCenter {
+  haikang('001', '海康模拟仓');
+
+  const StorageCenter(this.clrCenterNo, this.clrCenterName);
+  final String clrCenterNo;
+  final String clrCenterName;
+
+  static StorageCenter fromCode(String clrCenterNo) {
+    return StorageCenter.values.firstWhere(
+      (data) => data.clrCenterNo == clrCenterNo,
+      orElse: () => StorageCenter.haikang,
+    );
+  }
+}
 

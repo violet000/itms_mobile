@@ -54,20 +54,36 @@ class ShelfDataSource extends DataGridSource {
             final shelf = _shelves.firstWhere((s) => s.shelfId == shelfId);
             
             return Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center, // 或 MainAxisAlignment.start
               children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, size: 18, color: Colors.blue),
+                TextButton(
                   onPressed: () => onEdit?.call(shelf),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(32, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('修改', style: TextStyle(fontSize: 12, color: Colors.blue)),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  icon: const Icon(Icons.delete, size: 18, color: Colors.red),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: SizedBox(
+                    height: 16,
+                    child: VerticalDivider(
+                      color: Colors.grey,
+                      thickness: 1,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                TextButton(
                   onPressed: () => onDelete?.call(shelf),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    minimumSize: const Size(32, 32),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
                 ),
               ],
             );
