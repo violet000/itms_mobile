@@ -114,7 +114,7 @@ class PersonalCenterPage extends StatelessWidget {
         iconBg: const Color(0xFFBA68C8),
         title: '地标管理',
         onTap: () {
-          // TODO: 跳转到地标管理页面
+          Navigator.pushNamed(context, '/personal_center/location-management');
         },
       ),
     ];

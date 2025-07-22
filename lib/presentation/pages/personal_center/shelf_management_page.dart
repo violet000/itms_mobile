@@ -96,8 +96,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     _service9087 ??= await Service9087.create();
     try {
       final response = await _service9087!.qryAllByParams(<String, dynamic>{
-        'status': 1, // 只查询空闲状态的地标
-        'locationType': 2, // 只查询固定货架
+        'status': LandmarkStatus.idle.code,
+        'locationType': LocationType.batteryType.code,
       });
 
       if (response['retCode'] == HTTPCode.success.code) {

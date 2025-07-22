@@ -108,6 +108,55 @@ enum HTTPCode {
   final String code;
 }
 
+/// 地标类型
+enum LocationType {
+  none(0, '空'),
+  barrierType(1, '障碍物'),
+  batteryType(2, '充电区'),
+  queueType(3, '排队区'),
+  spinType(4, '旋转区'),
+  highwayType(5, '高速区'),
+  turnningType(6, '转弯区'),
+  restType(7, '暂驻区'),
+  binType(8, '仓库储位'),
+  workType(9, '工作区'),
+  blockArea(10, '自动门'),
+  windDoor(11, '风淋门'),
+  bufferBinType(12, '产线缓冲区'),
+  bufferCrossType(13, '缓冲交接区'),
+  liftCrossType(14, '电梯交接区'),
+  headCrossType(15, '线头交接区'),
+  endCrossType(16, '产线交接区'),
+  recoverCrossType(17, '回收交接区'),
+  mapCrossType(18, '地图交接区'),
+  corridorType(19, '入库交接区'),
+  selfCheck(20, '自检区'),
+  standBy(21, '待命点'),
+  exchangeStationType(22, '换电站'),
+  qrcrossType(23, '切至二维码'),
+  slamcrossType(24, '切至slam'),
+  wirelessBatteryType(25, '无线充电桩'),
+  forkliftWaitType(26, '叉车等待点'),
+  ctuWorkstationType(27, 'CTU工作站'),
+  ctuWaitType(28, 'CTU等待点'),
+  liftWaitType(29, '电梯等待点'),
+  channelheadType(30, '巷道头'),
+  channeltailType(31, '巷道尾'),
+  channelbufferType(32, '巷道缓冲区'),
+  batteryAssociatedType(33, '充电桩关联点'),
+  arcArea(34, '弧线区');
+
+  const LocationType(this.code, this.displayName);
+  final int code;
+  final String displayName;
+
+  static LocationType fromCode(int code) {
+    return LocationType.values.firstWhere(
+      (type) => type.code == code,
+      orElse: () => LocationType.none,
+    );
+  }
+}
 
 /// 地标状态 0-禁用 1-空闲 2-锁定 3-占用
 enum LandmarkStatus {
@@ -129,7 +178,7 @@ enum LandmarkStatus {
   }
 }
 
-/// 地标类型 0-NULL(空) 1-FIXED_SHELF（固定货架) 2-MOVE_SHELF(移动货架) 3-虚拟库位(潜伏式AGV) 4-CHARGER(充电桩)
+/// 托盘类型 0-NULL(空) 1-FIXED_SHELF（固定货架) 2-MOVE_SHELF(移动货架) 3-虚拟库位(潜伏式AGV) 4-CHARGER(充电桩)
 enum LandmarkType {
   none(0, '空'),
   fixedShelf(1, '固定货架'),
@@ -170,7 +219,7 @@ enum PalletStatus {
   }
 }
 
-/// 所属仓库 
+/// 所属仓库
 enum StorageCenter {
   haikang('001', '海康模拟仓');
 
@@ -185,4 +234,3 @@ enum StorageCenter {
     );
   }
 }
-

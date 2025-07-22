@@ -26,7 +26,8 @@ class Service9087 {
   /// 上传地标文件
   Future<Map<String, dynamic>> addLocationByFile(File file) async {
     FormData formData = FormData.fromMap(<String, dynamic>{
-      'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+      'file': await MultipartFile.fromFile(file.path,
+          filename: file.path.split('/').last),
     });
     // 用构造时保存的_baseUrl
     final dio = Dio(BaseOptions(baseUrl: _baseUrl));
@@ -38,7 +39,7 @@ class Service9087 {
     return response.data ?? <String, dynamic>{};
   }
 
-  /// 通用FormData上传（Web/移动端）
+  /// 通用FormData上传
   Future<Map<String, dynamic>> addLocationByFormData(FormData formData) async {
     final dio = Dio(BaseOptions(baseUrl: _baseUrl));
     final response = await dio.post<Map<String, dynamic>>(
@@ -48,15 +49,6 @@ class Service9087 {
     );
     return response.data ?? <String, dynamic>{};
   }
-
-  /// 查询地标信息
-  /// id - 库区编号
-  /// locationType - 地标类型 :1-障碍物（详情见库区类型文档）
-  /// status - 地标状态 0-禁用 1-空闲 2-锁定 3-占用
-  /// areaId - 所属库区ID
-  // Future<Map<String, dynamic>> qryAllByParams(Map<String, dynamic> params) async {
-  //   return _dioService.get('/storage/v2/location/qryAllByParams', queryParameters: params);
-  // }
 
   /// 新增地标
   // id - 地标编号
@@ -88,8 +80,10 @@ class Service9087 {
   // xplace - x坐标
   // yplace - y坐标
   // zplace - z坐标
-  Future<Map<String, dynamic>> updateLocation(Map<String, dynamic> params) async {
-    return _dioService.post('/storage/v2/location/updateLocation', body: params);
+  Future<Map<String, dynamic>> updateLocation(
+      Map<String, dynamic> params) async {
+    return _dioService.post('/storage/v2/location/updateLocation',
+        body: params);
   }
 
   /// 仓储库区库位查询
@@ -156,7 +150,7 @@ class Service9087 {
   /// clrCenterNo - 所属仓库编号
   /// locationId - 所在地标ID
   /// note - 备注
-  /// 
+  ///
   Future<Map<String, dynamic>> updateShelf(Map<String, dynamic> params) async {
     return _dioService.post('/storage/v2/shelf/updateShelfInfo', body: params);
   }
@@ -167,7 +161,20 @@ class Service9087 {
   /// locationType - 地标类型 0-NULL(空) 1-FIXED_SHELF（固定货架) 2-MOVE_SHELF(移动货架) 3-虚拟库位(潜伏式AGV) 4-CHARGER(充电桩))
   /// status - 地标状态 0-禁用 1-空闲 2-锁定 3-占用
   /// areaId - 所属库区ID
-  Future<Map<String, dynamic>> qryAllByParams(Map<String, dynamic> params) async {
-    return _dioService.get('/storage/v2/location/qryAllByParams', queryParameters: params);
+  Future<Map<String, dynamic>> qryAllByParams(
+      Map<String, dynamic> params) async {
+    return _dioService.get('/storage/v2/location/qryAllByParams',
+        queryParameters: params);
+  }
+
+  /// 分页地标管理查询
+  /// 参数：
+  /// id - 库区编号
+  /// locationType - 地标类型 0-NULL(空) 1-FIXED_SHELF（固定货架) 2-MOVE_SHELF(移动货架) 3-虚拟库位(潜伏式AGV) 4-CHARGER(充电桩))
+  /// status - 地标状态 0-禁用 1-空闲 2-锁定 3-占用
+  /// areaId - 所属库区ID
+  Future<Map<String, dynamic>> qryByPage(Map<String, dynamic> params) async {
+    return _dioService.get('/storage/v2/location/qryByPage',
+        queryParameters: params);
   }
 }

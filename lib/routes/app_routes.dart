@@ -8,6 +8,7 @@ import 'package:itms_mobile/presentation/pages/personal_center/personal_center_p
 import 'package:itms_mobile/presentation/pages/personal_center/landmark_color_settings_page.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/shelf_management_page.dart';
 import 'package:itms_mobile/presentation/pages/storage/storage_area.dart';
+import 'package:itms_mobile/presentation/pages/personal_center/location_management_page.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -19,6 +20,7 @@ class AppRoutes {
   static const String personalCenter = '/personal_center';
   static const String landmarkColorSettings = '/personal_center/landmark-color-settings';
   static const String shelfManagement = '/personal_center/shelf-management';
+  static const String locationManagement = '/personal_center/location-management';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -39,6 +41,7 @@ class AppRoutes {
       personalCenter: (context) => const PersonalCenterPage(),
       landmarkColorSettings: (context) => const LandmarkColorSettingsPage(),
       shelfManagement: (context) => const ShelfManagementPage(),
+      locationManagement: (context) => const LocationManagementPage(),
     };
   }
 } 
