@@ -26,6 +26,7 @@ dependencies:
   file_picker: ^5.2.11
   syncfusion_flutter_datagrid: ^20.2.49
   flutter_easyloading: ^3.0.5
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:

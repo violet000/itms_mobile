@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:itms_mobile/presentation/pages/home/home.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:itms_mobile/presentation/pages/setting/network_settings_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -265,6 +266,28 @@ class _LoginPageState extends State<LoginPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () {
+              Navigator.push<void>(
+                context,
+                MaterialPageRoute<void>(builder: (context) => const NetworkSettingsPage()),
+              );
+            },
+            child: Text(
+              '设置网络',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white,
+              ),
+            ),
+            style: ButtonStyle(
+              padding: MaterialStateProperty.all(EdgeInsets.zero),
+              minimumSize: MaterialStateProperty.all(Size(0, 0)),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              overlayColor: MaterialStateProperty.all(Colors.white24),
             ),
           ),
         ],

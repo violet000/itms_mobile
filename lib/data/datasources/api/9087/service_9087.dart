@@ -1,25 +1,95 @@
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:itms_mobile/data/datasources/interceptor/dio_service.dart';
 import 'package:itms_mobile/core/config/env.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// 9087服务接口部分
 class Service9087 {
-  Service9087()
-      : _dioService =
-            DioServiceManager().getService('${Env.config.apiBaseUrl}:9087');
+  static const String vmsKey = 'network_vms_ip';
 
   final DioService _dioService;
+  final String _baseUrl;
 
-  Service9087._(this._dioService);
+  Service9087._(this._dioService, this._baseUrl);
 
   static Future<Service9087> create() async {
-    final config = await Env.config;
+    final prefs = await SharedPreferences.getInstance();
+    final vmsIp = prefs.getString(vmsKey) ?? '${Env.config.apiBaseUrl}:9087';
+    final baseUrl = vmsIp.startsWith('http') ? vmsIp : 'http://$vmsIp';
     return Service9087._(
-        DioServiceManager().getService('${config.apiBaseUrl}:9087'));
+      DioServiceManager().getService(baseUrl),
+      baseUrl,
+    );
   }
 
-  ///  TODO: 本地接口测试 查询仓储库位信息
-  Future<Map<String, dynamic>> getStorageAreas() async {
-    return _dioService.get('/storage/data/storage-areas');
+  /// 上传地标文件
+  Future<Map<String, dynamic>> addLocationByFile(File file) async {
+    FormData formData = FormData.fromMap(<String, dynamic>{
+      'file': await MultipartFile.fromFile(file.path, filename: file.path.split('/').last),
+    });
+    // 用构造时保存的_baseUrl
+    final dio = Dio(BaseOptions(baseUrl: _baseUrl));
+    final response = await dio.post<Map<String, dynamic>>(
+      '/storage/v2/location/addLocationByFile',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return response.data ?? <String, dynamic>{};
+  }
+
+  /// 通用FormData上传（Web/移动端）
+  Future<Map<String, dynamic>> addLocationByFormData(FormData formData) async {
+    final dio = Dio(BaseOptions(baseUrl: _baseUrl));
+    final response = await dio.post<Map<String, dynamic>>(
+      '/storage/v2/location/addLocationByFile',
+      data: formData,
+      options: Options(contentType: 'multipart/form-data'),
+    );
+    return response.data ?? <String, dynamic>{};
+  }
+
+  /// 查询地标信息
+  /// id - 库区编号
+  /// locationType - 地标类型 :1-障碍物（详情见库区类型文档）
+  /// status - 地标状态 0-禁用 1-空闲 2-锁定 3-占用
+  /// areaId - 所属库区ID
+  // Future<Map<String, dynamic>> qryAllByParams(Map<String, dynamic> params) async {
+  //   return _dioService.get('/storage/v2/location/qryAllByParams', queryParameters: params);
+  // }
+
+  /// 新增地标
+  // id - 地标编号
+  // areaId - 所属库区id
+  // areaName - 所属库区名称
+  // clrCenterNo - 所属库编号（默认AA）
+  // locationType - 地标类型 :1-障碍物（详情见库区类型文档）
+  // status - 状态
+  // note - 备注
+  // length - 长度
+  // width - 宽度
+  // xplace - x坐标
+  // yplace - y坐标
+  // zplace - z坐标
+  Future<Map<String, dynamic>> addLocation(Map<String, dynamic> params) async {
+    return _dioService.post('/storage/v2/location/addLocation', body: params);
+  }
+
+  /// 修改地标
+  // id - 地标编号
+  // areaId - 所属库区id
+  // areaName - 所属库区名称
+  // clrCenterNo - 所属库编号（默认AA）
+  // locationType - 地标类型 :1-障碍物（详情见库区类型文档）
+  // status - 状态
+  // note - 备注
+  // length - 长度
+  // width - 宽度
+  // xplace - x坐标
+  // yplace - y坐标
+  // zplace - z坐标
+  Future<Map<String, dynamic>> updateLocation(Map<String, dynamic> params) async {
+    return _dioService.post('/storage/v2/location/updateLocation', body: params);
   }
 
   /// 仓储库区库位查询
@@ -66,7 +136,6 @@ class Service9087 {
         });
   }
 
-
   /// 新增托盘
   /// 参数：
   /// shelfId - 托盘编号
@@ -101,5 +170,4 @@ class Service9087 {
   Future<Map<String, dynamic>> qryAllByParams(Map<String, dynamic> params) async {
     return _dioService.get('/storage/v2/location/qryAllByParams', queryParameters: params);
   }
-
 }

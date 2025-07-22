@@ -45,7 +45,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
   @override
   void initState() {
     super.initState();
-    _service8062 = Service8062();
+    _initService8062();
     _getStorageAreas();
     _tabController = TabController(length: 2, vsync: this);
     _tabController.addListener(() {
@@ -64,6 +64,11 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       // 当 tab 切换时，显示加载并更新当前库区数据
       _updateAreaDataForCurrentTabWithLoading();
     });
+  }
+
+  Future<void> _initService8062() async {
+    _service8062 = await Service8062.create();
+    setState(() {}); // 如需刷新界面
   }
 
   @override
