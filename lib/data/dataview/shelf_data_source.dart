@@ -83,7 +83,7 @@ class ShelfDataSource extends DataGridSource {
                     minimumSize: const Size(32, 32),
                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                   ),
-                  child: const Text('删除', style: TextStyle(fontSize: 12, color: Colors.red)),
+                  child: const Text('移除', style: TextStyle(fontSize: 12, color: Colors.red)),
                 ),
               ],
             );

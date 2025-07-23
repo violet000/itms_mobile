@@ -86,6 +86,13 @@ class Service9087 {
         body: params);
   }
 
+  /// 地标管理-批量删除
+  /// 参数：
+  /// 批量删除地标信息（参数为List<String>）
+  Future<Map<String, dynamic>> deleteBatch(List<String> ids) async {
+    return _dioService.post('/storage/v2/location/deleteBatch', body: ids);
+  }
+
   /// 仓储库区库位查询
   Future<Map<String, dynamic>> qryWarehousing(String areaId) async {
     return _dioService.get('/storage/v2/area/qryWarehousing',

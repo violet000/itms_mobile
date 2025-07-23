@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:itms_mobile/core/config/env_config.dart';
 import 'package:itms_mobile/data/datasources/interceptor/dio_service.dart';
 
 class NetworkSettingsPage extends StatefulWidget {
@@ -29,9 +28,9 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
 
   Future<void> _loadConfig() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    _vmsIpController.text = prefs.getString(vmsKey) ?? '';
-    _vpsIpController.text = prefs.getString(vpsKey) ?? '';
-    _hikIpController.text = prefs.getString(hikKey) ?? '';
+    _vmsIpController.text = prefs.getString(vmsKey) ?? '10.34.12.130:9087';
+    _vpsIpController.text = prefs.getString(vpsKey) ?? '10.34.12.130:8062';
+    _hikIpController.text = prefs.getString(hikKey) ?? '10.34.12.130:8000';
   }
 
   Future<void> _saveConfig() async {

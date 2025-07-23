@@ -128,32 +128,32 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
   void _onDeleteShelf(ShelfModel shelf) {
     CustomDialog.showConfirm(
       context: context,
-      title: '确认删除',
-      content: '确定要删除托盘 ${shelf.shelfId} 吗？',
-      confirmText: '删除',
+      title: '确认移除',
+      content: '确定要移除托盘 ${shelf.shelfId} 吗？',
+      confirmText: '移除',
       cancelText: '取消',
       confirmColor: Colors.red,
     ).then((result) async {
       if (result == ConfirmResult.confirm) {
         _service9087 ??= await Service9087.create();
-        EasyLoading.show(status: '正在删除...');
+        EasyLoading.show(status: '正在移除...');
         try {
-          // 构建删除托盘的参数，将locationId设置为空，其他参数保持正常
+          // 将locationId设置为空，其他参数保持正常
           final deleteParams = <String, dynamic>{
             'shelfId': shelf.shelfId,
             'shelfType': shelf.shelfType,
             'status': shelf.status,
             'clrCenterNo': shelf.clrCenterNo,
             'locationId': '', // 设置为空字符串
-            'note': shelf.note, // 备注设置为空
+            'note': shelf.note,
           };
           final response = await _service9087!.updateShelf(deleteParams);
           EasyLoading.dismiss();
-          EasyLoading.showSuccess('删除成功');
+          EasyLoading.showSuccess('移除成功');
           _loadData(); // 重新加载数据
         } catch (e) {
           EasyLoading.dismiss();
-          EasyLoading.showError('删除失败: $e');
+          EasyLoading.showError('移除失败: $e');
         }
       }
     });
@@ -791,7 +791,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       label: const SizedBox(
                         width: 30,
                         height: 24,
-                        child: Center(child: Text('搜索')),
+                        child: Center(child: Text('查询')),
                       ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
