@@ -110,7 +110,6 @@ enum HTTPCode {
 
 /// 地标类型
 enum LocationType {
-  none(0, '空'),
   barrierType(1, '障碍物'),
   batteryType(2, '充电区'),
   queueType(3, '排队区'),
@@ -153,7 +152,7 @@ enum LocationType {
   static LocationType fromCode(int code) {
     return LocationType.values.firstWhere(
       (type) => type.code == code,
-      orElse: () => LocationType.none,
+      orElse: () => LocationType.workType,
     );
   }
 }
@@ -231,6 +230,42 @@ enum StorageCenter {
     return StorageCenter.values.firstWhere(
       (data) => data.clrCenterNo == clrCenterNo,
       orElse: () => StorageCenter.haikang,
+    );
+  }
+}
+
+/// 库区类型
+enum AreaType {
+  storage('1', '存储库'),
+  temporary('2', '暂存库'),
+  inbound('3', '入库区'),
+  handover('4', '交接库');
+
+  const AreaType(this.code, this.displayName);
+  final String code;
+  final String displayName;
+
+  static AreaType fromCode(String code) {
+    return AreaType.values.firstWhere(
+      (status) => status.code == code,
+      orElse: () => AreaType.storage,
+    );
+  }
+}
+
+/// 库区状态 0-禁用 1-启用
+enum AreaStatus {
+  disabled(0, '禁用'),
+  active(1, '启用');
+
+  const AreaStatus(this.code, this.displayName);
+  final int code;
+  final String displayName;
+
+  static AreaStatus fromCode(int code) {
+    return AreaStatus.values.firstWhere(
+      (status) => status.code == code,
+      orElse: () => AreaStatus.disabled,
     );
   }
 }

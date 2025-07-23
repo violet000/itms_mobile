@@ -184,4 +184,58 @@ class Service9087 {
     return _dioService.get('/storage/v2/location/qryByPage',
         queryParameters: params);
   }
+
+  /// 库区查询
+  /// 参数：
+  /// id - 库区id
+  /// name - 库区名称
+  /// clrCenterNo - 所属仓库
+  /// type - 库区类型：：1-存储库 2-暂存库 3-入库区 4-交接库
+  /// status - 库区状态 0-禁用 1-启用
+  Future<Map<String, dynamic>> qryAreaByParams(
+      Map<String, dynamic> params) async {
+    return _dioService.get('/storage/v2/area/qryAreaByParams',
+        queryParameters: params);
+  }
+
+  /// 库区查询分页查询
+  /// 参数：
+  /// id - 库区id
+  /// name - 库区名称
+  /// clrCenterNo - 所属仓库
+  /// type - 库区类型：：1-存储库 2-暂存库 3-入库区 4-交接库
+  /// status - 库区状态 0-禁用 1-启用
+  /// curPage - 当前页
+  /// pageSize - 页面大小
+  Future<Map<String, dynamic>> qryAreaPageByParams(
+      Map<String, dynamic> params) async {
+    return _dioService.get('/storage/v2/area/qryAreaPageByParams',
+        queryParameters: params);
+  }
+
+  /// 库区新增
+  /// 参数：
+  /// id - 库区编号
+  /// name - 库区名称
+  /// type - 库区类型 1-存储库 2-暂存库 3-入库区 4-交接库（默认：1-存储区）
+  /// clrCenterNo - 所属仓库（默认AA）
+  /// status - 库区状态 0-禁用 1-启用（默认：1-启用）
+  /// note - 备注
+  /// floor - 楼层 1-1层 2-2层 3-3层
+  /// areaLength - 库区长度
+  /// areaWidth - 库区宽度
+  /// x - x坐标
+  /// y - y坐标
+  /// z - z坐标
+  Future<Map<String, dynamic>> addArea(Map<String, dynamic> params) async {
+    return _dioService.post('/storage/v2/area/addArea', body: params);
+  }
+
+  /// 库区修改
+  /// 参数：库区编号不可更改
+  Future<Map<String, dynamic>> updateArea(Map<String, dynamic> params) async {
+    return _dioService.post('/storage/v2/area/updateArea', body: params);
+  }
+
+
 }

@@ -75,21 +75,14 @@ class PersonalCenterPage extends StatelessWidget {
   List<Widget> _buildMenuList(BuildContext context) {
     final List<_MenuItemData> menuItems = [
       _MenuItemData(
-        icon: Icons.settings,
-        iconBg: const Color.fromARGB(255, 118, 209, 72),
-        title: '库位色块值设置',
-        onTap: () {
-          Navigator.pushNamed(context, '/personal_center/landmark-color-settings');
-        },
-      ),
-      _MenuItemData(
-        icon: Icons.settings,
-        iconBg: const Color(0xFF4FC3F7),
+        icon: Icons.import_contacts_outlined,
+        iconBg: const Color.fromARGB(255, 87, 79, 247),
         title: '导入EXCEL表',
         onTap: () {
           Navigator.push<void>(
             context,
-            MaterialPageRoute<void>(builder: (context) => const ImportExcelPage()),
+            MaterialPageRoute<void>(
+                builder: (context) => const ImportExcelPage()),
           );
         },
       ),
@@ -102,7 +95,7 @@ class PersonalCenterPage extends StatelessWidget {
         },
       ),
       _MenuItemData(
-        icon: Icons.widgets,
+        icon: Icons.gif_box_rounded,
         iconBg: const Color(0xFFFFB74D),
         title: '托盘管理',
         onTap: () {
@@ -117,6 +110,15 @@ class PersonalCenterPage extends StatelessWidget {
           Navigator.pushNamed(context, '/personal_center/location-management');
         },
       ),
+      _MenuItemData(
+        icon: Icons.border_clear_rounded,
+        iconBg: const Color.fromARGB(255, 72, 195, 209),
+        title: '库区管理',
+        onTap: () {
+          Navigator.pushNamed(
+              context, '/personal_center/area-management');
+        },
+      ),
     ];
     return menuItems
         .map((item) => Padding(
@@ -128,8 +130,8 @@ class PersonalCenterPage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 8), // 左右间距10，上下间距10
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 8), // 左右间距10，上下间距10
                   child: ListTile(
                     leading: Container(
                       width: 44,

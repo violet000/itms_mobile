@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itms_mobile/data/dataview/area_data_source.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/models/landmark_model.dart';
@@ -11,66 +12,49 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:collection/collection.dart';
 import 'package:itms_mobile/models/area_model.dart';
 
-class LocationManagementPage extends StatefulWidget {
-  const LocationManagementPage({super.key});
+class AreaManagementPage extends StatefulWidget {
+  const AreaManagementPage({Key? key}) : super(key: key);
 
   @override
-  State<LocationManagementPage> createState() => _LocationManagementPageState();
+  State<AreaManagementPage> createState() => _AreaManagementPageState();
 }
 
-class _LocationManagementPageState extends State<LocationManagementPage> {
-  late LandmarkDataSource _landmarkDataSource;
-  final TextEditingController _landmarkIdController = TextEditingController();
-  LandmarkStatus? _selectedStatus;
-  List<LandmarkModel> _allLandmarks = [];
-  List<LandmarkModel> _filteredLandmarks = [];
+class _AreaManagementPageState extends State<AreaManagementPage> {
+  late AreaDataSource _areaDataSource;
+  final TextEditingController _areaIdController = TextEditingController();
+  AreaStatus? _selectedStatus;
+  List<AreaModel> _allAreas = [];
+  List<AreaModel> _filteredAreas = [];
   List<AreaModel> _areas = [];
   AreaModel? _selectedArea;
   Service9087? _service9087;
+
+  String? _errorMessage;
 
   // 分页参数
   int _currentPage = 0;
   int _pageSize = 8;
   int _totalRows = 0;
 
-  String? _errorMessage;
-
-  List<String> _selectedLandmarkIds = [];
-
   @override
   void initState() {
     super.initState();
     _initService();
     _loadData();
-    _fetchAreas();
   }
 
   void _initService() async {
     _service9087 = await Service9087.create();
   }
 
-  /// 查询库区
-  Future<void> _fetchAreas() async {
-    _service9087 ??= await Service9087.create();
-    final response = await _service9087!.qryAreaByParams(<String, dynamic>{});
-
-    if (response['retCode'] == HTTPCode.success.code) {
-      setState(() {
-        _areas = (response['retList'] as List)
-            .map((dynamic json) => AreaModel.fromJson(json as Map<String, dynamic>))
-            .toList();
-      });
-    }
-  }
-
-  /// 加载地标数据
+  /// 加载所有库区数据
   Future<void> _loadData() async {
     _service9087 ??= await Service9087.create();
     EasyLoading.show(status: '正在加载数据...');
     try {
-      final response = await _service9087!.qryByPage(<String, dynamic>{
-        'status': LandmarkStatus.idle.code,
-        'id': _landmarkIdController.text,
+      final response = await _service9087!.qryAreaPageByParams(<String, dynamic>{
+        'status': AreaStatus.active.code,
+        'id': _areaIdController.text,
         'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
         'pageSize': _pageSize
       });
@@ -80,15 +64,13 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
             (response['retList'] as List<dynamic>?) ?? <dynamic>[];
         final int total = (response['totalRow'] as int?) ?? 0;
 
-        _allLandmarks = retList.map<LandmarkModel>((dynamic record) {
+        _allAreas = retList.map<AreaModel>((dynamic record) {
           final recordMap = record as Map<String, dynamic>;
-          return LandmarkModel.fromJson(recordMap);
+          return AreaModel.fromJson(recordMap);
         }).toList();
 
         setState(() {
-          _filteredLandmarks = List.from(_allLandmarks);
-          _selectedLandmarkIds.clear();
-          _updateLandmarkDataSource();
+          _filteredAreas = List.from(_allAreas);
           _totalRows = total;
         });
       } else {
@@ -105,35 +87,10 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     }
   }
 
+  /// 过滤数据
   void _filterData() {
     _currentPage = 0;
     _loadData();
-  }
-
-  void _onDeleteShelf(LandmarkModel landmark) {
-    CustomDialog.showConfirm(
-      context: context,
-      title: '确认删除',
-      content: '确定要删除地标 ${landmark.id} 吗？',
-      confirmText: '删除',
-      cancelText: '取消',
-      confirmColor: Colors.red,
-    ).then((result) async {
-      if (result == ConfirmResult.confirm) {
-        _service9087 ??= await Service9087.create();
-        EasyLoading.show(status: '正在删除...');
-        try {
-          final List<String> deleteList = [landmark.id];
-          final response = await _service9087!.deleteBatch(deleteList);
-          EasyLoading.dismiss();
-          EasyLoading.showSuccess('删除成功');
-          _loadData();
-        } catch (e) {
-          EasyLoading.dismiss();
-          EasyLoading.showError('删除失败: $e');
-        }
-      }
-    });
   }
 
   void _onPageChanged(int page) {
@@ -153,42 +110,26 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     }
   }
 
-  void _onEditLandmark(LandmarkModel landmark) {
-    _showShelfDialog(landmark: landmark);
+  /// 编辑库区
+  void _onEditArea(AreaModel area) {
+    _showShelfDialog(area: area);
   }
 
-  void _showShelfDialog({LandmarkModel? landmark}) {
-    final isEdit = landmark != null;
-    final title = isEdit ? '修改地标' : '新增地标';
+  /// 新增/修改库区
+  void _showShelfDialog({AreaModel? area}) {
+    final isEdit = area != null;
+    final title = isEdit ? '修改库区' : '新增库区';
 
-    if (isEdit && landmark?.areaId != null) {
-      _selectedArea = _areas.firstWhereOrNull((area) => area.id == landmark!.areaId);
-    } else if (!isEdit) {
-      _selectedArea = null;
-    }
-
-    final idController = TextEditingController(text: landmark?.id ?? '');
-    final areaIdController =
-        TextEditingController(text: landmark?.areaId ?? '');
-    final areaNameController =
-        TextEditingController(text: landmark?.areaName ?? '');
+    final idController = TextEditingController(text: area?.id ?? '');
+    final nameController = TextEditingController(text: area?.name ?? '');
     final clrCenterNoController =
-        TextEditingController(text: landmark?.clrCenterNo ?? 'AA');
-    final locationTypeController = TextEditingController(
-      text: landmark?.locationType.toString() ?? '9',
+        TextEditingController(text: area?.clrCenterNo ?? 'AA');
+    final typeController = TextEditingController(
+      text: area?.type.toString() ?? '1',
     );
     final statusController =
-        TextEditingController(text: landmark?.status.toString() ?? '1');
-    final noteController = TextEditingController(text: landmark?.note ?? '');
-    final lengthController =
-        TextEditingController(text: landmark?.length ?? '');
-    final widthController = TextEditingController(text: landmark?.width ?? '');
-    final xplaceController =
-        TextEditingController(text: landmark?.xplace ?? '');
-    final yplaceController =
-        TextEditingController(text: landmark?.yplace ?? '');
-    final zplaceController =
-        TextEditingController(text: landmark?.zplace ?? '');
+        TextEditingController(text: area?.status.toString() ?? '1');
+    // final noteController = TextEditingController(text: landmark?.note ?? '');
 
     showDialog<void>(
       context: context,
@@ -217,37 +158,29 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                   const SizedBox(height: 10),
                   ...[
                     // 字段分组
-                    _buildFormRow('地标编号', idController, ),
-                    _buildDropdownRow<AreaModel>(
-                      label: '所属库区',
-                      value: _selectedArea,
-                      items: _areas,
-                      onChanged: (AreaModel? newValue) {
-                        setState(() {
-                          _selectedArea = newValue;
-                        });
-                      },
-                      display: (area) => area.name,
+                    _buildFormRow(
+                      '库区编号',
+                      idController,
                     ),
+                    _buildFormRow('库区名称', nameController),
                     _buildFormRow('所属库编号', clrCenterNoController),
-                    _buildDropdownRow<LocationType>(
-                      label: '类型',
-                      value: LocationType.values.firstWhereOrNull(
-                          (e) => e.code == int.tryParse(locationTypeController.text)),
-                      items: LocationType.values,
+                    _buildDropdownRow<AreaType>(
+                      label: '库区类型',
+                      value: AreaType.values.firstWhereOrNull(
+                          (e) => e.code == typeController.text),
+                      items: AreaType.values,
                       onChanged: (val) {
                         setState(() {
-                          locationTypeController.text =
-                              val?.code.toString() ?? '';
+                          typeController.text = val?.code.toString() ?? '';
                         });
                       },
                       display: (e) => e.displayName,
                     ),
-                    _buildDropdownRow<LandmarkStatus>(
-                      label: '状态',
-                      value: LandmarkStatus.values.firstWhereOrNull(
+                    _buildDropdownRow<AreaStatus>(
+                      label: '库区状态',
+                      value: AreaStatus.values.firstWhereOrNull(
                           (e) => e.code == int.tryParse(statusController.text)),
-                      items: LandmarkStatus.values,
+                      items: AreaStatus.values,
                       onChanged: (val) {
                         setState(() {
                           statusController.text = val?.code.toString() ?? '';
@@ -255,12 +188,6 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                       },
                       display: (e) => e.displayName,
                     ),
-                    // _buildFormRow('长度', lengthController),
-                    // _buildFormRow('宽度', widthController),
-                    _buildFormRow('xplace', xplaceController),
-                    _buildFormRow('yplace', yplaceController),
-                    _buildFormRow('zplace', zplaceController),
-                    _buildFormRow('备注', noteController),
                   ].expand((w) => [w, const SizedBox(height: 8)]),
                   const SizedBox(height: 10),
                   Row(
@@ -287,35 +214,26 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                           EasyLoading.show(
                               status: isEdit ? '正在修改...' : '正在新增...');
                           try {
-                            final Map<String, dynamic> params = <String, dynamic>{};
-                            if (!isEdit) {
-                              params['id'] = idController.text;
-                            }
-                            if (isEdit) {
-                              params['newId'] = idController.text;
-                              params['oldId'] = landmark?.id;
-                            }
-                            params['areaId'] = _selectedArea?.id;
-                            params['areaName'] = _selectedArea?.name;
+                            final Map<String, dynamic> params =
+                                <String, dynamic>{};
+                            params['id'] = idController.text;
+                            params['name'] = nameController.text;
                             params['clrCenterNo'] = clrCenterNoController.text;
-                            params['locationType'] = int.tryParse(locationTypeController.text) ?? 9;
-                            params['status'] = int.tryParse(statusController.text) ?? 1;
-                            params['note'] = noteController.text;
-                            params['length'] = lengthController.text;
-                            params['width'] = widthController.text;
-                            params['xplace'] = xplaceController.text;
-                            params['yplace'] = yplaceController.text;
-                            params['zplace'] = zplaceController.text;
+                            params['type'] =
+                                int.tryParse(typeController.text) ?? '1';
+                            params['status'] =
+                                int.tryParse(statusController.text) ?? 1;
                             Map<String, dynamic> response;
                             if (isEdit) {
                               response =
-                                  await _service9087!.updateLocation(params);
+                                  await _service9087!.updateArea(params);
                             } else {
                               response =
-                                  await _service9087!.addLocation(params);
+                                  await _service9087!.addArea(params);
                             }
                             if (response['retCode'] == HTTPCode.success.code) {
-                              context.showSuccessMessage(isEdit ? '修改成功' : '新增成功');
+                              context
+                                  .showSuccessMessage(isEdit ? '修改成功' : '新增成功');
                               Navigator.of(context).pop();
                               _loadData();
                             } else {
@@ -474,35 +392,12 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     );
   }
 
-  // 更新地标数据源
-  void _updateLandmarkDataSource() {
-    _landmarkDataSource = LandmarkDataSource(
-      landmarks: _filteredLandmarks,
-      onEdit: _onEditLandmark,
-      onDelete: _onDeleteShelf,
-      selectedIds: _selectedLandmarkIds,
-      onSelect: (String id, bool selected) {
-        setState(() {
-          if (selected) {
-            _selectedLandmarkIds.add(id);
-          } else {
-            _selectedLandmarkIds.remove(id);
-          }
-          _updateLandmarkDataSource();
-        });
-      },
-    );
-  }
-
-  void _deleteLandmarks() async {
-    if (_selectedLandmarkIds.isEmpty) {
-      context.showErrorMessage('请选择要删除的地标');
-      return;
-    }
+  /// 删除库区
+  void _deleteAreas(AreaModel? area) async {
     final result = await CustomDialog.showConfirm(
       context: context,
       title: '确认删除',
-      content: '确定要删除选中的${_selectedLandmarkIds.length}个地标吗？',
+      content: '确定要删除${area?.id}库区吗？',
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: Colors.red,
@@ -511,11 +406,10 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
       _service9087 ??= await Service9087.create();
       EasyLoading.show(status: '正在删除...');
       try {
-        final response = await _service9087!.deleteBatch(_selectedLandmarkIds);
+        final response = await _service9087!.deleteBatch([]);
         EasyLoading.dismiss();
         if (response['retCode'] == HTTPCode.success.code) {
           context.showSuccessMessage('删除成功');
-          _selectedLandmarkIds.clear();
           _loadData();
         } else {
           context.showErrorMessage(response['retMsg'] as String? ?? '删除失败');
@@ -539,7 +433,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     final actionsWidth = availableWidth * 0.24;
 
     return PageScaffold(
-      title: '地标管理',
+      title: '库区管理',
       showBackButton: true,
       onBackPressed: () {
         Navigator.pushNamedAndRemoveUntil(
@@ -579,9 +473,9 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                       SizedBox(
                         width: 200,
                         child: TextField(
-                          controller: _landmarkIdController,
+                          controller: _areaIdController,
                           decoration: InputDecoration(
-                            labelText: '地标编号',
+                            labelText: '库区编号',
                             labelStyle: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -612,14 +506,14 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                       ),
                       SizedBox(
                         width: 200,
-                        child: DropdownButtonFormField<LandmarkStatus?>(
+                        child: DropdownButtonFormField<AreaStatus?>(
                           value: _selectedStatus,
                           items: [
-                            const DropdownMenuItem<LandmarkStatus?>(
+                            const DropdownMenuItem<AreaStatus?>(
                               value: null,
                               child: Text('全部'),
                             ),
-                            ...LandmarkStatus.values.map((status) {
+                            ...AreaStatus.values.map((status) {
                               return DropdownMenuItem(
                                 value: status,
                                 child: Text(status.displayName),
@@ -635,7 +529,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                           style: const TextStyle(
                               fontSize: 13, color: Colors.black87),
                           decoration: InputDecoration(
-                            labelText: '地标状态',
+                            labelText: '库区状态',
                             labelStyle: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13,
@@ -671,7 +565,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                     OutlinedButton.icon(
                       onPressed: () {
                         setState(() {
-                          _landmarkIdController.clear();
+                          _areaIdController.clear();
                           _selectedStatus = null;
                           _filterData();
                         });
@@ -762,22 +656,9 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton.icon(
-                onPressed: () => _deleteLandmarks(),
-                icon: const Icon(Icons.delete),
-                label: const Text('批量删除'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 201, 2, 58),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-              ),
-              const SizedBox(width: 8),
-              ElevatedButton.icon(
                 onPressed: () => _showShelfDialog(),
                 icon: const Icon(Icons.add),
-                label: const Text('新增地标'),
+                label: const Text('新增库区'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
@@ -794,7 +675,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(2.0),
-              child: _filteredLandmarks.isEmpty
+              child: _filteredAreas.isEmpty
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -811,7 +692,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                       child: SizedBox(
                         width: availableWidth,
                         child: SfDataGrid(
-                          source: _landmarkDataSource,
+                          source: _areaDataSource,
                           gridLinesVisibility: GridLinesVisibility.both,
                           headerGridLinesVisibility: GridLinesVisibility.both,
                           columnWidthMode: ColumnWidthMode.none,
@@ -819,45 +700,45 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                           rowHeight: 50,
                           // 表格columns定义
                           columns: [
-                            GridColumn(
-                              columnName: 'select',
-                              label: Container(
-                                alignment: Alignment.center,
-                                child: SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: Transform.scale(
-                                    scale: 0.75,
-                                    child: Checkbox(
-                                      value: _selectedLandmarkIds.length ==
-                                              _filteredLandmarks.length &&
-                                          _filteredLandmarks.isNotEmpty,
-                                      onChanged: (checked) {
-                                        setState(() {
-                                          if (checked == true) {
-                                            _selectedLandmarkIds =
-                                                _filteredLandmarks
-                                                    .map((e) => e.id)
-                                                    .toList();
-                                          } else {
-                                            _selectedLandmarkIds.clear();
-                                          }
-                                          _updateLandmarkDataSource();
-                                        });
-                                      },
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              width: selectWidth,
-                            ),
+                            // GridColumn(
+                            //   columnName: 'select',
+                            //   label: Container(
+                            //     alignment: Alignment.center,
+                            //     child: SizedBox(
+                            //       width: 24,
+                            //       height: 24,
+                            //       child: Transform.scale(
+                            //         scale: 0.75,
+                            //         child: Checkbox(
+                            //           value: _selectedLandmarkIds.length ==
+                            //                   _filteredLandmarks.length &&
+                            //               _filteredLandmarks.isNotEmpty,
+                            //           onChanged: (checked) {
+                            //             setState(() {
+                            //               if (checked == true) {
+                            //                 _selectedLandmarkIds =
+                            //                     _filteredLandmarks
+                            //                         .map((e) => e.id)
+                            //                         .toList();
+                            //               } else {
+                            //                 _selectedLandmarkIds.clear();
+                            //               }
+                            //               _updateLandmarkDataSource();
+                            //             });
+                            //           },
+                            //         ),
+                            //       ),
+                            //     ),
+                            //   ),
+                            //   width: selectWidth,
+                            // ),
                             GridColumn(
                               columnName: 'id',
                               label: Container(
                                 alignment: Alignment.center,
                                 decoration:
                                     const BoxDecoration(color: Colors.blue),
-                                child: const Text('地标编号',
+                                child: const Text('库区编号',
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
@@ -866,7 +747,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                               width: idWidth,
                             ),
                             GridColumn(
-                              columnName: 'areaName',
+                              columnName: 'name',
                               label: Container(
                                 alignment: Alignment.center,
                                 decoration:
@@ -880,7 +761,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                               width: areaNameWidth,
                             ),
                             GridColumn(
-                              columnName: 'locationType',
+                              columnName: 'type',
                               label: Container(
                                 alignment: Alignment.center,
                                 decoration:
@@ -931,7 +812,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
           ),
 
           // 分页控件
-          if (_filteredLandmarks.isNotEmpty)
+          if (_filteredAreas.isNotEmpty)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
               decoration: BoxDecoration(
@@ -1025,11 +906,5 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
         ],
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _landmarkIdController.dispose();
-    super.dispose();
   }
 }
