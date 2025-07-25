@@ -181,10 +181,16 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     final title = isEdit ? '编辑托盘' : '新增托盘';
 
     final shelfIdController = TextEditingController(text: shelf?.shelfId ?? '');
-    final landmarkNameController = TextEditingController(text: shelf?.locationId ?? '');
-    PalletStatus selectedStatus = shelf != null ? PalletStatus.fromCode(shelf.status) : PalletStatus.idle;
-    LandmarkType selectedShelfType = shelf != null ? LandmarkType.values.firstWhere((e) => e.index == shelf.shelfType, orElse: () => LandmarkType.values.first) : LandmarkType.values.first;
-    final clrCenterNoController = TextEditingController(text: shelf?.clrCenterNo ?? '海康模拟仓');
+    final landmarkNameController =
+        TextEditingController(text: shelf?.locationId ?? '');
+    PalletStatus selectedStatus =
+        shelf != null ? PalletStatus.fromCode(shelf.status) : PalletStatus.idle;
+    LandmarkType selectedShelfType = shelf != null
+        ? LandmarkType.values.firstWhere((e) => e.index == shelf.shelfType,
+            orElse: () => LandmarkType.values.first)
+        : LandmarkType.values.first;
+    final clrCenterNoController =
+        TextEditingController(text: shelf?.clrCenterNo ?? '海康模拟仓');
     final remarkController = TextEditingController();
 
     LandmarkModel? selectedLandmark;
@@ -247,32 +253,44 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                           enabled: !isEdit, // 编辑模式下禁用托盘编号输入
                           style: TextStyle(
                             fontSize: 14,
-                            color: isEdit ? Colors.grey[600] : Colors.black87, // 编辑模式下显示灰色
+                            color: isEdit
+                                ? Colors.grey[600]
+                                : Colors.black87, // 编辑模式下显示灰色
                           ),
                           decoration: InputDecoration(
                             hintText: isEdit ? '托盘编号不可修改' : '请输入托盘编号',
+                            hintStyle: const TextStyle(
+                                fontSize: 13, color: Color(0xFFBBBBBB)),
                             // prefixIcon: const Icon(Icons.confirmation_number, color: Colors.blue, size: 18), // 移除图标
-                            labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color.fromARGB(255, 215, 215, 215)),
+                            labelStyle: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                                color: Color.fromARGB(255, 215, 215, 215)),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)), // 保持淡灰色
+                              borderSide: const BorderSide(
+                                  color: Color(0xFFE0E3E8)), // 保持淡灰色
                             ),
                             disabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: BorderSide(color: Colors.grey[300]!),
                             ),
                             filled: isEdit, // 编辑模式下填充背景色
-                            fillColor: isEdit ? Colors.grey[100] : null, // 编辑模式下填充灰色背景
+                            fillColor:
+                                isEdit ? Colors.grey[100] : null, // 编辑模式下填充灰色背景
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                         ),
                       ),
@@ -298,28 +316,34 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<LandmarkType>(
                           value: selectedShelfType,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.category, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                           items: LandmarkType.values.map((type) {
                             return DropdownMenuItem(
                               value: type,
-                              child: Text(type.displayName, style: const TextStyle(fontSize: 14)),
+                              child: Text(type.displayName,
+                                  style: const TextStyle(fontSize: 14)),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -351,28 +375,34 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<PalletStatus>(
                           value: selectedStatus,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.info_outline, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                           items: PalletStatus.values.map((status) {
                             return DropdownMenuItem(
                               value: status,
-                              child: Text(status.displayName, style: const TextStyle(fontSize: 14)),
+                              child: Text(status.displayName,
+                                  style: const TextStyle(fontSize: 14)),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -404,22 +434,27 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<LandmarkModel?>(
                           value: selectedLandmark,
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                           items: [
                             const DropdownMenuItem<LandmarkModel?>(
@@ -429,7 +464,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             ..._availableLandmarks.map((landmark) {
                               return DropdownMenuItem(
                                 value: landmark,
-                                child: Text('${landmark.id}', style: const TextStyle(fontSize: 14)),
+                                child: Text('${landmark.id}',
+                                    style: const TextStyle(fontSize: 14)),
                               );
                             }).toList(),
                           ],
@@ -467,31 +503,39 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<StorageCenter>(
                           value: StorageCenter.values.firstWhere(
-                            (center) => center.clrCenterNo == clrCenterNoController.text,
+                            (center) =>
+                                center.clrCenterNo ==
+                                clrCenterNoController.text,
                             orElse: () => StorageCenter.haikang,
                           ),
-                          style: const TextStyle(fontSize: 14, color: Colors.black87),
+                          style: const TextStyle(
+                              fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.warehouse, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                           items: StorageCenter.values.map((center) {
                             return DropdownMenuItem(
                               value: center,
-                              child: Text(center.clrCenterName, style: const TextStyle(fontSize: 14)),
+                              child: Text(center.clrCenterName,
+                                  style: const TextStyle(fontSize: 14)),
                             );
                           }).toList(),
                           onChanged: (value) {
@@ -528,21 +572,26 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                           style: const TextStyle(fontSize: 14),
                           decoration: InputDecoration(
                             hintText: '请输入备注',
+                            hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
                             // prefixIcon: const Icon(Icons.note, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
                             ),
                             isDense: true,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
                           ),
                         ),
                       ),
@@ -557,7 +606,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.blueGrey,
                           textStyle: const TextStyle(fontSize: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                         ),
                         child: const Text('取消'),
                       ),
@@ -569,32 +619,40 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             return;
                           }
                           _service9087 ??= await Service9087.create();
-                          EasyLoading.show(status: isEdit ? '正在修改...' : '正在新增...');
+                          EasyLoading.show(
+                              status: isEdit ? '正在修改...' : '正在新增...');
                           try {
                             final params = <String, dynamic>{
                               'shelfId': shelfIdController.text,
                               'shelfType': selectedShelfType.index,
                               'status': selectedStatus.code,
                               'clrCenterNo': clrCenterNoController.text,
-                              'clrCenterName': StorageCenter.fromCode(clrCenterNoController.text).clrCenterName,
-                              'locationId': selectedLandmark?.id ?? '', 
+                              'clrCenterName': StorageCenter.fromCode(
+                                      clrCenterNoController.text)
+                                  .clrCenterName,
+                              'locationId': selectedLandmark?.id ?? '',
                               'note': remarkController.text,
                             };
                             Map<String, dynamic> response;
                             if (isEdit) {
-                              response = await _service9087!.updateShelf(params);
+                              response =
+                                  await _service9087!.updateShelf(params);
                             } else {
                               response = await _service9087!.addShelf(params);
                             }
                             if (response['retCode'] == HTTPCode.success.code) {
-                              context.showSuccessMessage(isEdit ? '修改成功' : '新增成功');
+                              context
+                                  .showSuccessMessage(isEdit ? '修改成功' : '新增成功');
                               Navigator.of(context).pop();
                               _loadData();
                             } else {
-                              context.showErrorMessage((response['retMsg'] as String?) ?? (isEdit ? '修改失败' : '新增失败'));
+                              context.showErrorMessage(
+                                  (response['retMsg'] as String?) ??
+                                      (isEdit ? '修改失败' : '新增失败'));
                             }
                           } catch (e) {
-                            context.showErrorMessage('${isEdit ? '修改' : '新增'}失败: $e');
+                            context.showErrorMessage(
+                                '${isEdit ? '修改' : '新增'}失败: $e');
                           } finally {
                             EasyLoading.dismiss();
                           }
@@ -602,10 +660,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
-                          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          textStyle: const TextStyle(
+                              fontSize: 14, fontWeight: FontWeight.bold),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 20, vertical: 10),
                         ),
                         child: Text(isEdit ? '修改' : '新增'),
                       ),
@@ -697,7 +758,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                                 horizontal: 8, vertical: 8),
                           ),
                           style: const TextStyle(
-                              fontSize: 13, color: Color.fromARGB(221, 92, 92, 92)),
+                              fontSize: 13,
+                              color: Color.fromARGB(221, 92, 92, 92)),
                         ),
                       ),
                       SizedBox(

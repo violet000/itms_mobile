@@ -5,6 +5,7 @@ import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/core/utils/util.dart';
+import 'package:itms_mobile/presentation/widgets/common/storage_location_visualizer.dart';
 
 /// 仓储库位控件封装
 class StorageArea extends StatefulWidget {
@@ -16,7 +17,6 @@ class StorageArea extends StatefulWidget {
 }
 
 class _StorageAreaState extends State<StorageArea> {
-  static const double _legendItemHeight = 520.0;
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +27,21 @@ class _StorageAreaState extends State<StorageArea> {
     final areaName =
         StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['areaName']
             as String?;
-    final storageLocationDTOS = StorageUtils.getCellsByAreaId(
-        args as Map<String, dynamic>)['storageLocationDTOS'] as List?;
-    final Map<String, dynamic> areaInfo =
-        StorageUtils.getCellsByAreaId(args as Map<String, dynamic>)['rangeInfo']
-            as Map<String, dynamic>;
+    final Map<String, dynamic>? areaInfo = args['areaInfo'] as Map<String, dynamic>?;
+    final List<dynamic>? storageLocationDTOS =
+        args != null ? args['storageLocationDTOS'] as List<dynamic>? : null;
+
+    if (storageLocationDTOS == null || storageLocationDTOS is! List) {
+      return const Center(child: Text('暂无点位数据'));
+    }
 
     StorageArea.cells.clear();
     if (storageLocationDTOS != null) {
       StorageArea.cells
           .addAll(StorageUtils.buildGridCells(storageLocationDTOS));
     }
+
+    print('StorageArea.cells.length: ${StorageArea.cells.length}');
 
     return PageScaffold(
       showBackButton: true,
@@ -49,59 +53,26 @@ class _StorageAreaState extends State<StorageArea> {
       child: Column(
         children: [
           Expanded(
-            child: Container(
-              width: double.infinity,
-              // margin: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(
+            child: Padding(
+              padding: const EdgeInsets.only(
                   top: 5, bottom: 10, left: 10, right: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 2,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Flex(
-                      direction: Axis.vertical,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.max,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      verticalDirection: VerticalDirection.down,
-                      children: [
-                        SizedBox(
-                            width: double.infinity,
-                            height: _legendItemHeight,
-                            child: MapControl(
-                              // 使用全局最大范围作为网格大小，当前区域的起始点作为偏移
-                              xUnits: (areaInfo['xUnits'] as int) - (areaInfo['xStart'] as int) + 1,
-                              yUnits: (areaInfo['yUnits'] as int) - (areaInfo['yStart'] as int) + 1,
-                              xStart: (areaInfo['xStart'] as int) - 1,
-                              yStart: (areaInfo['yStart'] as int) - 1,
-                              cells: StorageArea.cells,
-                              onCellTap: (cell) async {
-                                // final result = await CustomDialog.showConfirm(
-                                //   context: context,
-                                //   title: '确认操作',
-                                //   content: '您确定要执行此操作吗？',
-                                //   confirmText: '确定',
-                                //   cancelText: '取消',
-                                //   confirmColor: Colors.red,
-                                // );
-                                // if (result == ConfirmResult.confirm) {
-                                //   context.showSuccessMessage('用户确认了操作');
-                                // } else if (result == ConfirmResult.cancel) {
-                                //   context.showInfoMessage('用户取消了操作');
-                                // }
-                              },
-                            ))
-                      ]),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 2,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: StorageLocationVisualizer(
+                  data: List<Map<String, dynamic>>.from(storageLocationDTOS),
+                  onTapPoint: (point) {
+                    print('点击了点位: ${point['id']}');
+                  },
                 ),
               ),
             ),

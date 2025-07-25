@@ -1,260 +1,259 @@
 import 'package:flutter/material.dart';
-import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 
 class MapControl extends StatelessWidget {
-  final int xUnits;
-  final int yUnits;
-  final int xStart;
-  final int yStart;
   final List<GridCell> cells;
   final void Function(GridCell)? onCellTap;
-  final String? startLocationId; // 起始库位ID
-  final String? endLocationId; // 终点库位ID
+  final String? startLocationId;
+  final String? endLocationId;
 
-  // 存储 cell 和 rect 的映射
-  final List<MapEntry<GridCell, Rect>> cellRects = [];
+  // 新增参数
+  final double cellWidth;
+  final double cellHeight;
+  final int? xMin, xMax, yMin, yMax;
+  final int? forceXUnits, forceYUnits;
 
   MapControl({
     Key? key,
-    this.xUnits = 9,
-    this.yUnits = 10,
-    this.xStart = 0,
-    this.yStart = 0,
     this.cells = const [],
     this.onCellTap,
     this.startLocationId,
     this.endLocationId,
+    this.cellWidth = 40,
+    this.cellHeight = 40,
+    this.xMin,
+    this.xMax,
+    this.yMin,
+    this.yMax,
+    this.forceXUnits,
+    this.forceYUnits,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1,
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return GestureDetector(
-            onTapDown: (details) {
-              final RenderBox box = context.findRenderObject() as RenderBox;
-              final Offset localPosition =
-                  box.globalToLocal(details.globalPosition);
-              _handleTap(localPosition, constraints.biggest);
-            },
-            child: CustomPaint(
-              painter: GridPainter(
-                xUnits: xUnits,
-                yUnits: yUnits,
-                xStart: xStart,
-                yStart: yStart,
-                cells: cells,
-                cellRects: cellRects,
-                startLocationId: startLocationId,
-                endLocationId: endLocationId,
-              ),
-              size: Size.infinite,
+    // 自动计算x/y范围
+    final xs = cells.map((c) => c.x).toList();
+    final ys = cells.map((c) => c.y).toList();
+    int minX = xMin ?? (xs.isEmpty ? 0 : xs.reduce((a, b) => a < b ? a : b)).toInt();
+    int maxX = xMax ?? (xs.isEmpty ? 0 : xs.reduce((a, b) => a > b ? a : b)).toInt();
+    int minY = yMin ?? (ys.isEmpty ? 0 : ys.reduce((a, b) => a < b ? a : b)).toInt();
+    int maxY = yMax ?? (ys.isEmpty ? 0 : ys.reduce((a, b) => a > b ? a : b)).toInt();
+
+    // 处理只有1格的情况
+    int xUnits = forceXUnits ?? (maxX - minX + 1);
+    int yUnits = forceYUnits ?? (maxY - minY + 1);
+    if (xUnits == 1 && forceXUnits != null) xUnits = forceXUnits!;
+    if (yUnits == 1 && forceYUnits != null) yUnits = forceYUnits!;
+
+    // 限制画布最大宽高，防止极大极小导致空白
+    final minCanvasSize = 200.0;
+    final maxCanvasSize = 2000.0;
+    final width = (yUnits * cellWidth).clamp(minCanvasSize, maxCanvasSize);
+    final height = (xUnits * cellHeight).clamp(minCanvasSize, maxCanvasSize);
+
+    // 计算初始缩放比例，使内容自适应居中
+    final media = MediaQuery.of(context);
+    final viewWidth = media.size.width - 40;
+    final viewHeight = media.size.height - 200;
+    final scaleX = viewWidth / (yUnits * cellWidth);
+    final scaleY = viewHeight / (xUnits * cellHeight);
+    final initialScale = [scaleX, scaleY, 1.0].reduce((a, b) => a < b ? a : b).clamp(0.1, 1.0);
+
+    // 用Matrix4初始化TransformationController
+    final Matrix4 initialMatrix = Matrix4.identity();
+    initialMatrix.scale(initialScale);
+    initialMatrix.translate((viewWidth - width * initialScale) / 2 / initialScale, (viewHeight - height * initialScale) / 2 / initialScale);
+    final transformationController = TransformationController(initialMatrix);
+
+    return InteractiveViewer(
+      minScale: 0.1,
+      maxScale: 5.0,
+      boundaryMargin: const EdgeInsets.all(200),
+      transformationController: transformationController,
+      child: SizedBox(
+        width: width,
+        height: height,
+        child: GestureDetector(
+          onTapUp: (details) {
+            if (onCellTap != null) {
+              // 计算点击位置对应的cell
+              final localPosition = details.localPosition;
+              // 反向映射到cell坐标
+              int cellY = maxY - (localPosition.dx ~/ cellWidth);
+              int cellX = maxX - (localPosition.dy ~/ cellHeight);
+              final tapped = cells.where(
+                (c) => c.x.toInt() == cellX && c.y.toInt() == cellY,
+              ).toList();
+              if (tapped.isNotEmpty) onCellTap!(tapped.first);
+            }
+          },
+          child: CustomPaint(
+            painter: _MapPainter(
+              cells: cells,
+              cellWidth: cellWidth,
+              cellHeight: cellHeight,
+              xMin: minX,
+              xMax: maxX,
+              yMin: minY,
+              yMax: maxY,
+              startLocationId: startLocationId,
+              endLocationId: endLocationId,
             ),
-          );
-        },
+            size: Size(width, height),
+          ),
+        ),
       ),
     );
   }
-
-  void _handleTap(Offset localPosition, Size gridSize) {
-    for (final entry in cellRects) {
-      if (entry.value.contains(localPosition)) {
-        if (onCellTap != null) onCellTap!(entry.key);
-        return;
-      }
-    }
-  }
 }
 
-class GridPainter extends CustomPainter {
-  final int xUnits;
-  final int yUnits;
-  final int xStart;
-  final int yStart;
-  final double axisWidth = 2.0;
-  final Color axisColor = Colors.black;
-  final Color gridColor = Colors.grey;
+class _MapPainter extends CustomPainter {
   final List<GridCell> cells;
-  final List<MapEntry<GridCell, Rect>> cellRects;
-  final String? startLocationId;
-  final String? endLocationId;
+  final double cellWidth;
+  final double cellHeight;
+  final int xMin, xMax, yMin, yMax;
+  final String? startLocationId, endLocationId;
 
-  GridPainter({
-    required this.xUnits,
-    required this.yUnits,
-    required this.xStart,
-    required this.yStart,
+  _MapPainter({
     required this.cells,
-    required this.cellRects,
+    required this.cellWidth,
+    required this.cellHeight,
+    required this.xMin,
+    required this.xMax,
+    required this.yMin,
+    required this.yMax,
     this.startLocationId,
     this.endLocationId,
   });
 
-  // 获取库位的标记颜色
   Color _getCellMarkColor(GridCell cell) {
     if (cell.id == startLocationId) {
-      return Colors.blue; // 起始库位用蓝色
+      return Colors.blue;
     } else if (cell.id == endLocationId) {
-      return Colors.red; // 终点库位用红色
+      return Colors.red;
     }
-    return cell.color; // 其他库位保持原色
+    return cell.color;
   }
 
   @override
   void paint(Canvas canvas, Size size) {
-    cellRects.clear(); // 每次重绘前清空
-    final double dx = size.width / yUnits;
-    final double dy = size.height / xUnits;
-
+    // 先声明xUnits/yUnits，避免变量遮蔽
+    int yUnits = yMax - yMin + 1;
+    int xUnits = xMax - xMin + 1;
+    // 调试输出
+    print('MapPainter paint: xUnits=$xUnits, yUnits=$yUnits, size=$size');
+    // 绘制网格线
     final Paint gridPaint = Paint()
       ..color = Colors.grey.withOpacity(0.06)
       ..strokeWidth = 0.2;
-    
-    // 垂直网格线（对应Y轴，从右往左）
+    // 垂直网格线（Y轴：右往左）
     for (int i = 0; i <= yUnits; i++) {
-      double x = (yUnits - i) * dx;
+      double x = i * cellWidth;
       canvas.drawLine(
         Offset(x, 0),
         Offset(x, size.height),
         gridPaint,
       );
     }
-    // 水平网格线（对应X轴，从下往上）
+    // 水平网格线（X轴：下往上）
     for (int j = 0; j <= xUnits; j++) {
-      double y = (xUnits - j) * dy;
+      double y = j * cellHeight;
       canvas.drawLine(
         Offset(0, y),
         Offset(size.width, y),
         gridPaint,
       );
     }
-
     // 绘制库位格子
     for (final cell in cells) {
-      // 将实际坐标转换为显示坐标（从0开始）
-      final double displayX = cell.x - xStart;
-      final double displayY = cell.y - yStart;
-      
-      // 判断cell是否在当前显示区域内
-      if (displayX >= 0 &&
-          displayX <= xUnits &&
-          displayY >= 0 &&
-          displayY <= yUnits) {
-        double padding = 2.0; // 适中的内边距
-        // 计算格子在画布上的索引（使用显示坐标）
-        final double xIndex = displayY; // Y轴对应画布的X方向
-        final double yIndex = displayX; // X轴对应画布的Y方向
-        // 画布位置
-        final double baseX = (yUnits - xIndex) * dx;
-        final double baseY = (xUnits - yIndex) * dy;
-        final double adjustedX = baseX + padding;
-        final double adjustedY = baseY + padding;
-        final rect = Rect.fromLTWH(
-          adjustedX,
-          adjustedY,
-          dx - 2 * padding,
-          dy - 2 * padding,
+      // 右下为原点，X轴向上，Y轴向左
+      final double displayX = (yMax - cell.y) * cellWidth;
+      final double displayY = (xMax - cell.x) * cellHeight;
+      final rect = Rect.fromLTWH(
+        displayX + 2.0,
+        displayY + 2.0,
+        cellWidth - 4.0,
+        cellHeight - 4.0,
+      );
+      final Color cellColor = _getCellMarkColor(cell);
+      final bool isStartLocation = cell.id == startLocationId;
+      final bool isEndLocation = cell.id == endLocationId;
+      final backgroundPaint = Paint()
+        ..color = cellColor.withOpacity(isStartLocation || isEndLocation ? 0.9 : 0.85);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
+        backgroundPaint,
+      );
+      final borderPaint = Paint()
+        ..color = cellColor.withOpacity(0.9)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = isStartLocation || isEndLocation ? 2.0 : 1.0;
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
+        borderPaint,
+      );
+      // 绘制shelfId文本
+      if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
+        final textSpan = TextSpan(
+          text: cell.shelfId,
+          style: const TextStyle(
+            color: Colors.black,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
         );
-
-        // 获取库位的标记颜色
-        final Color cellColor = _getCellMarkColor(cell);
-        final bool isStartLocation = cell.id == startLocationId;
-        final bool isEndLocation = cell.id == endLocationId;
-
-        // 绘制背景
-        final backgroundPaint = Paint()
-          ..color = cellColor.withOpacity(isStartLocation || isEndLocation ? 0.9 : 0.85);
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
-          backgroundPaint,
+        final tp = TextPainter(
+          text: textSpan,
+          textAlign: TextAlign.center,
+          textDirection: TextDirection.ltr,
         );
-
-        // 绘制边框
-        final borderPaint = Paint()
-          ..color = cellColor.withOpacity(0.9)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = isStartLocation || isEndLocation ? 2.0 : 1.0; // 选中库位边框更粗
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(rect, const Radius.circular(4.0)),
-          borderPaint,
+        tp.layout();
+        tp.paint(
+          canvas,
+          Offset(
+            rect.left + (rect.width - tp.width) / 2,
+            rect.top + (rect.height - tp.height) / 2,
+          ),
         );
-
-        // 在绘制库位格子循环内，绘制完rect后，先绘制shelfId文本：
-        if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
-          final textSpan = TextSpan(
-            text: cell.shelfId,
-            style: const TextStyle(
-              color: Colors.black,
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          );
-          final tp = TextPainter(
-            text: textSpan,
-            textAlign: TextAlign.center,
-            textDirection: TextDirection.ltr,
-          );
-          tp.layout();
-          tp.paint(
-            canvas,
-            Offset(
-              rect.left + (rect.width - tp.width) / 2,
-              rect.top + (rect.height - tp.height) / 2,
-            ),
-          );
-        }
-        // 然后绘制特殊标记（保持原有特殊标记绘制逻辑不变）
-        if (isStartLocation || isEndLocation) {
-          // 绘制标记图标
-          final double iconSize = rect.width * 0.3;
-          final double iconX = rect.left + (rect.width - iconSize) / 2;
-          final double iconY = rect.top + (rect.height - iconSize) / 2;
-          
-          final Paint iconPaint = Paint()
+      }
+      // 特殊标记
+      if (isStartLocation || isEndLocation) {
+        final double iconSize = rect.width * 0.3;
+        final double iconX = rect.left + (rect.width - iconSize) / 2;
+        final double iconY = rect.top + (rect.height - iconSize) / 2;
+        final Paint iconPaint = Paint()
+          ..color = Colors.white
+          ..style = PaintingStyle.fill;
+        if (isStartLocation) {
+          final Path startPath = Path();
+          startPath.moveTo(iconX + iconSize / 2, iconY);
+          startPath.lineTo(iconX, iconY + iconSize);
+          startPath.lineTo(iconX + iconSize, iconY + iconSize);
+          startPath.close();
+          canvas.drawPath(startPath, iconPaint);
+        } else if (isEndLocation) {
+          final Paint flagPaint = Paint()
             ..color = Colors.white
             ..style = PaintingStyle.fill;
-          
-          if (isStartLocation) {
-            // 绘制起始标记（三角形）
-            final Path startPath = Path();
-            startPath.moveTo(iconX + iconSize / 2, iconY);
-            startPath.lineTo(iconX, iconY + iconSize);
-            startPath.lineTo(iconX + iconSize, iconY + iconSize);
-            startPath.close();
-            canvas.drawPath(startPath, iconPaint);
-          } else if (isEndLocation) {
-            // 绘制终点标记（旗帜）
-            final Paint flagPaint = Paint()
-              ..color = Colors.white
-              ..style = PaintingStyle.fill;
-            
-            // 绘制旗杆
-            canvas.drawRect(
-              Rect.fromLTWH(iconX + iconSize * 0.4, iconY, iconSize * 0.1, iconSize),
-              flagPaint,
-            );
-            
-            // 绘制旗帜
-            final Path flagPath = Path();
-            flagPath.moveTo(iconX + iconSize * 0.5, iconY);
-            flagPath.lineTo(iconX + iconSize, iconY + iconSize * 0.3);
-            flagPath.lineTo(iconX + iconSize * 0.5, iconY + iconSize * 0.6);
-            flagPath.close();
-            canvas.drawPath(flagPath, flagPaint);
-          }
+          canvas.drawRect(
+            Rect.fromLTWH(iconX + iconSize * 0.4, iconY, iconSize * 0.1, iconSize),
+            flagPaint,
+          );
+          final Path flagPath = Path();
+          flagPath.moveTo(iconX + iconSize * 0.5, iconY);
+          flagPath.lineTo(iconX + iconSize, iconY + iconSize * 0.3);
+          flagPath.lineTo(iconX + iconSize * 0.5, iconY + iconSize * 0.6);
+          flagPath.close();
+          canvas.drawPath(flagPath, flagPaint);
         }
-        
-        cellRects.add(MapEntry(cell, rect)); // 记录
       }
     }
-
+    // 优化刻度步进，最多渲染20个刻度
     var textStyle = const TextStyle(color: Colors.black, fontSize: 12);
-    // X轴刻度（右边，从下往上为正轴）
-    for (int i = 0; i <= xUnits; i++) {
-      final int label = xStart + i;
+    int xStep = (xUnits ~/ 20 + 1).clamp(1, xUnits);
+    int yStep = (yUnits ~/ 20 + 1).clamp(1, yUnits);
+    for (int i = 0; i <= xUnits; i += xStep) {
+      final int label = xMax - i;
       final textSpan = TextSpan(text: '$label', style: textStyle);
       final tp = TextPainter(
         text: textSpan,
@@ -262,14 +261,13 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset(size.width + 2,
-      //         size.height - i * size.height / xUnits - tp.height / 2));
+      tp.paint(
+        canvas,
+        Offset(size.width + 2, i * cellHeight + (cellHeight - tp.height) / 2),
+      );
     }
-    // Y轴刻度（底部，从右往左为正轴）
-    for (int j = 0; j <= yUnits; j++) {
-      final int label = yStart + j;
+    for (int j = 0; j <= yUnits; j += yStep) {
+      final int label = yMax - j;
       final textSpan = TextSpan(text: '$label', style: textStyle);
       final tp = TextPainter(
         text: textSpan,
@@ -277,10 +275,10 @@ class GridPainter extends CustomPainter {
         textDirection: TextDirection.ltr,
       );
       tp.layout();
-      // tp.paint(
-      //     canvas,
-      //     Offset((yUnits - j) * size.width / yUnits - tp.width / 2,
-      //         size.height + 2));
+      tp.paint(
+        canvas,
+        Offset(j * cellWidth + (cellWidth - tp.width) / 2, size.height + 2),
+      );
     }
   }
 

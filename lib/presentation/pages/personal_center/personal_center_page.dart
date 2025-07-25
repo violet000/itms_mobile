@@ -91,7 +91,7 @@ class PersonalCenterPage extends StatelessWidget {
         iconBg: const Color(0xFF81C784),
         title: '设备管理',
         onTap: () {
-          // TODO: 跳转到设备管理页面
+          Navigator.pushNamed(context, '/personal_center/dev-url-management');
         },
       ),
       _MenuItemData(
@@ -158,6 +158,7 @@ class PersonalCenterPage extends StatelessWidget {
             ))
         .toList();
   }
+
 
   Widget _buildLogoutButton() {
     return Padding(

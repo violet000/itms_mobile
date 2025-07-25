@@ -9,6 +9,7 @@ import 'package:itms_mobile/presentation/pages/personal_center/shelf_management_
 import 'package:itms_mobile/presentation/pages/storage/storage_area.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/location_management_page.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/area_management_page.dart';
+import 'package:itms_mobile/presentation/pages/personal_center/dev_url_management_page.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String shelfManagement = '/personal_center/shelf-management';
   static const String locationManagement = '/personal_center/location-management';
   static const String areaManagement = '/personal_center/area-management';
+  static const String devUrlManagement = '/personal_center/dev-url-management';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -40,6 +42,7 @@ class AppRoutes {
       // 个人中心
       personalCenter: (context) => const PersonalCenterPage(),
       areaManagement: (context) => const AreaManagementPage(),
+      devUrlManagement: (context) => const DevUrlManagementPage(),
       shelfManagement: (context) => const ShelfManagementPage(),
       locationManagement: (context) => const LocationManagementPage(),
     };

@@ -12,7 +12,6 @@ import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:itms_mobile/data/dataview/hand_task_data_source.dart';
 
-
 String getTime(String? dateTime) {
   if (dateTime == null) return '';
   final parts =
@@ -113,7 +112,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
   Future<void> _updateCurrentAreaDataAsync(String areaId) async {
     // 添加小延迟以模拟数据处理时间
     await Future<void>.delayed(const Duration(milliseconds: 300));
-    
+
     final areaData = itemList.firstWhere(
       (item) => item['id'] == areaId,
       orElse: () => <String, dynamic>{},
@@ -202,7 +201,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
     }
 
     EasyLoading.show(status: '正在切换仓储区域...');
-    
+
     try {
       await _updateCurrentAreaDataAsync(_areaId);
     } finally {
@@ -784,7 +783,6 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
   // 构建仓储区域地图
   Widget _buildStorageMap(
       String startStorageLocationId, String endStorageLocationId) {
-    
     if (currentAreaCells.isEmpty) {
       return Container(
         margin: const EdgeInsets.all(3.0),
@@ -808,15 +806,12 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: MapControl(
-          key: ValueKey('map_${_tabIndex}_${currentAreaCells.length}_${startStorageLocationId}_${endStorageLocationId}'),
-          xUnits: (currentAreaRange['xUnits'] ?? 10) -
-              (currentAreaRange['xStart'] ?? 0) +
-              1,
-          yUnits: (currentAreaRange['yUnits'] ?? 10) -
-              (currentAreaRange['yStart'] ?? 0) +
-              1,
-          xStart: (currentAreaRange['xStart'] ?? 0) - 1,
-          yStart: (currentAreaRange['yStart'] ?? 0) - 1,
+          key: ValueKey(
+              'map_${_tabIndex}_${currentAreaCells.length}_${startStorageLocationId}_${endStorageLocationId}'),
+          cellWidth: 50, // 每格宽度
+          cellHeight: 50, // 每格高度
+          forceXUnits: 10, // 如果只有1个x，强制显示10格
+          forceYUnits: 12, // 如果只有1个y，强制显示12格
           cells: currentAreaCells,
           onCellTap: _onCellTap,
           startLocationId: startStorageLocationId,
@@ -879,9 +874,8 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                       height: 40, // 可根据需要调整高度
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tabIndex == 0
-                            ? Colors.white
-                            : Colors.transparent,
+                        color:
+                            _tabIndex == 0 ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Tab(
@@ -892,9 +886,8 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                       height: 40,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _tabIndex == 1
-                            ? Colors.white
-                            : Colors.transparent,
+                        color:
+                            _tabIndex == 1 ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Tab(

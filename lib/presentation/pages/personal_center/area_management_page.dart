@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/dataview/area_data_source.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
-import 'package:itms_mobile/models/landmark_model.dart';
-import 'package:itms_mobile/data/dataview/landmark_data_source.dart';
 import 'package:itms_mobile/presentation/widgets/common/custom_dialog.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
@@ -22,7 +20,7 @@ class AreaManagementPage extends StatefulWidget {
 class _AreaManagementPageState extends State<AreaManagementPage> {
   late AreaDataSource _areaDataSource;
   final TextEditingController _areaIdController = TextEditingController();
-  AreaStatus? _selectedStatus;
+  AreaStatus? _selectedStatus = AreaStatus.active;
   List<AreaModel> _allAreas = [];
   List<AreaModel> _filteredAreas = [];
   List<AreaModel> _areas = [];
@@ -39,6 +37,10 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
   @override
   void initState() {
     super.initState();
+    _areaDataSource = AreaDataSource(
+        areas: <AreaModel>[],
+        onEdit: _onEditArea,
+        onDelete: _deleteAreas); // 初始化，防止late错误
     _initService();
     _loadData();
   }
@@ -52,8 +54,9 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
     _service9087 ??= await Service9087.create();
     EasyLoading.show(status: '正在加载数据...');
     try {
-      final response = await _service9087!.qryAreaPageByParams(<String, dynamic>{
-        'status': AreaStatus.active.code,
+      final response =
+          await _service9087!.qryAreaPageByParams(<String, dynamic>{
+        'status': _selectedStatus?.code,
         'id': _areaIdController.text,
         'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
         'pageSize': _pageSize
@@ -72,6 +75,10 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
         setState(() {
           _filteredAreas = List.from(_allAreas);
           _totalRows = total;
+          _areaDataSource = AreaDataSource(
+              areas: _filteredAreas,
+              onEdit: _onEditArea,
+              onDelete: _deleteAreas); // 数据更新后重新赋值
         });
       } else {
         setState(() {
@@ -129,6 +136,13 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
     );
     final statusController =
         TextEditingController(text: area?.status.toString() ?? '1');
+    final noteController = TextEditingController(text: area != null && area.note != null ? area.note! : '');
+    final floorController = TextEditingController(text: area != null && area.floor != null ? area.floor! : '');
+    final areaLengthController = TextEditingController(text: area != null && area.areaLength != null ? area.areaLength! : '');
+    final areaWidthController = TextEditingController(text: area != null && area.areaWidth != null ? area.areaWidth! : '');
+    final xController = TextEditingController(text: area != null && area.x != null ? area.x! : '');
+    final yController = TextEditingController(text: area != null && area.y != null ? area.y! : '');
+    final zController = TextEditingController(text: area != null && area.z != null ? area.z! : '');
     // final noteController = TextEditingController(text: landmark?.note ?? '');
 
     showDialog<void>(
@@ -161,6 +175,7 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                     _buildFormRow(
                       '库区编号',
                       idController,
+                      enabled: isEdit,
                     ),
                     _buildFormRow('库区名称', nameController),
                     _buildFormRow('所属库编号', clrCenterNoController),
@@ -188,6 +203,13 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                       },
                       display: (e) => e.displayName,
                     ),
+                    _buildFormRow('备注', noteController),
+                    _buildFormRow('楼层', floorController),
+                    _buildFormRow('长度', areaLengthController),
+                    _buildFormRow('宽度', areaWidthController),
+                    _buildFormRow('X坐标', xController),
+                    _buildFormRow('Y坐标', yController),
+                    _buildFormRow('Z坐标', zController),
                   ].expand((w) => [w, const SizedBox(height: 8)]),
                   const SizedBox(height: 10),
                   Row(
@@ -223,13 +245,19 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                                 int.tryParse(typeController.text) ?? '1';
                             params['status'] =
                                 int.tryParse(statusController.text) ?? 1;
+                            params['note'] = noteController.text;
+                            params['floor'] = floorController.text;
+                            params['areaLength'] = areaLengthController.text;
+                            params['areaWidth'] = areaWidthController.text;
+                            params['x'] = xController.text;
+                            params['y'] = yController.text;
+                            params['z'] = zController.text;
+
                             Map<String, dynamic> response;
                             if (isEdit) {
-                              response =
-                                  await _service9087!.updateArea(params);
+                              response = await _service9087!.updateArea(params);
                             } else {
-                              response =
-                                  await _service9087!.addArea(params);
+                              response = await _service9087!.addArea(params);
                             }
                             if (response['retCode'] == HTTPCode.success.code) {
                               context
@@ -272,9 +300,8 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
     );
   }
 
-  // 新增表单行构建方法
   Widget _buildFormRow(String label, TextEditingController controller,
-      {bool enabled = true}) {
+      {bool enabled = false}) {
     return Row(
       children: [
         SizedBox(
@@ -293,33 +320,40 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
         Expanded(
           child: TextField(
             controller: controller,
-            enabled: enabled,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF222222)),
+            enabled: !enabled, // 编辑模式下禁用托盘编号输入
+            style: TextStyle(
+              fontSize: 14,
+              color: enabled ? Colors.grey[600] : Colors.black87, // 编辑模式下显示灰色
+            ),
             decoration: InputDecoration(
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              hintText: enabled ? '${label}不可修改' : '请输入${label}',
+              hintStyle: const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+              // prefixIcon: const Icon(Icons.confirmation_number, color: Colors.blue, size: 18), // 移除图标
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color.fromARGB(255, 215, 215, 215)),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF90CAF9)),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE0E3E8)), // 保持淡灰色
               ),
               disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
               ),
-              fillColor: enabled ? null : const Color(0xFFF5F5F5),
-              filled: !enabled,
-              hintText: '请输入$label',
-              hintStyle:
-                  const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+              filled: enabled, // 编辑模式下填充背景色
+              fillColor: enabled ? Colors.grey[100] : null, // 编辑模式下填充灰色背景
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             ),
           ),
         ),
@@ -404,9 +438,13 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
     );
     if (result == ConfirmResult.confirm) {
       _service9087 ??= await Service9087.create();
+      if (area?.id == null || area!.id.isEmpty) {
+        context.showErrorMessage('无效的库区编号，无法删除');
+        return;
+      }
       EasyLoading.show(status: '正在删除...');
       try {
-        final response = await _service9087!.deleteBatch([]);
+        final response = await _service9087!.deleteArea([area.id]);
         EasyLoading.dismiss();
         if (response['retCode'] == HTTPCode.success.code) {
           context.showSuccessMessage('删除成功');
@@ -425,11 +463,10 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final availableWidth = screenWidth;
-    final selectWidth = availableWidth * 0.10;
     final idWidth = availableWidth * 0.18;
     final areaNameWidth = availableWidth * 0.18;
-    final typeWidth = availableWidth * 0.15;
-    final statusWidth = availableWidth * 0.14;
+    final clrCenterNoWidth = availableWidth * 0.2;
+    final statusWidth = availableWidth * 0.20;
     final actionsWidth = availableWidth * 0.24;
 
     return PageScaffold(
@@ -509,9 +546,9 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                         child: DropdownButtonFormField<AreaStatus?>(
                           value: _selectedStatus,
                           items: [
-                            const DropdownMenuItem<AreaStatus?>(
+                             DropdownMenuItem<AreaStatus?>(
                               value: null,
-                              child: Text('全部'),
+                              child: Text('${_selectedStatus?.displayName}'),
                             ),
                             ...AreaStatus.values.map((status) {
                               return DropdownMenuItem(
@@ -523,8 +560,8 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                           onChanged: (value) {
                             setState(() {
                               _selectedStatus = value;
-                              _filterData();
                             });
+                            _filterData();
                           },
                           style: const TextStyle(
                               fontSize: 13, color: Colors.black87),
@@ -761,18 +798,18 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                               width: areaNameWidth,
                             ),
                             GridColumn(
-                              columnName: 'type',
+                              columnName: 'clrCenterNo',
                               label: Container(
                                 alignment: Alignment.center,
                                 decoration:
                                     const BoxDecoration(color: Colors.blue),
-                                child: const Text('类型',
+                                child: const Text('所属库编号',
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                         fontSize: 12)),
                               ),
-                              width: typeWidth,
+                              width: clrCenterNoWidth,
                             ),
                             GridColumn(
                               columnName: 'status',

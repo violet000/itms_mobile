@@ -57,7 +57,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     if (response['retCode'] == HTTPCode.success.code) {
       setState(() {
         _areas = (response['retList'] as List)
-            .map((dynamic json) => AreaModel.fromJson(json as Map<String, dynamic>))
+            .map((dynamic json) =>
+                AreaModel.fromJson(json as Map<String, dynamic>))
             .toList();
       });
     }
@@ -162,7 +163,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     final title = isEdit ? '修改地标' : '新增地标';
 
     if (isEdit && landmark?.areaId != null) {
-      _selectedArea = _areas.firstWhereOrNull((area) => area.id == landmark!.areaId);
+      _selectedArea =
+          _areas.firstWhereOrNull((area) => area.id == landmark!.areaId);
     } else if (!isEdit) {
       _selectedArea = null;
     }
@@ -217,7 +219,10 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                   const SizedBox(height: 10),
                   ...[
                     // 字段分组
-                    _buildFormRow('地标编号', idController, ),
+                    _buildFormRow(
+                      '地标编号',
+                      idController,
+                    ),
                     _buildDropdownRow<AreaModel>(
                       label: '所属库区',
                       value: _selectedArea,
@@ -232,8 +237,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                     _buildFormRow('所属库编号', clrCenterNoController),
                     _buildDropdownRow<LocationType>(
                       label: '类型',
-                      value: LocationType.values.firstWhereOrNull(
-                          (e) => e.code == int.tryParse(locationTypeController.text)),
+                      value: LocationType.values.firstWhereOrNull((e) =>
+                          e.code == int.tryParse(locationTypeController.text)),
                       items: LocationType.values,
                       onChanged: (val) {
                         setState(() {
@@ -287,7 +292,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                           EasyLoading.show(
                               status: isEdit ? '正在修改...' : '正在新增...');
                           try {
-                            final Map<String, dynamic> params = <String, dynamic>{};
+                            final Map<String, dynamic> params =
+                                <String, dynamic>{};
                             if (!isEdit) {
                               params['id'] = idController.text;
                             }
@@ -298,8 +304,10 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                             params['areaId'] = _selectedArea?.id;
                             params['areaName'] = _selectedArea?.name;
                             params['clrCenterNo'] = clrCenterNoController.text;
-                            params['locationType'] = int.tryParse(locationTypeController.text) ?? 9;
-                            params['status'] = int.tryParse(statusController.text) ?? 1;
+                            params['locationType'] =
+                                int.tryParse(locationTypeController.text) ?? 9;
+                            params['status'] =
+                                int.tryParse(statusController.text) ?? 1;
                             params['note'] = noteController.text;
                             params['length'] = lengthController.text;
                             params['width'] = widthController.text;
@@ -315,7 +323,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                                   await _service9087!.addLocation(params);
                             }
                             if (response['retCode'] == HTTPCode.success.code) {
-                              context.showSuccessMessage(isEdit ? '修改成功' : '新增成功');
+                              context
+                                  .showSuccessMessage(isEdit ? '修改成功' : '新增成功');
                               Navigator.of(context).pop();
                               _loadData();
                             } else {
@@ -354,9 +363,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     );
   }
 
-  // 新增表单行构建方法
   Widget _buildFormRow(String label, TextEditingController controller,
-      {bool enabled = true}) {
+      {bool enabled = false}) {
     return Row(
       children: [
         SizedBox(
@@ -375,33 +383,41 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
         Expanded(
           child: TextField(
             controller: controller,
-            enabled: enabled,
-            style: const TextStyle(fontSize: 13, color: Color(0xFF222222)),
+            enabled: !enabled, // 编辑模式下禁用托盘编号输入
+            style: TextStyle(
+              fontSize: 14,
+              color: enabled ? Colors.grey[600] : Colors.black87, // 编辑模式下显示灰色
+            ),
             decoration: InputDecoration(
-              isDense: true,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              hintText: enabled ? '${label}不可修改' : '请输入${label}',
+              hintStyle:
+                  const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+              // prefixIcon: const Icon(Icons.confirmation_number, color: Colors.blue, size: 18), // 移除图标
+              labelStyle: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  color: Color.fromARGB(255, 215, 215, 215)),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
                 borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFF90CAF9)),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFE0E3E8)), // 保持淡灰色
               ),
               disabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E3E8)),
+                borderRadius: BorderRadius.circular(8),
+                borderSide: BorderSide(color: Colors.grey[300]!),
               ),
-              fillColor: enabled ? null : const Color(0xFFF5F5F5),
-              filled: !enabled,
-              hintText: '请输入$label',
-              hintStyle:
-                  const TextStyle(fontSize: 13, color: Color(0xFFBBBBBB)),
+              filled: enabled, // 编辑模式下填充背景色
+              fillColor: enabled ? Colors.grey[100] : null, // 编辑模式下填充灰色背景
+              isDense: true,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
             ),
           ),
         ),

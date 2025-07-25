@@ -585,10 +585,10 @@ class _PointToPointPageState extends State<PointToPointPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: MapControl(
-            xUnits: (currentAreaRange['xUnits'] ?? 10) - (currentAreaRange['xStart'] ?? 0) + 1,
-            yUnits: (currentAreaRange['yUnits'] ?? 10) - (currentAreaRange['yStart'] ?? 0) + 1,
-            xStart: (currentAreaRange['xStart'] ?? 0) - 1,
-            yStart: (currentAreaRange['yStart'] ?? 0) - 1,
+            // xUnits: (currentAreaRange['xUnits'] ?? 10) - (currentAreaRange['xStart'] ?? 0) + 1,
+            // yUnits: (currentAreaRange['yUnits'] ?? 10) - (currentAreaRange['yStart'] ?? 0) + 1,
+            // xStart: (currentAreaRange['xStart'] ?? 0) - 1,
+            // yStart: (currentAreaRange['yStart'] ?? 0) - 1,
             cells: currentAreaCells,
             onCellTap: _onCellTap,
             startLocationId: startStorageLocationId,

@@ -22,8 +22,6 @@ class AreaDataSource extends DataGridSource {
               DataGridCell<String>(columnName: 'id', value: area.id),
               DataGridCell<String>(
                   columnName: 'name', value: area.name),
-              DataGridCell<String>(
-                  columnName: 'type', value: area.type),
               DataGridCell<String>(columnName: 'clrCenterNo', value: area.clrCenterNo),
               DataGridCell<int>(columnName: 'status', value: area.status),
               DataGridCell<String>(columnName: 'actions', value: ''),
@@ -58,18 +56,6 @@ class AreaDataSource extends DataGridSource {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               child: Text(
                 cell.value.toString(),
-                style: const TextStyle(fontSize: 12),
-              ),
-            );
-          } else if (cell.columnName == 'type') {
-            // type 列显示类型名
-            final String typeStr = cell.value as String;
-            final AreaType type = AreaType.fromCode(typeStr);
-            return Container(
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                type.displayName,
                 style: const TextStyle(fontSize: 12),
               ),
             );
