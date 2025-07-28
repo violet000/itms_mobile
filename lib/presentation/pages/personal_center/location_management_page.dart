@@ -21,7 +21,7 @@ class LocationManagementPage extends StatefulWidget {
 class _LocationManagementPageState extends State<LocationManagementPage> {
   late LandmarkDataSource _landmarkDataSource;
   final TextEditingController _landmarkIdController = TextEditingController();
-  LandmarkStatus? _selectedStatus;
+  LandmarkStatus? _selectedStatus = LandmarkStatus.idle;
   List<LandmarkModel> _allLandmarks = [];
   List<LandmarkModel> _filteredLandmarks = [];
   List<AreaModel> _areas = [];
@@ -70,7 +70,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     EasyLoading.show(status: '正在加载数据...');
     try {
       final response = await _service9087!.qryByPage(<String, dynamic>{
-        'status': LandmarkStatus.idle.code,
+        'status': _selectedStatus?.code, // 使用用户选择的状态
         'id': _landmarkIdController.text,
         'curPage': _currentPage + 1, // 接口从1开始，UI从0开始
         'pageSize': _pageSize
@@ -631,9 +631,9 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                         child: DropdownButtonFormField<LandmarkStatus?>(
                           value: _selectedStatus,
                           items: [
-                            const DropdownMenuItem<LandmarkStatus?>(
+                            DropdownMenuItem<LandmarkStatus?>(
                               value: null,
-                              child: Text('全部'),
+                              child: Text('${_selectedStatus?.displayName}'),
                             ),
                             ...LandmarkStatus.values.map((status) {
                               return DropdownMenuItem(
@@ -645,8 +645,8 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                           onChanged: (value) {
                             setState(() {
                               _selectedStatus = value;
-                              _filterData();
                             });
+                              _filterData();
                           },
                           style: const TextStyle(
                               fontSize: 13, color: Colors.black87),
@@ -688,7 +688,7 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
                       onPressed: () {
                         setState(() {
                           _landmarkIdController.clear();
-                          _selectedStatus = null;
+                          _selectedStatus = LandmarkStatus.idle;
                           _filterData();
                         });
                       },

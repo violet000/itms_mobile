@@ -82,29 +82,37 @@ class PageScaffold extends StatelessWidget {
               child: Row(
                 children: [
                   if (showBackButton)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: onBackPressed,
-                      color: const Color.fromARGB(255, 60, 80, 120),
-                      style: IconButton.styleFrom(
-                        splashFactory: NoSplash.splashFactory,
-                        highlightColor: Colors.transparent,
-                        minimumSize: const Size(48, 48), // 增大点击区域
-                        padding: EdgeInsets.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: onBackPressed,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Color.fromARGB(255, 60, 80, 120),
+                            size: 24,
+                          ),
+                        ),
                       ),
                     ),
                   if (onWillPop != null)
-                    IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: onWillPop,
-                      color: const Color.fromARGB(255, 60, 80, 120),
-                      style: IconButton.styleFrom(
-                        splashFactory: NoSplash.splashFactory,
-                        highlightColor: Colors.transparent,
-                        minimumSize: const Size(48, 48), // 增大点击区域
-                        padding: EdgeInsets.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: onWillPop,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          width: 48,
+                          height: 48,
+                          child: const Icon(
+                            Icons.arrow_back,
+                            color: Color.fromARGB(255, 60, 80, 120),
+                            size: 24,
+                          ),
+                        ),
                       ),
                     ),
                 ],

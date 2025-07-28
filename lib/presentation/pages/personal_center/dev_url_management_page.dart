@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
 
@@ -33,20 +34,24 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
     setState(() => _loading = true);
     try {
       final res = await _service9087!.getAllUrlInfoList();
-      if (res['retList'] is List) {
-        _devList = List<Map<String, dynamic>>.from(res['retList'] as List);
-        // 初始化控制器
-        for (int i = 0; i < _devList.length; i++) {
-          _controllers[i] = <String, TextEditingController>{
-            'devName': TextEditingController(text: (_devList[i]['devName'] ?? '').toString()),
-            'devIp': TextEditingController(text: (_devList[i]['devIp'] ?? '').toString()),
-            'devPort': TextEditingController(text: (_devList[i]['devPort'] ?? '').toString()),
-          };
+
+      if (res['retCode'] == HTTPCode.success.code) {
+        if (res['retList'] is List) {
+          _devList = List<Map<String, dynamic>>.from(res['retList'] as List);
+          // 初始化控制器
+          for (int i = 0; i < _devList.length; i++) {
+            _controllers[i] = <String, TextEditingController>{
+              'devName': TextEditingController(
+                  text: (_devList[i]['devName'] ?? '').toString()),
+              'devIp': TextEditingController(
+                  text: (_devList[i]['devIp'] ?? '').toString()),
+              'devPort': TextEditingController(
+                  text: (_devList[i]['devPort'] ?? '').toString()),
+            };
+          }
         }
       }
-    } catch (e) {
-      // ignore
-    }
+    } catch (e) {}
     setState(() => _loading = false);
   }
 
@@ -62,15 +67,18 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
     };
     try {
       final res = await _service9087!.updateDevInfo(params);
-      if (res['code'] == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('保存成功')));
+      if (res['retCode'] == HTTPCode.success.code) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('保存成功')));
         setState(() => _editingIndex = null);
         _fetchDevList();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('保存失败: ${res['msg'] ?? ''}')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('保存失败: ${res['msg'] ?? ''}')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('保存异常: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('保存异常: $e')));
     }
   }
 
@@ -111,7 +119,8 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 enabled: editing,
                                 decoration: const InputDecoration(
                                   labelText: '设备名称',
-                                  contentPadding: EdgeInsets.symmetric(vertical: 2), 
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 2),
                                 ),
                                 style: const TextStyle(fontSize: 13),
                                 textAlignVertical: TextAlignVertical.top,
@@ -124,7 +133,8 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 enabled: editing,
                                 decoration: const InputDecoration(
                                   labelText: '设备IP',
-                                  contentPadding: EdgeInsets.symmetric(vertical: 2), 
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 2),
                                 ),
                                 style: const TextStyle(fontSize: 13),
                                 textAlignVertical: TextAlignVertical.top,
@@ -137,7 +147,8 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 enabled: editing,
                                 decoration: const InputDecoration(
                                   labelText: '端口号',
-                                  contentPadding: EdgeInsets.symmetric(vertical: 2),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(vertical: 2),
                                 ),
                                 keyboardType: TextInputType.number,
                                 style: const TextStyle(fontSize: 13),
@@ -149,16 +160,21 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 ? Row(
                                     children: [
                                       IconButton(
-                                        icon: const Icon(Icons.save, color: Colors.green),
+                                        icon: const Icon(Icons.save,
+                                            color: Colors.green),
                                         onPressed: () => _saveDev(index),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.cancel, color: Colors.red),
+                                        icon: const Icon(Icons.cancel,
+                                            color: Colors.red),
                                         onPressed: () {
                                           // 恢复原始内容
-                                          ctrls['devName']!.text = (dev['devName'] ?? '').toString();
-                                          ctrls['devIp']!.text = (dev['devIp'] ?? '').toString();
-                                          ctrls['devPort']!.text = (dev['devPort'] ?? '').toString();
+                                          ctrls['devName']!.text =
+                                              (dev['devName'] ?? '').toString();
+                                          ctrls['devIp']!.text =
+                                              (dev['devIp'] ?? '').toString();
+                                          ctrls['devPort']!.text =
+                                              (dev['devPort'] ?? '').toString();
                                           setState(() => _editingIndex = null);
                                         },
                                       ),
@@ -180,4 +196,4 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
             ),
     );
   }
-} 
+}
