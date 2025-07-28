@@ -98,7 +98,7 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
           return <String, dynamic>{...point, 'offset': offset};
         }).toList();
         // 点排斥处理，避免重叠
-        _resolveOverlap(pointsWithOffset, 8, Size(canvasWidth, canvasHeight)); // 8 = 2*radius
+        _resolveOverlap(pointsWithOffset, 16, Size(canvasWidth, canvasHeight)); // 16 = 2.0倍正方形边长，确保矩形之间有间隔
         return Row(
           children: [
             Expanded(
@@ -112,9 +112,10 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                     final localPos = details.localPosition;
                     for (var point in pointsWithOffset) {
                       final Offset offset = point['offset'] as Offset;
-                      double dist = (offset - localPos).distance;
-                      double radius = 4;
-                      if (dist < radius) {
+                      double halfSize = 4; // 正方形边长的一半
+                      // 检查点击位置是否在正方形范围内
+                      if ((localPos.dx >= offset.dx - halfSize && localPos.dx <= offset.dx + halfSize) &&
+                          (localPos.dy >= offset.dy - halfSize && localPos.dy <= offset.dy + halfSize)) {
                         if (widget.onTapPoint != null) widget.onTapPoint!(point);
                         break;
                       }
@@ -164,6 +165,56 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
   void _resolveOverlap(List<Map<String, dynamic>> points, double minDist, Size canvasSize, {int maxIter = 50}) {
     for (int iter = 0; iter < maxIter; iter++) {
       bool changed = false;
+      
+      // 按X坐标分组处理相同X坐标的点
+      Map<double, List<Map<String, dynamic>>> xGroups = {};
+      for (var point in points) {
+        final Offset offset = point['offset'] as Offset;
+        final double x = offset.dx;
+        xGroups.putIfAbsent(x, () => []).add(point);
+      }
+      
+      // 处理相同X坐标的点，确保Y距离至少为1.2倍圆直径
+      xGroups.forEach((x, xPoints) {
+        if (xPoints.length > 1) {
+          // 按Y坐标排序
+          xPoints.sort((a, b) {
+            final Offset offsetA = a['offset'] as Offset;
+            final Offset offsetB = b['offset'] as Offset;
+            return offsetA.dy.compareTo(offsetB.dy);
+          });
+          
+          // 调整Y坐标，确保相邻点间距为2.5倍正方形边长（矩形之间有间隔）
+          double minYDistance = minDist * 2.5; // 2.5倍正方形边长
+          for (int i = 1; i < xPoints.length; i++) {
+            final Offset prevOffset = xPoints[i - 1]['offset'] as Offset;
+            final Offset currentOffset = xPoints[i]['offset'] as Offset;
+            final double currentDistance = (currentOffset.dy - prevOffset.dy).abs();
+            
+            if (currentDistance < minYDistance) {
+              // 计算需要移动的距离
+              final double moveDistance = minYDistance - currentDistance;
+              
+              // 向下移动当前点及之后的所有点
+              for (int j = i; j < xPoints.length; j++) {
+                final Offset pointOffset = xPoints[j]['offset'] as Offset;
+                final Offset newOffset = Offset(pointOffset.dx, pointOffset.dy + moveDistance);
+                
+                // 确保点不出界
+                final Offset clampedOffset = Offset(
+                  newOffset.dx,
+                  newOffset.dy.clamp(0.0, canvasSize.height),
+                );
+                
+                xPoints[j]['offset'] = clampedOffset;
+              }
+              changed = true;
+            }
+          }
+        }
+      });
+      
+      // 原有的全局排斥处理
       for (int i = 0; i < points.length; i++) {
         Offset oi = points[i]['offset'] as Offset;
         Offset totalMove = Offset.zero;
@@ -233,7 +284,7 @@ class _StorageLocationPainter extends CustomPainter {
       Offset(padding, padding),
       axisPaint,
     );
-    // 批量渲染点，按颜色分组
+    // 批量渲染正方形，按颜色分组
     Map<Color, List<Offset>> colorGroups = {};
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
@@ -242,12 +293,21 @@ class _StorageLocationPainter extends CustomPainter {
       colorGroups.putIfAbsent(color, () => []).add(offset);
     }
     final paint = Paint()
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round;
+      ..style = PaintingStyle.fill;
+    
     colorGroups.forEach((color, offsets) {
       paint.color = color;
-      paint.strokeWidth = radius * 2;
-      canvas.drawPoints(PointMode.points, offsets, paint);
+      double size = 8; // 正方形边长
+      double halfSize = size / 2;
+      
+      for (var offset in offsets) {
+        final rect = Rect.fromCenter(
+          center: offset,
+          width: size,
+          height: size,
+        );
+        canvas.drawRect(rect, paint);
+      }
     });
   }
 
