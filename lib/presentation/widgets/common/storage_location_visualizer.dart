@@ -27,7 +27,15 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
   List<Map<String, dynamic>> _data = [];
   late TransformationController _transformationController;
   double _currentScale = 1.0;
-
+  
+  // 缓存优化
+  List<Map<String, dynamic>> _cachedPointsWithOffset = [];
+  bool _needsRecalculation = true;
+  Rect _lastViewport = Rect.zero;
+  
+  // 性能优化：限制最大渲染点数
+  static const int _maxRenderPoints = 1000;
+  
   @override
   void initState() {
     super.initState();
@@ -43,9 +51,36 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
   }
 
   @override
+  void didUpdateWidget(StorageLocationVisualizer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.data != widget.data) {
+      _data = widget.data;
+      _needsRecalculation = true;
+    }
+  }
+
+  @override
   void dispose() {
     _transformationController.dispose();
     super.dispose();
+  }
+
+  // 数据采样算法：当点数过多时进行采样
+  List<Map<String, dynamic>> _sampleData(List<Map<String, dynamic>> data, int maxPoints) {
+    if (data.length <= maxPoints) return data;
+    
+    // 简单的均匀采样
+    final step = data.length / maxPoints;
+    List<Map<String, dynamic>> sampledData = [];
+    
+    for (int i = 0; i < maxPoints; i++) {
+      final index = (i * step).floor();
+      if (index < data.length) {
+        sampledData.add(data[index]);
+      }
+    }
+    
+    return sampledData;
   }
 
   // 点聚合算法
@@ -76,9 +111,16 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     if (_data.isEmpty) {
       return const Center(child: Text('暂无数据'));
     }
+    
+    // 性能优化：数据采样
+    List<Map<String, dynamic>> processedData = _data;
+    if (_data.length > _maxRenderPoints) {
+      processedData = _sampleData(_data, _maxRenderPoints).cast<Map<String, dynamic>>();
+    }
+    
     // 计算x、y的最小最大值
-    final xList = _data.map((e) => num.parse(e['xplace'].toString())).toList();
-    final yList = _data.map((e) => num.parse(e['yplace'].toString())).toList();
+    final xList = processedData.map((e) => num.parse(e['xplace'].toString())).toList();
+    final yList = processedData.map((e) => num.parse(e['yplace'].toString())).toList();
     final minX = xList.reduce((a, b) => a < b ? a : b);
     final maxX = xList.reduce((a, b) => a > b ? a : b);
     final minY = yList.reduce((a, b) => a < b ? a : b);
@@ -87,18 +129,28 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final canvasWidth = widget.canvasWidth ?? constraints.maxWidth;
-        final canvasHeight = widget.canvasHeight ?? constraints.maxHeight * 3;
-        // 计算所有点的画布坐标
-        List<Map<String, dynamic>> pointsWithOffset = _data.map((point) {
-          final offset = _mapToCanvas(
-            num.parse(point['xplace'].toString()),
-            num.parse(point['yplace'].toString()),
-            minX, maxX, minY, maxY, canvasWidth, canvasHeight, padding: 80, // padding由40改为80
-          );
-          return <String, dynamic>{...point, 'offset': offset};
-        }).toList();
-        // 点排斥处理，避免重叠
-        _resolveOverlap(pointsWithOffset, 16, Size(canvasWidth, canvasHeight)); // 16 = 2.0倍正方形边长，确保矩形之间有间隔
+        final canvasHeight = widget.canvasHeight ?? constraints.maxHeight;
+        
+        // 缓存优化：只在必要时重新计算
+        if (_needsRecalculation || _cachedPointsWithOffset.isEmpty) {
+          // 计算所有点的画布坐标
+          List<Map<String, dynamic>> pointsWithOffset = processedData.map((point) {
+            final offset = _mapToCanvas(
+              num.parse(point['xplace'].toString()),
+              num.parse(point['yplace'].toString()),
+              minX, maxX, minY, maxY, canvasWidth, canvasHeight, padding: 80,
+            );
+            return <String, dynamic>{...point, 'offset': offset};
+          }).toList();
+          
+          // 点排斥处理，避免重叠
+          _resolveOverlap(pointsWithOffset, 16, Size(canvasWidth, canvasHeight));
+          
+          _cachedPointsWithOffset = pointsWithOffset;
+          _needsRecalculation = false;
+        }
+        
+        final pointsWithOffset = _cachedPointsWithOffset;
         return Row(
           children: [
             Expanded(
@@ -157,8 +209,16 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     final usableWidth = width - padding * 2;
     final usableHeight = height - padding * 2;
     final dx = ((x - minX) / (maxX - minX)) * usableWidth + padding;
-    final dy = height - (((y - minY) / (maxY - minY)) * usableHeight + padding);
-    return Offset(dx, dy);
+    
+    // 修复Y坐标映射，确保点不会出现在X轴下方
+    // 将Y坐标映射到画布的有效区域，X轴在底部
+    final dy = height - padding - (((y - minY) / (maxY - minY)) * usableHeight);
+    
+    // 确保点不会超出有效区域
+    final clampedDx = dx.clamp(padding, width - padding);
+    final clampedDy = dy.clamp(padding, height - padding);
+    
+    return Offset(clampedDx, clampedDy);
   }
 
   /// 力导向点排斥处理，避免重叠，增强分离效果
@@ -200,10 +260,10 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                 final Offset pointOffset = xPoints[j]['offset'] as Offset;
                 final Offset newOffset = Offset(pointOffset.dx, pointOffset.dy + moveDistance);
                 
-                // 确保点不出界
+                // 确保点不出界，并且不会出现在X轴下方
                 final Offset clampedOffset = Offset(
-                  newOffset.dx,
-                  newOffset.dy.clamp(0.0, canvasSize.height),
+                  newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
+                  newOffset.dy.clamp(40.0, canvasSize.height - 40.0), // 留出padding空间
                 );
                 
                 xPoints[j]['offset'] = clampedOffset;
@@ -231,10 +291,10 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
         }
         if (totalMove != Offset.zero) {
           Offset newOffset = oi + totalMove;
-          // 保证点不出界
+          // 保证点不出界，并且不会出现在X轴下方
           newOffset = Offset(
-            newOffset.dx.clamp(0.0, canvasSize.width),
-            newOffset.dy.clamp(0.0, canvasSize.height),
+            newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
+            newOffset.dy.clamp(40.0, canvasSize.height - 40.0), // 留出padding空间
           );
           points[i]['offset'] = newOffset;
           changed = true;
@@ -250,6 +310,10 @@ class _StorageLocationPainter extends CustomPainter {
   final num minX, maxX, minY, maxY;
   final double scale;
   final double padding = 40;
+  
+  // 缓存预计算的渲染数据
+  final Map<Color, List<Rect>> _cachedRects = {};
+  final Map<Color, Paint> _cachedPaints = {};
 
   _StorageLocationPainter({
     required this.points,
@@ -270,51 +334,158 @@ class _StorageLocationPainter extends CustomPainter {
     final tickPaint = Paint()
       ..color = Colors.grey
       ..strokeWidth = 1;
-    final textStyle = const TextStyle(fontSize: 12, color: Colors.black);
-    double radius = 4;
-    // 画x轴
-    canvas.drawLine(
-      Offset(padding, size.height - padding),
-      Offset(size.width - padding, size.height - padding),
-      axisPaint,
+    final textStyle = const TextStyle(
+      fontSize: 10,
+      color: Colors.black,
+      fontWeight: FontWeight.w500,
     );
-    // 画y轴
-    canvas.drawLine(
-      Offset(padding, size.height - padding),
-      Offset(padding, padding),
-      axisPaint,
-    );
-    // 批量渲染正方形，按颜色分组
-    Map<Color, List<Offset>> colorGroups = {};
+    
+    // 画坐标轴
+    // canvas.drawLine(
+    //   Offset(padding, size.height - padding),
+    //   Offset(size.width - padding, size.height - padding),
+    //   axisPaint,
+    // );
+    // canvas.drawLine(
+    //   Offset(padding, size.height - padding),
+    //   Offset(padding, padding),
+    //   axisPaint,
+    // );
+    
+    // 绘制X轴刻度
+    // _drawXAxisTicks(canvas, size, tickPaint, textStyle);
+    
+    // 绘制Y轴刻度
+    // _drawYAxisTicks(canvas, size, tickPaint, textStyle);
+    
+    // 性能优化：预计算渲染数据
+    _prepareRenderData();
+    
+    // 批量渲染正方形
+    _cachedPaints.forEach((color, paint) {
+      final rects = _cachedRects[color];
+      if (rects != null) {
+        // 使用批量绘制方法
+        for (final rect in rects) {
+          canvas.drawRect(rect, paint);
+        }
+      }
+    });
+  }
+  
+  void _prepareRenderData() {
+    _cachedRects.clear();
+    _cachedPaints.clear();
+    
+    const double size = 8; // 正方形边长
+    const double halfSize = size / 2;
+    
+    // 按颜色分组并预计算矩形
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
       final int statusCode = int.tryParse(point['status'].toString()) ?? 0;
       final Color color = Util.getStatusColor(statusCode);
-      colorGroups.putIfAbsent(color, () => []).add(offset);
-    }
-    final paint = Paint()
-      ..style = PaintingStyle.fill;
-    
-    colorGroups.forEach((color, offsets) {
-      paint.color = color;
-      double size = 8; // 正方形边长
-      double halfSize = size / 2;
       
-      for (var offset in offsets) {
-        final rect = Rect.fromCenter(
+      // 缓存Paint对象
+      _cachedPaints.putIfAbsent(color, () => Paint()
+        ..color = color
+        ..style = PaintingStyle.fill);
+      
+      // 缓存矩形
+      _cachedRects.putIfAbsent(color, () => []).add(
+        Rect.fromCenter(
           center: offset,
           width: size,
           height: size,
-        );
-        canvas.drawRect(rect, paint);
-      }
-    });
+        ),
+      );
+    }
+  }
+  
+  // 绘制X轴刻度
+  void _drawXAxisTicks(Canvas canvas, Size size, Paint tickPaint, TextStyle textStyle) {
+    final usableWidth = size.width - padding * 2;
+    final tickCount = 10; // 刻度数量
+    
+    for (int i = 0; i <= tickCount; i++) {
+      final x = padding + (usableWidth * i / tickCount);
+      final value = minX + (maxX - minX) * i / tickCount;
+      
+      // 绘制刻度线
+      canvas.drawLine(
+        Offset(x, size.height - padding),
+        Offset(x, size.height - padding + 5),
+        tickPaint,
+      );
+      
+      // 绘制刻度值
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: value.toStringAsFixed(1),
+          style: textStyle,
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(x - textPainter.width / 2, size.height - padding + 8),
+      );
+    }
+  }
+  
+  // 绘制Y轴刻度
+  void _drawYAxisTicks(Canvas canvas, Size size, Paint tickPaint, TextStyle textStyle) {
+    final usableHeight = size.height - padding * 2;
+    final tickCount = 8; // 刻度数量
+    
+    for (int i = 0; i <= tickCount; i++) {
+      final y = size.height - padding - (usableHeight * i / tickCount);
+      final value = minY + (maxY - minY) * i / tickCount;
+      
+      // 绘制刻度线
+      canvas.drawLine(
+        Offset(padding - 5, y),
+        Offset(padding, y),
+        tickPaint,
+      );
+      
+      // 绘制刻度值
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: value.toStringAsFixed(1),
+          style: textStyle,
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(padding - textPainter.width - 8, y - textPainter.height / 2),
+      );
+    }
   }
 
   @override
   bool shouldRepaint(covariant _StorageLocationPainter oldDelegate) {
-    return oldDelegate.points != points ||
-           oldDelegate.scale != scale ||
+    // 性能优化：只在数据真正变化时才重绘
+    if (oldDelegate.points.length != points.length) return true;
+    
+    // 检查关键数据是否变化
+    for (int i = 0; i < points.length; i++) {
+      if (i >= oldDelegate.points.length) return true;
+      
+      final oldPoint = oldDelegate.points[i];
+      final newPoint = points[i];
+      
+      // 检查offset和status是否变化
+      if (oldPoint['offset'] != newPoint['offset'] ||
+          oldPoint['status'] != newPoint['status']) {
+        return true;
+      }
+    }
+    
+    return oldDelegate.scale != scale ||
            oldDelegate.minX != minX ||
            oldDelegate.maxX != maxX ||
            oldDelegate.minY != minY ||
