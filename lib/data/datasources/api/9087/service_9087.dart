@@ -94,6 +94,12 @@ class Service9087 {
 
   /// 仓储库区库位查询
   Future<Map<String, dynamic>> qryWarehousing(String areaId) async {
+    return _dioService.get('/storage/v2/area/qryWarehousing',
+        queryParameters: <String, String>{'areaId': areaId});
+  }
+
+  /// 仓储库区库位查询
+  Future<Map<String, dynamic>> qryWarehousing1(String areaId) async {
     // return _dioService.get('/storage/v2/area/qryWarehousing',
     //     queryParameters: <String, String>{'areaId': areaId});
     return Map<String, dynamic>.from(<String, dynamic>{
@@ -122,7 +128,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246605",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0001"
             },
             {
               "id": "444170AA246606",
@@ -132,7 +139,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246606",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0002"
             },
             {
               "id": "444170AA246607",
@@ -142,7 +150,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246607",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0003"
             },
             {
               "id": "444170AA246608",
@@ -152,7 +161,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246608",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0004"
             },
             {
               "id": "444170AA246609",
@@ -162,7 +172,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246609",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0005"
             },
             {
               "id": "444170AA246610",
@@ -172,7 +183,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246610",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0006"
             },
             {
               "id": "444170AA246611",
@@ -182,7 +194,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246611",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0007"
             },
             {
               "id": "444170AA246612",
@@ -192,7 +205,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246612",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0008"
             },
             {
               "id": "444170AA246613",
@@ -202,17 +216,19 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246613",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0009"
             },
             {
               "id": "444170AA246614",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246614",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0010"
             },
             {
               "id": "444170AA246615",
@@ -222,17 +238,19 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246615",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0011"
             },
             {
               "id": "444170AA246616",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246616",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0012"
             },
             {
               "id": "444170AA246617",
@@ -242,7 +260,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246617",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0013"
             },
             {
               "id": "444170AA246618",
@@ -252,17 +271,19 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246618",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0014"
             },
             {
               "id": "444170AA246619",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 3,
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246619",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0015"
             },
             {
               "id": "444170AA246620",
@@ -272,17 +293,19 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246620",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0016"
             },
             {
               "id": "444170AA246621",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246621",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0017"
             },
             {
               "id": "444170AA246622",
@@ -292,7 +315,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246622",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0018"
             },
             {
               "id": "444170AA246623",
@@ -302,7 +326,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246623",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0019"
             },
             {
               "id": "444170AA246624",
@@ -312,7 +337,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246624",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0020"
             },
             {
               "id": "444170AA246625",
@@ -322,7 +348,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246625",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0021"
             },
             {
               "id": "444170AA246626",
@@ -332,7 +359,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246626",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0022"
             },
             {
               "id": "444170AA246627",
@@ -342,7 +370,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246627",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0023"
             },
             {
               "id": "444170AA246628",
@@ -352,7 +381,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246628",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0024"
             },
             {
               "id": "444170AA246629",
@@ -362,7 +392,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246629",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0025"
             },
             {
               "id": "444170AA246630",
@@ -372,7 +403,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246630",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0026"
             },
             {
               "id": "444170AA246631",
@@ -382,7 +414,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246631",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0027"
             },
             {
               "id": "444170AA246632",
@@ -392,7 +425,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246632",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0028"
             },
             {
               "id": "444170AA246633",
@@ -402,7 +436,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246633",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0029"
             },
             {
               "id": "444170AA246634",
@@ -412,7 +447,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246634",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0030"
             },
             {
               "id": "444170AA246635",
@@ -422,7 +458,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246635",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0031"
             },
             {
               "id": "444170AA246636",
@@ -432,7 +469,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246636",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0032"
             },
             {
               "id": "444170AA246637",
@@ -442,7 +480,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246637",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0033"
             },
             {
               "id": "444170AA246638",
@@ -452,7 +491,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444170",
               "yplace": "246638",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0034"
             },
             {
               "id": "444145AA209290",
@@ -462,7 +502,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "209290",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0035"
             },
             {
               "id": "444145AA207740",
@@ -472,7 +513,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "207740",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0036"
             },
             {
               "id": "444145AA206090",
@@ -482,7 +524,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "206090",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0037"
             },
             {
               "id": "444145AA204340",
@@ -492,7 +535,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "204340",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0038"
             },
             {
               "id": "444145AA202685",
@@ -502,7 +546,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "202685",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0039"
             },
             {
               "id": "444145AA201065",
@@ -512,7 +557,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "201065",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0040"
             },
             {
               "id": "444145AA199210",
@@ -522,7 +568,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "199210",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0041"
             },
             {
               "id": "444145AA197520",
@@ -532,7 +579,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "197520",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0042"
             },
             {
               "id": "444145AA195865",
@@ -542,7 +590,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "195865",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0043"
             },
             {
               "id": "444145AA189940",
@@ -552,7 +601,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "189940",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0044"
             },
             {
               "id": "444145AA188090",
@@ -562,7 +612,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "188090",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0045"
             },
             {
               "id": "444145AA186240",
@@ -572,7 +623,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "186240",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0046"
             },
             {
               "id": "444145AA184385",
@@ -582,7 +634,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "184385",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0047"
             },
             {
               "id": "444145AA175680",
@@ -592,7 +645,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "175680",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0048"
             },
             {
               "id": "444145AA173565",
@@ -602,7 +656,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "173565",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0049"
             },
             {
               "id": "444145AA171775",
@@ -612,7 +667,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "171775",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0050"
             },
             {
               "id": "444145AA167815",
@@ -622,7 +678,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "167815",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0051"
             },
             {
               "id": "444145AA166065",
@@ -632,7 +689,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "166065",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0052"
             },
             {
               "id": "444145AA162460",
@@ -642,7 +700,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "162460",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0053"
             },
             {
               "id": "444145AA160920",
@@ -652,7 +711,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "160920",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0054"
             },
             {
               "id": "444145AA159370",
@@ -662,7 +722,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "159370",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0055"
             },
             {
               "id": "444145AA157715",
@@ -672,7 +733,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "157715",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0056"
             },
             {
               "id": "444145AA156165",
@@ -682,7 +744,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "156165",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0057"
             },
             {
               "id": "444145AA154610",
@@ -692,7 +755,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "154610",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0058"
             },
             {
               "id": "444145AA152965",
@@ -702,7 +766,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "152965",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0059"
             },
             {
               "id": "444145AA151235",
@@ -712,7 +777,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "151235",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0060"
             },
             {
               "id": "444145AA149635",
@@ -722,7 +788,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "149635",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0061"
             },
             {
               "id": "444145AA148040",
@@ -732,7 +799,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "444145",
               "yplace": "148040",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0062"
             },
             {
               "id": "443995AA164220",
@@ -742,7 +810,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443995",
               "yplace": "164220",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0063"
             },
             {
               "id": "443985AA280995",
@@ -752,7 +821,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443985",
               "yplace": "280995",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0064"
             },
             {
               "id": "443985AA279340",
@@ -762,7 +832,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443985",
               "yplace": "279340",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0065"
             },
             {
               "id": "443985AA277690",
@@ -772,7 +843,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443985",
               "yplace": "277690",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0066"
             },
             {
               "id": "443985AA261655",
@@ -782,7 +854,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443985",
               "yplace": "261655",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0067"
             },
             {
               "id": "443795AA239030",
@@ -792,7 +865,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443795",
               "yplace": "239030",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0068"
             },
             {
               "id": "443795AA237575",
@@ -802,7 +876,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443795",
               "yplace": "237575",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0069"
             },
             {
               "id": "443795AA211040",
@@ -812,7 +887,8 @@ class Service9087 {
               "areaId": "A001",
               "xplace": "443795",
               "yplace": "211040",
-              "zplace": "1"
+              "zplace": "1",
+              "shelfId": "SP0070"
             }
           ]
         },
@@ -873,7 +949,7 @@ class Service9087 {
               "id": "443245AA283995",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A002",
               "xplace": "443245",
               "yplace": "283995",
@@ -903,7 +979,7 @@ class Service9087 {
               "id": "443245AA211040",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A002",
               "xplace": "443245",
               "yplace": "211040",
@@ -923,7 +999,7 @@ class Service9087 {
               "id": "443245AA207740",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 3,
               "areaId": "A002",
               "xplace": "443245",
               "yplace": "207740",
@@ -5498,7 +5574,7 @@ class Service9087 {
               "id": "430825AA240245",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A003",
               "xplace": "430825",
               "yplace": "240245",
@@ -5518,7 +5594,7 @@ class Service9087 {
               "id": "430750AA149475",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 2,
               "areaId": "A003",
               "xplace": "430750",
               "yplace": "149475",
@@ -5538,7 +5614,7 @@ class Service9087 {
               "id": "430495AA274795",
               "clrCenterNo": "001",
               "locationType": 2,
-              "status": 1,
+              "status": 3,
               "areaId": "A003",
               "xplace": "430495",
               "yplace": "274795",
@@ -5895,8 +5971,8 @@ class Service9087 {
   /// devName - 系统名称
   /// devIp - ip
   /// devPort - 端口号
-  Future<Map<String, dynamic>> updateDevInfo(Map<String, dynamic> params) async {
+  Future<Map<String, dynamic>> updateDevInfo(
+      Map<String, dynamic> params) async {
     return _dioService.post('/storage/v2/dev/updateDevInfo', body: params);
   }
-  
 }

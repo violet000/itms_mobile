@@ -1,4 +1,7 @@
-<!DOCTYPE html><html><head>
+<!DOCTYPE html>
+<html>
+
+<head>
     <!--
     If you are serving your web app in a path other than the root, change the
     href value below to reflect the base path you are serving from.
@@ -39,14 +42,90 @@
     <link rel="stylesheet" type="text/css" href="splash/style.css">
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
     <script src="splash/splash.js"></script>
+
+    <!-- 禁用Web端点击时的蓝色蒙层效果 -->
+    <style>
+        /* 禁用所有元素的点击高亮效果 */
+        
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            -khtml-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            user-select: none !important;
+            outline: none !important;
+        }
+        /* 禁用Flutter Web的点击反馈 */
+        
+        canvas,
+        div,
+        span,
+        button,
+        input,
+        a {
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            -webkit-user-select: none !important;
+            outline: none !important;
+        }
+        /* 禁用按钮和可点击元素的默认样式 */
+        
+        button,
+        [role="button"],
+        .clickable,
+        [tabindex] {
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            outline: none !important;
+        }
+        /* 禁用文本选择高亮 */
+        
+         ::selection {
+            background: transparent !important;
+            color: inherit !important;
+        }
+        
+         ::-moz-selection {
+            background: transparent !important;
+            color: inherit !important;
+        }
+        /* 禁用焦点轮廓 */
+        
+         :focus {
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        /* 禁用鼠标悬停效果 */
+        
+        *:hover {
+            outline: none !important;
+        }
+        /* 特别针对Flutter Web容器 */
+        
+        #flutter_target,
+        #flutter_target * {
+            -webkit-tap-highlight-color: transparent !important;
+            -webkit-touch-callout: none !important;
+            outline: none !important;
+        }
+        /* 禁用所有可能的点击反馈 */
+        
+        *:active {
+            -webkit-tap-highlight-color: transparent !important;
+            background-color: transparent !important;
+        }
+    </style>
 </head>
 
-<body>  <picture id="splash">
-      <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
-      <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
-      <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
-  </picture>    
-    
+<body>
+    <picture id="splash">
+        <source srcset="splash/img/light-1x.png 1x, splash/img/light-2x.png 2x, splash/img/light-3x.png 3x, splash/img/light-4x.png 4x" media="(prefers-color-scheme: light)">
+        <source srcset="splash/img/dark-1x.png 1x, splash/img/dark-2x.png 2x, splash/img/dark-3x.png 3x, splash/img/dark-4x.png 4x" media="(prefers-color-scheme: dark)">
+        <img class="center" aria-hidden="true" src="splash/img/light-1x.png" alt="">
+    </picture>
+
     <script>
         // 设置 canvasKitBaseUrl 为 CDN 地址, 解决web加载canvaskit-wasm慢的问题
         // window.flutterConfiguration = {
@@ -71,4 +150,6 @@
 
 
 
-</body></html>
+</body>
+
+</html>

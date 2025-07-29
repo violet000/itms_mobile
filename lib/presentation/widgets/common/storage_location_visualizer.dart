@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/core/utils/util.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
@@ -10,6 +11,8 @@ class StorageLocationVisualizer extends StatefulWidget {
   final void Function(Map<String, dynamic>)? onTapPoint;
   final double? canvasWidth;
   final double? canvasHeight;
+  final String? startLocationId;
+  final String? endLocationId;
 
   const StorageLocationVisualizer({
     Key? key,
@@ -17,6 +20,8 @@ class StorageLocationVisualizer extends StatefulWidget {
     this.onTapPoint,
     this.canvasWidth,
     this.canvasHeight,
+    this.startLocationId,
+    this.endLocationId,
   }) : super(key: key);
 
   @override
@@ -56,6 +61,11 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     if (oldWidget.data != widget.data) {
       _data = widget.data;
       _needsRecalculation = true;
+    }
+    // 如果起始点或终点发生变化，需要重新渲染
+    if (oldWidget.startLocationId != widget.startLocationId ||
+        oldWidget.endLocationId != widget.endLocationId) {
+      setState(() {});
     }
   }
 
@@ -160,12 +170,14 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                 maxScale: 100.0,
                 constrained: false,
                 child: GestureDetector(
+                  // Web端禁用点击反馈
+                  behavior: kIsWeb ? HitTestBehavior.translucent : HitTestBehavior.opaque,
                   onTapUp: (details) {
                     final localPos = details.localPosition;
                     for (var point in pointsWithOffset) {
                       final Offset offset = point['offset'] as Offset;
-                      double halfSize = 4; // 正方形边长的一半
-                      // 检查点击位置是否在正方形范围内
+                      double halfSize = 4; // 圆角矩形边长的一半
+                      // 检查点击位置是否在圆角矩形范围内
                       if ((localPos.dx >= offset.dx - halfSize && localPos.dx <= offset.dx + halfSize) &&
                           (localPos.dy >= offset.dy - halfSize && localPos.dy <= offset.dy + halfSize)) {
                         if (widget.onTapPoint != null) widget.onTapPoint!(point);
@@ -182,6 +194,8 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                       minY: minY,
                       maxY: maxY,
                       scale: _currentScale,
+                      startLocationId: widget.startLocationId,
+                      endLocationId: widget.endLocationId,
                     ),
                   ),
                 ),
@@ -244,8 +258,8 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
             return offsetA.dy.compareTo(offsetB.dy);
           });
           
-          // 调整Y坐标，确保相邻点间距为2.5倍正方形边长（矩形之间有间隔）
-          double minYDistance = minDist * 2.5; // 2.5倍正方形边长
+          // 调整Y坐标，确保相邻点间距为2.5倍圆角矩形边长（矩形之间有间隔）
+          double minYDistance = minDist * 2.5; // 2.5倍圆角矩形边长
           for (int i = 1; i < xPoints.length; i++) {
             final Offset prevOffset = xPoints[i - 1]['offset'] as Offset;
             final Offset currentOffset = xPoints[i]['offset'] as Offset;
@@ -310,6 +324,8 @@ class _StorageLocationPainter extends CustomPainter {
   final num minX, maxX, minY, maxY;
   final double scale;
   final double padding = 40;
+  final String? startLocationId;
+  final String? endLocationId;
   
   // 缓存预计算的渲染数据
   final Map<Color, List<Rect>> _cachedRects = {};
@@ -322,6 +338,8 @@ class _StorageLocationPainter extends CustomPainter {
     required this.minY,
     required this.maxY,
     required this.scale,
+    this.startLocationId,
+    this.endLocationId,
   });
 
   @override
@@ -361,37 +379,53 @@ class _StorageLocationPainter extends CustomPainter {
     // 性能优化：预计算渲染数据
     _prepareRenderData();
     
-    // 批量渲染正方形
+    // 批量渲染圆角矩形
     _cachedPaints.forEach((color, paint) {
       final rects = _cachedRects[color];
       if (rects != null) {
         // 使用批量绘制方法
         for (final rect in rects) {
-          canvas.drawRect(rect, paint);
+          canvas.drawRRect(
+            RRect.fromRectAndRadius(rect, const Radius.circular(2)),
+            paint,
+          );
         }
       }
     });
+    
+    // 绘制起始点和终点的文字标记
+    _drawStartEndLabels(canvas, size);
   }
   
   void _prepareRenderData() {
     _cachedRects.clear();
     _cachedPaints.clear();
     
-    const double size = 8; // 正方形边长
-    const double halfSize = size / 2;
+    const double size = 8; // 矩形边长
+    const double radius = 2; // 圆角半径
     
-    // 按颜色分组并预计算矩形
+    // 按颜色分组并预计算圆角矩形
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
       final int statusCode = int.tryParse(point['status'].toString()) ?? 0;
-      final Color color = Util.getStatusColor(statusCode);
+      final String pointId = point['id'] as String;
+      
+      // 检查是否为起始点或终点
+      Color color;
+      if (pointId == startLocationId) {
+        color = Colors.blue; // 起始点用蓝色
+      } else if (pointId == endLocationId) {
+        color = Colors.red; // 终点用红色
+      } else {
+        color = Util.getStatusColor(statusCode);
+      }
       
       // 缓存Paint对象
       _cachedPaints.putIfAbsent(color, () => Paint()
         ..color = color
         ..style = PaintingStyle.fill);
       
-      // 缓存矩形
+      // 缓存圆角矩形
       _cachedRects.putIfAbsent(color, () => []).add(
         Rect.fromCenter(
           center: offset,
@@ -399,6 +433,113 @@ class _StorageLocationPainter extends CustomPainter {
           height: size,
         ),
       );
+    }
+  }
+  
+  // 绘制起始点和终点的文字标记
+  void _drawStartEndLabels(Canvas canvas, Size size) {
+    const double labelOffset = 15; // 文字偏移量
+    const double fontSize = 12;
+    
+    for (var point in points) {
+      final Offset offset = point['offset'] as Offset;
+      final String pointId = point['id'] as String;
+      
+      if (pointId == startLocationId) {
+        // 绘制起始点标记
+        final textPainter = TextPainter(
+          text: const TextSpan(
+            text: '起点',
+            style: TextStyle(
+              fontSize: fontSize,
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        
+        // 绘制背景圆
+        final bgPaint = Paint()
+          ..color = Colors.white.withOpacity(0.8)
+          ..style = PaintingStyle.fill;
+        final bgRect = Rect.fromCenter(
+          center: Offset(offset.dx, offset.dy - labelOffset),
+          width: textPainter.width + 8,
+          height: textPainter.height + 4,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          bgPaint,
+        );
+        
+        // 绘制边框
+        final borderPaint = Paint()
+          ..color = Colors.blue
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          borderPaint,
+        );
+        
+        // 绘制文字
+        textPainter.paint(
+          canvas,
+          Offset(
+            offset.dx - textPainter.width / 2,
+            offset.dy - labelOffset - textPainter.height / 2,
+          ),
+        );
+      } else if (pointId == endLocationId) {
+        // 绘制终点标记
+        final textPainter = TextPainter(
+          text: const TextSpan(
+            text: '终点',
+            style: TextStyle(
+              fontSize: fontSize,
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        
+        // 绘制背景圆
+        final bgPaint = Paint()
+          ..color = Colors.white.withOpacity(0.8)
+          ..style = PaintingStyle.fill;
+        final bgRect = Rect.fromCenter(
+          center: Offset(offset.dx, offset.dy - labelOffset),
+          width: textPainter.width + 8,
+          height: textPainter.height + 4,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          bgPaint,
+        );
+        
+        // 绘制边框
+        final borderPaint = Paint()
+          ..color = Colors.red
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1;
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          borderPaint,
+        );
+        
+        // 绘制文字
+        textPainter.paint(
+          canvas,
+          Offset(
+            offset.dx - textPainter.width / 2,
+            offset.dy - labelOffset - textPainter.height / 2,
+          ),
+        );
+      }
     }
   }
   
@@ -489,6 +630,8 @@ class _StorageLocationPainter extends CustomPainter {
            oldDelegate.minX != minX ||
            oldDelegate.maxX != maxX ||
            oldDelegate.minY != minY ||
-           oldDelegate.maxY != maxY;
+           oldDelegate.maxY != maxY ||
+           oldDelegate.startLocationId != startLocationId ||
+           oldDelegate.endLocationId != endLocationId;
   }
 }

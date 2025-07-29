@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// 应用全局主题配置
 class AppTheme {
@@ -11,6 +12,10 @@ class AppTheme {
     // 取消所有按钮的水波纹效果
     splashFactory: NoSplash.splashFactory,
     highlightColor: Colors.transparent,
+    
+    // Web端特殊配置：禁用点击反馈
+    splashColor: kIsWeb ? Colors.transparent : null,
+    focusColor: kIsWeb ? Colors.transparent : null,
     
     // ElevatedButton 样式
     elevatedButtonTheme: ElevatedButtonThemeData(

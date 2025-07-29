@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
+import 'package:itms_mobile/presentation/widgets/common/storage_location_visualizer.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
@@ -584,13 +585,25 @@ class _PointToPointPageState extends State<PointToPointPage> {
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: MapControl(
-            // xUnits: (currentAreaRange['xUnits'] ?? 10) - (currentAreaRange['xStart'] ?? 0) + 1,
-            // yUnits: (currentAreaRange['yUnits'] ?? 10) - (currentAreaRange['yStart'] ?? 0) + 1,
-            // xStart: (currentAreaRange['xStart'] ?? 0) - 1,
-            // yStart: (currentAreaRange['yStart'] ?? 0) - 1,
-            cells: currentAreaCells,
-            onCellTap: _onCellTap,
+          child: StorageLocationVisualizer(
+            data: currentAreaCells.map((cell) => {
+              'id': cell.id,
+              'xplace': cell.x,
+              'yplace': cell.y,
+              'status': cell.status,
+              'shelfId': cell.shelfId,
+            }).toList(),
+            onTapPoint: (point) {
+              final cell = GridCell(
+                id: point['id'] as String,
+                x: (point['xplace'] as num).toDouble(),
+                y: (point['yplace'] as num).toDouble(),
+                status: point['status'] as int,
+                shelfId: point['shelfId'] as String?,
+                color: Colors.grey,
+              );
+              _onCellTap(cell);
+            },
             startLocationId: startStorageLocationId,
             endLocationId: endStorageLocationId,
           ),
