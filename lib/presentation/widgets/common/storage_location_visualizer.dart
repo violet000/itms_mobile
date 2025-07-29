@@ -437,22 +437,22 @@ class _StorageLocationPainter extends CustomPainter {
     );
     
     // 画坐标轴
-    // canvas.drawLine(
-    //   Offset(padding, size.height - padding),
-    //   Offset(size.width - padding, size.height - padding),
-    //   axisPaint,
-    // );
-    // canvas.drawLine(
-    //   Offset(padding, size.height - padding),
-    //   Offset(padding, padding),
-    //   axisPaint,
-    // );
+    canvas.drawLine(
+      Offset(padding, size.height - padding),
+      Offset(size.width - padding, size.height - padding),
+      axisPaint,
+    );
+    canvas.drawLine(
+      Offset(padding, size.height - padding),
+      Offset(padding, padding),
+      axisPaint,
+    );
     
     // 绘制X轴刻度
-    // _drawXAxisTicks(canvas, size, tickPaint, textStyle);
+    _drawXAxisTicks(canvas, size, tickPaint, textStyle);
     
     // 绘制Y轴刻度
-    // _drawYAxisTicks(canvas, size, tickPaint, textStyle);
+    _drawYAxisTicks(canvas, size, tickPaint, textStyle);
     
     // 性能优化：预计算渲染数据
     _prepareRenderData();
@@ -625,39 +625,40 @@ class _StorageLocationPainter extends CustomPainter {
     }
   }
   
-  // 绘制有货架库位的特殊标记
+  // 绘制库位坐标标记
   void _drawShelfMarkers(Canvas canvas, Size size) {
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
-      final String? shelfId = point['shelfId'] as String?;
+      final num xplace = point['xplace'] as num;
+      final num yplace = point['yplace'] as num;
       
-      // 如果有货架ID，在矩形中间绘制小字体
-      if (shelfId != null && shelfId.isNotEmpty) {
-        // 创建文本绘制器
-        final textPainter = TextPainter(
-          text: TextSpan(
-            text: shelfId,
-            style: const TextStyle(
-              fontSize: 2, // 更小的字体
-              color: Colors.black,
-              fontWeight: FontWeight.normal,
-            ),
+      // 显示坐标信息
+      final coordinateText = '${xplace.toStringAsFixed(0)},${yplace.toStringAsFixed(0)}';
+      
+      // 创建坐标文本绘制器
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: coordinateText,
+          style: const TextStyle(
+            fontSize: 3, // 小字体显示坐标
+            color: Colors.black,
+            fontWeight: FontWeight.normal,
           ),
-          textDirection: TextDirection.ltr,
-        );
-        
-        // 布局文本
-        textPainter.layout();
-        
-        // 在矩形中心绘制文本
-        textPainter.paint(
-          canvas,
-          Offset(
-            offset.dx - textPainter.width / 2,
-            offset.dy - textPainter.height / 2,
-          ),
-        );
-      }
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      
+      // 布局文本
+      textPainter.layout();
+      
+      // 在矩形中心绘制坐标文本
+      textPainter.paint(
+        canvas,
+        Offset(
+          offset.dx - textPainter.width / 2,
+          offset.dy - textPainter.height / 2,
+        ),
+      );
     }
   }
   
