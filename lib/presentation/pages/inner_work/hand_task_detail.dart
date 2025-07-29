@@ -3,6 +3,7 @@ import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
+import 'package:itms_mobile/presentation/widgets/common/storage_location_visualizer.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/services/storage_service.dart';
@@ -97,6 +98,15 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
     } catch (e) {
       AppLogger.error('获取仓储库位信息失败: $e');
     }
+  }
+
+  // 获取库区名称
+  String _getAreaName(String areaId) {
+    final areaData = itemList.firstWhere(
+      (item) => item['id'] == areaId,
+      orElse: () => <String, dynamic>{},
+    );
+    return areaData['name'] as String? ?? areaId;
   }
 
   // 清空当前库区数据
@@ -805,15 +815,31 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: MapControl(
-          key: ValueKey(
-              'map_${_tabIndex}_${currentAreaCells.length}_${startStorageLocationId}_${endStorageLocationId}'),
-          cellWidth: 50, // 每格宽度
-          cellHeight: 50, // 每格高度
-          forceXUnits: 10, // 如果只有1个x，强制显示10格
-          forceYUnits: 12, // 如果只有1个y，强制显示12格
-          cells: currentAreaCells,
-          onCellTap: _onCellTap,
+        child: StorageLocationVisualizer(
+          data: currentAreaCells.map((cell) {
+            // 调试信息：打印有货架的库位
+            if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
+              print('传递到可视化组件 - 库位: ${cell.id}, shelfId: ${cell.shelfId}');
+            }
+            return {
+              'id': cell.id,
+              'xplace': cell.x,
+              'yplace': cell.y,
+              'status': cell.status,
+              'shelfId': cell.shelfId,
+            };
+          }).toList(),
+          onTapPoint: (Map<String, dynamic> point) {
+            final cell = GridCell(
+              id: point['id'] as String,
+              x: (point['xplace'] as num).toDouble(),
+              y: (point['yplace'] as num).toDouble(),
+              status: point['status'] as int,
+              shelfId: point['shelfId'] as String?,
+              color: Colors.grey,
+            );
+            _onCellTap(cell);
+          },
           startLocationId: startStorageLocationId,
           endLocationId: endStorageLocationId,
         ),
@@ -878,8 +904,24 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                             _tabIndex == 0 ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Tab(
-                        text: '起始库位',
+                      child: Tab(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '起始库位',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            if (currentHandTask != null)
+                              Text(
+                                _getAreaName(currentHandTask!.origArea),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                     Container(
@@ -890,8 +932,24 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                             _tabIndex == 1 ? Colors.white : Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Tab(
-                        text: '终点库位',
+                      child: Tab(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              '终点库位',
+                              style: TextStyle(fontSize: 12),
+                            ),
+                            if (currentHandTask != null)
+                              Text(
+                                _getAreaName(currentHandTask!.destArea),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ],

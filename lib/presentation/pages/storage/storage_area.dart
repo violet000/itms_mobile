@@ -69,7 +69,16 @@ class _StorageAreaState extends State<StorageArea> {
                   ],
                 ),
                 child: StorageLocationVisualizer(
-                  data: List<Map<String, dynamic>>.from(storageLocationDTOS),
+                  data: storageLocationDTOS.map((dynamic item) {
+                    // 确保数据格式正确，包含shelfId
+                    final Map<String, dynamic> point = Map<String, dynamic>.from(item as Map<dynamic, dynamic>);
+                    // 如果原始数据中有storageShelfDTO，提取shelfId
+                    if (point.containsKey('storageShelfDTO') && point['storageShelfDTO'] != null) {
+                      final shelfDTO = point['storageShelfDTO'] as Map<String, dynamic>;
+                      point['shelfId'] = shelfDTO['shelfId']?.toString();
+                    }
+                    return point;
+                  }).toList(),
                   onTapPoint: (point) {
                     print('点击了点位: ${point['id']}');
                   },

@@ -61,6 +61,14 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     if (oldWidget.data != widget.data) {
       _data = widget.data;
       _needsRecalculation = true;
+      
+      // 调试信息：检查接收到的数据
+      for (var item in _data) {
+        final shelfId = item['shelfId'] as String?;
+        if (shelfId != null && shelfId.isNotEmpty) {
+          print('可视化组件接收到 - 库位: ${item['id']}, shelfId: $shelfId');
+        }
+      }
     }
     // 如果起始点或终点发生变化，需要重新渲染
     if (oldWidget.startLocationId != widget.startLocationId ||
@@ -395,6 +403,9 @@ class _StorageLocationPainter extends CustomPainter {
     
     // 绘制起始点和终点的文字标记
     _drawStartEndLabels(canvas, size);
+    
+    // 绘制有货架库位的特殊标记
+    _drawShelfMarkers(canvas, size);
   }
   
   void _prepareRenderData() {
@@ -409,6 +420,7 @@ class _StorageLocationPainter extends CustomPainter {
       final Offset offset = point['offset'] as Offset;
       final int statusCode = int.tryParse(point['status'].toString()) ?? 0;
       final String pointId = point['id'] as String;
+      final String? shelfId = point['shelfId'] as String?;
       
       // 检查是否为起始点或终点
       Color color;
@@ -543,6 +555,49 @@ class _StorageLocationPainter extends CustomPainter {
     }
   }
   
+  // 绘制有货架库位的特殊标记
+  void _drawShelfMarkers(Canvas canvas, Size size) {
+    print('开始绘制货架标记，总点数: ${points.length}');
+    
+    for (var point in points) {
+      final Offset offset = point['offset'] as Offset;
+      final String? shelfId = point['shelfId'] as String?;
+      
+      // 调试信息：打印有货架的库位
+      if (shelfId != null && shelfId.isNotEmpty) {
+        print('发现有货架的库位: ${point['id']}, shelfId: $shelfId');
+      }
+      
+      // 如果有货架ID，在矩形中间绘制小字体
+      if (shelfId != null && shelfId.isNotEmpty) {
+        // 创建文本绘制器
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: shelfId,
+            style: const TextStyle(
+              fontSize: 2, // 更小的字体
+              color: Colors.black,
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        
+        // 布局文本
+        textPainter.layout();
+        
+        // 在矩形中心绘制文本
+        textPainter.paint(
+          canvas,
+          Offset(
+            offset.dx - textPainter.width / 2,
+            offset.dy - textPainter.height / 2,
+          ),
+        );
+      }
+    }
+  }
+  
   // 绘制X轴刻度
   void _drawXAxisTicks(Canvas canvas, Size size, Paint tickPaint, TextStyle textStyle) {
     final usableWidth = size.width - padding * 2;
@@ -619,9 +674,10 @@ class _StorageLocationPainter extends CustomPainter {
       final oldPoint = oldDelegate.points[i];
       final newPoint = points[i];
       
-      // 检查offset和status是否变化
+      // 检查offset、status和shelfId是否变化
       if (oldPoint['offset'] != newPoint['offset'] ||
-          oldPoint['status'] != newPoint['status']) {
+          oldPoint['status'] != newPoint['status'] ||
+          oldPoint['shelfId'] != newPoint['shelfId']) {
         return true;
       }
     }

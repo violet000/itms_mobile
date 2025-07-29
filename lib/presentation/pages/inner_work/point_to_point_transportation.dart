@@ -586,12 +586,18 @@ class _PointToPointPageState extends State<PointToPointPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: StorageLocationVisualizer(
-            data: currentAreaCells.map((cell) => {
-              'id': cell.id,
-              'xplace': cell.x,
-              'yplace': cell.y,
-              'status': cell.status,
-              'shelfId': cell.shelfId,
+            data: currentAreaCells.map((cell) {
+              // 调试信息：打印有货架的库位
+              if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
+                print('传递到可视化组件 - 库位: ${cell.id}, shelfId: ${cell.shelfId}');
+              }
+              return {
+                'id': cell.id,
+                'xplace': cell.x,
+                'yplace': cell.y,
+                'status': cell.status,
+                'shelfId': cell.shelfId,
+              };
             }).toList(),
             onTapPoint: (point) {
               final cell = GridCell(

@@ -29,15 +29,7 @@ class StorageService {
     try {
       final service = await _getService9087();
       _cachedStorageAreas = await service.qryWarehousing('');
-
-      final minDistances =
-          StorageService.calculateEachAreaMinXYDistance(_cachedStorageAreas!);
-      AppLogger.info(minDistances);
       printEachAreaMinXYDistanceWithPoints(_cachedStorageAreas!);
-      for (int i = 0; i < minDistances.length; i++) {
-        print(
-            '第${i + 1}区: x最小差值=${minDistances[i]['minXDist']}, y最小差值=${minDistances[i]['minYDist']}');
-      }
     } catch (e) {
       print('预加载仓储数据失败${e}');
     } finally {
@@ -110,9 +102,6 @@ class StorageService {
             }
           }
         }
-        print('第${areaIdx + 1}区:');
-        print('  x最小差值=$minXDist, 点=${minXPair}');
-        print('  y最小差值=$minYDist, 点=${minYPair}');
       }
     }
   }
