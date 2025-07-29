@@ -437,22 +437,22 @@ class _StorageLocationPainter extends CustomPainter {
     );
     
     // 画坐标轴
-    canvas.drawLine(
-      Offset(padding, size.height - padding),
-      Offset(size.width - padding, size.height - padding),
-      axisPaint,
-    );
-    canvas.drawLine(
-      Offset(padding, size.height - padding),
-      Offset(padding, padding),
-      axisPaint,
-    );
+    // canvas.drawLine(
+    //   Offset(padding, size.height - padding),
+    //   Offset(size.width - padding, size.height - padding),
+    //   axisPaint,
+    // );
+    // canvas.drawLine(
+    //   Offset(padding, size.height - padding),
+    //   Offset(padding, padding),
+    //   axisPaint,
+    // );
     
     // 绘制X轴刻度
-    _drawXAxisTicks(canvas, size, tickPaint, textStyle);
+    // _drawXAxisTicks(canvas, size, tickPaint, textStyle);
     
     // 绘制Y轴刻度
-    _drawYAxisTicks(canvas, size, tickPaint, textStyle);
+    // _drawYAxisTicks(canvas, size, tickPaint, textStyle);
     
     // 性能优化：预计算渲染数据
     _prepareRenderData();
@@ -625,104 +625,137 @@ class _StorageLocationPainter extends CustomPainter {
     }
   }
   
-  // 绘制库位坐标标记
+  // 绘制托盘编号标记
   void _drawShelfMarkers(Canvas canvas, Size size) {
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
-      final num xplace = point['xplace'] as num;
-      final num yplace = point['yplace'] as num;
       
-      // 显示坐标信息
-      final coordinateText = '${xplace.toStringAsFixed(0)},${yplace.toStringAsFixed(0)}';
+      String? shelfId;
       
-      // 创建坐标文本绘制器
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: coordinateText,
-          style: const TextStyle(
-            fontSize: 3, // 小字体显示坐标
-            color: Colors.black,
-            fontWeight: FontWeight.normal,
+      if (point['shelfId'] != null) {
+        shelfId = point['shelfId'] as String;
+      }
+      else {
+        final Map<String, dynamic>? storageShelfDTO = point['storageShelfDTO'] as Map<String, dynamic>?;
+        if (storageShelfDTO != null && storageShelfDTO['shelfId'] != null) {
+          shelfId = storageShelfDTO['shelfId'] as String;
+        }
+      }
+      
+      if (shelfId != null && shelfId.isNotEmpty) {
+        // 创建托盘编号文本绘制器
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: shelfId,
+            style: const TextStyle(
+              fontSize: 2, // 减小字体显示托盘编号
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      
-      // 布局文本
-      textPainter.layout();
-      
-      // 在矩形中心绘制坐标文本
-      textPainter.paint(
-        canvas,
-        Offset(
-          offset.dx - textPainter.width / 2,
-          offset.dy - textPainter.height / 2,
-        ),
-      );
+          textDirection: TextDirection.ltr,
+        );
+        
+        // 布局文本
+        textPainter.layout();
+        
+        // 在矩形中心绘制托盘编号
+        textPainter.paint(
+          canvas,
+          Offset(
+            offset.dx - textPainter.width / 2,
+            offset.dy - textPainter.height / 2,
+          ),
+        );
+      }
     }
   }
   
   // 绘制X轴刻度
   void _drawXAxisTicks(Canvas canvas, Size size, Paint tickPaint, TextStyle textStyle) {
     final usableWidth = size.width - padding * 2;
-    final tickCount = 10; // 刻度数量
     
-    for (int i = 0; i <= tickCount; i++) {
-      final x = padding + (usableWidth * i / tickCount);
-      final value = minX + (maxX - minX) * i / tickCount;
+    // 提取所有唯一的X坐标值并排序
+    final Set<num> uniqueXValues = points.map((point) => num.parse(point['xplace'].toString())).toSet();
+    final List<num> sortedXValues = uniqueXValues.toList()..sort();
+    
+    // 过滤掉异常大的值，只显示合理范围内的刻度
+    final List<num> reasonableXValues = sortedXValues.where((value) => value <= 100).toList();
+    final List<num> displayValues = reasonableXValues.isNotEmpty ? reasonableXValues : sortedXValues.take(20).toList();
+    
+    for (int i = 0; i < displayValues.length; i++) {
+      final xValue = displayValues[i];
+      // 使用与点位相同的坐标映射逻辑
+      final x = ((xValue - minX) / (maxX - minX)) * usableWidth + padding;
       
-      // 绘制刻度线
-      canvas.drawLine(
-        Offset(x, size.height - padding),
-        Offset(x, size.height - padding + 5),
-        tickPaint,
-      );
-      
-      // 绘制刻度值
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: value.toStringAsFixed(1),
-          style: textStyle,
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(x - textPainter.width / 2, size.height - padding + 8),
-      );
+      // 检查刻度是否在可视范围内
+      if (x >= padding && x <= size.width - padding) {
+        // 绘制刻度线
+        canvas.drawLine(
+          Offset(x, size.height - padding),
+          Offset(x, size.height - padding + 5),
+          tickPaint,
+        );
+        
+        // 绘制刻度值，错开排列
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: xValue.toStringAsFixed(1),
+            style: textStyle,
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        
+        // 错开排列：偶数索引在上方，奇数索引在下方
+        final double yOffset = (i % 2 == 0) ? 8 : 20;
+        textPainter.paint(
+          canvas,
+          Offset(x - textPainter.width / 2, size.height - padding + yOffset),
+        );
+      }
     }
   }
   
   // 绘制Y轴刻度
   void _drawYAxisTicks(Canvas canvas, Size size, Paint tickPaint, TextStyle textStyle) {
     final usableHeight = size.height - padding * 2;
-    final tickCount = 8; // 刻度数量
     
-    for (int i = 0; i <= tickCount; i++) {
-      final y = size.height - padding - (usableHeight * i / tickCount);
-      final value = minY + (maxY - minY) * i / tickCount;
+    // 提取所有唯一的Y坐标值并排序
+    final Set<num> uniqueYValues = points.map((point) => num.parse(point['yplace'].toString())).toSet();
+    final List<num> sortedYValues = uniqueYValues.toList()..sort();
+    
+    // 过滤掉异常大的值，只显示合理范围内的刻度
+    final List<num> reasonableYValues = sortedYValues.where((value) => value <= 100).toList();
+    final List<num> displayValues = reasonableYValues.isNotEmpty ? reasonableYValues : sortedYValues.take(20).toList();
+    
+    for (final yValue in displayValues) {
+      // 使用与点位相同的坐标映射逻辑（Y轴是反向的）
+      final y = size.height - padding - (((yValue - minY) / (maxY - minY)) * usableHeight);
       
-      // 绘制刻度线
-      canvas.drawLine(
-        Offset(padding - 5, y),
-        Offset(padding, y),
-        tickPaint,
-      );
-      
-      // 绘制刻度值
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: value.toStringAsFixed(1),
-          style: textStyle,
-        ),
-        textDirection: TextDirection.ltr,
-      );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(padding - textPainter.width - 8, y - textPainter.height / 2),
-      );
+      // 检查刻度是否在可视范围内
+      if (y >= padding && y <= size.height - padding) {
+        // 绘制刻度线
+        canvas.drawLine(
+          Offset(padding - 5, y),
+          Offset(padding, y),
+          tickPaint,
+        );
+        
+        // 绘制刻度值
+        final textPainter = TextPainter(
+          text: TextSpan(
+            text: yValue.toStringAsFixed(1),
+            style: textStyle,
+          ),
+          textDirection: TextDirection.ltr,
+        );
+        textPainter.layout();
+        textPainter.paint(
+          canvas,
+          Offset(padding - textPainter.width - 8, y - textPainter.height / 2),
+        );
+      }
     }
   }
 
