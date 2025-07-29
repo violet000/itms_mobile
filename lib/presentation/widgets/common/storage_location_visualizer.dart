@@ -38,8 +38,8 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
   bool _needsRecalculation = true;
   Rect _lastViewport = Rect.zero;
   
-  // 性能优化：限制最大渲染点数
-  static const int _maxRenderPoints = 1000;
+  // 性能优化：限制最大渲染点数（增加到更大值以显示更多点位）
+  static const int _maxRenderPoints = 5000;
   
   @override
   void initState() {
@@ -61,14 +61,6 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     if (oldWidget.data != widget.data) {
       _data = widget.data;
       _needsRecalculation = true;
-      
-      // 调试信息：检查接收到的数据
-      for (var item in _data) {
-        final shelfId = item['shelfId'] as String?;
-        if (shelfId != null && shelfId.isNotEmpty) {
-          print('可视化组件接收到 - 库位: ${item['id']}, shelfId: $shelfId');
-        }
-      }
     }
     // 如果起始点或终点发生变化，需要重新渲染
     if (oldWidget.startLocationId != widget.startLocationId ||
@@ -83,45 +75,180 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     super.dispose();
   }
 
-  // 数据采样算法：当点数过多时进行采样
+  // 智能数据采样算法：优先保留重要点位，确保所有点位都能显示
   List<Map<String, dynamic>> _sampleData(List<Map<String, dynamic>> data, int maxPoints) {
     if (data.length <= maxPoints) return data;
     
-    // 简单的均匀采样
-    final step = data.length / maxPoints;
-    List<Map<String, dynamic>> sampledData = [];
+    // 优先保留起始点和终点
+    List<Map<String, dynamic>> importantPoints = [];
+    List<Map<String, dynamic>> normalPoints = [];
     
-    for (int i = 0; i < maxPoints; i++) {
-      final index = (i * step).floor();
-      if (index < data.length) {
-        sampledData.add(data[index]);
+    for (var point in data) {
+      final String pointId = point['id'] as String;
+      if (pointId == widget.startLocationId || pointId == widget.endLocationId) {
+        importantPoints.add(point);
+      } else {
+        normalPoints.add(point);
       }
     }
     
-    return sampledData;
-  }
-
-  // 点聚合算法
-  List<List<Map<String, dynamic>>> _clusterPoints(List<Map<String, dynamic>> points, double threshold) {
-    List<List<Map<String, dynamic>>> clusters = [];
-    Set<int> visited = {};
-    for (int i = 0; i < points.length; i++) {
-      if (visited.contains(i)) continue;
-      List<Map<String, dynamic>> cluster = [points[i]];
-      visited.add(i);
-      for (int j = i + 1; j < points.length; j++) {
-        if (visited.contains(j)) continue;
-        final Offset oi = points[i]['offset'] as Offset;
-        final Offset oj = points[j]['offset'] as Offset;
-        double dist = (oi - oj).distance;
-        if (dist < threshold) {
-          cluster.add(points[j]);
-          visited.add(j);
+    // 计算剩余可用点数
+    final remainingPoints = maxPoints - importantPoints.length;
+    if (remainingPoints <= 0) {
+      return importantPoints;
+    }
+    
+    // 对普通点位进行均匀采样，确保覆盖所有区域
+    List<Map<String, dynamic>> sampledNormalPoints = [];
+    if (normalPoints.length <= remainingPoints) {
+      sampledNormalPoints = normalPoints;
+    } else {
+      // 使用均匀采样，但确保采样间隔合理
+      final step = normalPoints.length / remainingPoints;
+      for (int i = 0; i < remainingPoints; i++) {
+        final index = (i * step).floor();
+        if (index < normalPoints.length) {
+          sampledNormalPoints.add(normalPoints[index]);
         }
       }
-      clusters.add(cluster);
     }
-    return clusters;
+    
+    // 合并重要点位和采样点位
+    List<Map<String, dynamic>> result = [...importantPoints, ...sampledNormalPoints];
+    
+    // 确保不超过最大点数
+    if (result.length > maxPoints) {
+      result = result.take(maxPoints).toList();
+    }
+    
+    return result;
+  }
+
+  // 点排斥算法：优化点位分布，最小间距等于正方形边长
+  void _optimizePointDistribution(List<Map<String, dynamic>> points, Size canvasSize) {
+    if (points.length <= 1) return;
+    
+    // 最小间距等于正方形边长，确保点位不重叠
+    const double squareSize = 8.0; // 正方形边长
+    const double minDistance = squareSize; // 最小间距等于正方形边长
+    const double gridSize = squareSize; // 网格大小等于正方形边长
+    const int maxIterations = 30; // 增加迭代次数以确保充分分离
+    
+    for (int iter = 0; iter < maxIterations; iter++) {
+      bool changed = false;
+      
+      for (int i = 0; i < points.length; i++) {
+        Offset currentOffset = points[i]['offset'] as Offset;
+        Offset totalMove = Offset.zero;
+        
+        for (int j = 0; j < points.length; j++) {
+          if (i == j) continue;
+          
+          Offset otherOffset = points[j]['offset'] as Offset;
+          double distance = (currentOffset - otherOffset).distance;
+          
+          if (distance < minDistance && distance > 0) {
+            // 计算排斥力，确保最小间距等于正方形边长
+            Offset direction = (currentOffset - otherOffset) / distance;
+            double force = (minDistance - distance) / minDistance;
+            // 使用更强的排斥力，确保点位完全分离
+            totalMove += direction * force * minDistance * 0.8;
+          } else if (distance == 0) {
+            // 如果点位完全重叠，添加随机排斥力
+            final randomOffset = Offset(
+              (i * 13) % 10.0 - 5.0, // 随机方向
+              (i * 17) % 10.0 - 5.0,
+            );
+            final randomDistance = randomOffset.distance;
+            if (randomDistance > 0) {
+              final randomDirection = randomOffset / randomDistance;
+              totalMove += randomDirection * minDistance * 0.5;
+            }
+          }
+        }
+        
+        if (totalMove != Offset.zero) {
+          Offset newOffset = currentOffset + totalMove;
+          
+          // 网格对齐：将点位对齐到网格
+          final gridX = (newOffset.dx / gridSize).round() * gridSize;
+          final gridY = (newOffset.dy / gridSize).round() * gridSize;
+          newOffset = Offset(gridX, gridY);
+          
+          // 确保点位不超出画布边界
+          newOffset = Offset(
+            newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
+            newOffset.dy.clamp(40.0, canvasSize.height - 40.0),
+          );
+          
+          points[i]['offset'] = newOffset;
+          changed = true;
+        }
+      }
+      
+      if (!changed) break;
+    }
+    
+    // 最终检查：确保没有重叠的点位
+    _ensureNoOverlap(points, minDistance, canvasSize);
+  }
+  
+  // 确保点位不重叠的最终检查
+  void _ensureNoOverlap(List<Map<String, dynamic>> points, double minDistance, Size canvasSize) {
+    const double gridSize = 8.0; // 网格大小
+    
+    for (int i = 0; i < points.length; i++) {
+      Offset currentOffset = points[i]['offset'] as Offset;
+      
+      // 检查与其他点位的距离
+      for (int j = 0; j < points.length; j++) {
+        if (i == j) continue;
+        
+        Offset otherOffset = points[j]['offset'] as Offset;
+        double distance = (currentOffset - otherOffset).distance;
+        
+        if (distance < minDistance && distance > 0) {
+          // 如果距离小于最小间距且不为0，移动到最近的网格位置
+          Offset direction = (currentOffset - otherOffset) / distance;
+          Offset newOffset = otherOffset + direction * minDistance;
+          
+          // 网格对齐
+          final gridX = (newOffset.dx / gridSize).round() * gridSize;
+          final gridY = (newOffset.dy / gridSize).round() * gridSize;
+          newOffset = Offset(gridX, gridY);
+          
+          // 确保不超出边界
+          newOffset = Offset(
+            newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
+            newOffset.dy.clamp(40.0, canvasSize.height - 40.0),
+          );
+          
+          points[i]['offset'] = newOffset;
+          break; // 移动后重新开始检查
+        } else if (distance == 0) {
+          // 如果点位完全重叠，随机移动一个位置
+          final randomOffset = Offset(
+            (i * 13) % 100.0, // 使用简单的伪随机偏移
+            (i * 17) % 100.0,
+          );
+          Offset newOffset = currentOffset + randomOffset;
+          
+          // 网格对齐
+          final gridX = (newOffset.dx / gridSize).round() * gridSize;
+          final gridY = (newOffset.dy / gridSize).round() * gridSize;
+          newOffset = Offset(gridX, gridY);
+          
+          // 确保不超出边界
+          newOffset = Offset(
+            newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
+            newOffset.dy.clamp(40.0, canvasSize.height - 40.0),
+          );
+          
+          points[i]['offset'] = newOffset;
+          break;
+        }
+      }
+    }
   }
 
   @override
@@ -130,7 +257,7 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
       return const Center(child: Text('暂无数据'));
     }
     
-    // 性能优化：数据采样
+    // 数据处理：智能采样，不聚合
     List<Map<String, dynamic>> processedData = _data;
     if (_data.length > _maxRenderPoints) {
       processedData = _sampleData(_data, _maxRenderPoints).cast<Map<String, dynamic>>();
@@ -161,16 +288,41 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
             return <String, dynamic>{...point, 'offset': offset};
           }).toList();
           
-          // 点排斥处理，避免重叠
-          _resolveOverlap(pointsWithOffset, 16, Size(canvasWidth, canvasHeight));
+          // 点排斥处理，避免重叠但不聚合
+          _optimizePointDistribution(pointsWithOffset, Size(canvasWidth, canvasHeight));
           
           _cachedPointsWithOffset = pointsWithOffset;
           _needsRecalculation = false;
         }
         
         final pointsWithOffset = _cachedPointsWithOffset;
-        return Row(
+        return Column(
           children: [
+            // 数据信息显示
+            if (_data.length > _maxRenderPoints)
+              Container(
+                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(4),
+                  border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                    const SizedBox(width: 4),
+                    Text(
+                      '显示 ${pointsWithOffset.length} / ${_data.length} 个点位',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange[700],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             Expanded(
               child: InteractiveViewer(
                 transformationController: _transformationController,
@@ -209,7 +361,6 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                 ),
               ),
             ),
-            // 图例已移除
           ],
         );
       },
@@ -243,88 +394,7 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
     return Offset(clampedDx, clampedDy);
   }
 
-  /// 力导向点排斥处理，避免重叠，增强分离效果
-  void _resolveOverlap(List<Map<String, dynamic>> points, double minDist, Size canvasSize, {int maxIter = 50}) {
-    for (int iter = 0; iter < maxIter; iter++) {
-      bool changed = false;
-      
-      // 按X坐标分组处理相同X坐标的点
-      Map<double, List<Map<String, dynamic>>> xGroups = {};
-      for (var point in points) {
-        final Offset offset = point['offset'] as Offset;
-        final double x = offset.dx;
-        xGroups.putIfAbsent(x, () => []).add(point);
-      }
-      
-      // 处理相同X坐标的点，确保Y距离至少为1.2倍圆直径
-      xGroups.forEach((x, xPoints) {
-        if (xPoints.length > 1) {
-          // 按Y坐标排序
-          xPoints.sort((a, b) {
-            final Offset offsetA = a['offset'] as Offset;
-            final Offset offsetB = b['offset'] as Offset;
-            return offsetA.dy.compareTo(offsetB.dy);
-          });
-          
-          // 调整Y坐标，确保相邻点间距为2.5倍圆角矩形边长（矩形之间有间隔）
-          double minYDistance = minDist * 2.5; // 2.5倍圆角矩形边长
-          for (int i = 1; i < xPoints.length; i++) {
-            final Offset prevOffset = xPoints[i - 1]['offset'] as Offset;
-            final Offset currentOffset = xPoints[i]['offset'] as Offset;
-            final double currentDistance = (currentOffset.dy - prevOffset.dy).abs();
-            
-            if (currentDistance < minYDistance) {
-              // 计算需要移动的距离
-              final double moveDistance = minYDistance - currentDistance;
-              
-              // 向下移动当前点及之后的所有点
-              for (int j = i; j < xPoints.length; j++) {
-                final Offset pointOffset = xPoints[j]['offset'] as Offset;
-                final Offset newOffset = Offset(pointOffset.dx, pointOffset.dy + moveDistance);
-                
-                // 确保点不出界，并且不会出现在X轴下方
-                final Offset clampedOffset = Offset(
-                  newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
-                  newOffset.dy.clamp(40.0, canvasSize.height - 40.0), // 留出padding空间
-                );
-                
-                xPoints[j]['offset'] = clampedOffset;
-              }
-              changed = true;
-            }
-          }
-        }
-      });
-      
-      // 原有的全局排斥处理
-      for (int i = 0; i < points.length; i++) {
-        Offset oi = points[i]['offset'] as Offset;
-        Offset totalMove = Offset.zero;
-        for (int j = 0; j < points.length; j++) {
-          if (i == j) continue;
-          Offset oj = points[j]['offset'] as Offset;
-          double dist = (oi - oj).distance;
-          if (dist < minDist && dist > 0) {
-            // 斥力与距离成反比
-            Offset dir = (oi - oj) / dist;
-            double force = (minDist - dist) / minDist;
-            totalMove += dir * force * minDist * 0.5; // 0.5可调节分开速度
-          }
-        }
-        if (totalMove != Offset.zero) {
-          Offset newOffset = oi + totalMove;
-          // 保证点不出界，并且不会出现在X轴下方
-          newOffset = Offset(
-            newOffset.dx.clamp(40.0, canvasSize.width - 40.0),
-            newOffset.dy.clamp(40.0, canvasSize.height - 40.0), // 留出padding空间
-          );
-          points[i]['offset'] = newOffset;
-          changed = true;
-        }
-      }
-      if (!changed) break;
-    }
-  }
+
 }
 
 class _StorageLocationPainter extends CustomPainter {
@@ -557,16 +627,9 @@ class _StorageLocationPainter extends CustomPainter {
   
   // 绘制有货架库位的特殊标记
   void _drawShelfMarkers(Canvas canvas, Size size) {
-    print('开始绘制货架标记，总点数: ${points.length}');
-    
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
       final String? shelfId = point['shelfId'] as String?;
-      
-      // 调试信息：打印有货架的库位
-      if (shelfId != null && shelfId.isNotEmpty) {
-        print('发现有货架的库位: ${point['id']}, shelfId: $shelfId');
-      }
       
       // 如果有货架ID，在矩形中间绘制小字体
       if (shelfId != null && shelfId.isNotEmpty) {

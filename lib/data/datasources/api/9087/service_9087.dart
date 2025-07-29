@@ -93,13 +93,13 @@ class Service9087 {
   }
 
   /// 仓储库区库位查询
-  Future<Map<String, dynamic>> qryWarehousing1(String areaId) async {
+  Future<Map<String, dynamic>> qryWarehousing(String areaId) async {
     return _dioService.get('/storage/v2/area/qryWarehousing',
         queryParameters: <String, String>{'areaId': areaId});
   }
 
   /// 仓储库区库位查询
-  Future<Map<String, dynamic>> qryWarehousing(String areaId) async {
+  Future<Map<String, dynamic>> qryWarehousing1(String areaId) async {
     // return _dioService.get('/storage/v2/area/qryWarehousing',
     //     queryParameters: <String, String>{'areaId': areaId});
     return Map<String, dynamic>.from(<String, dynamic>{
