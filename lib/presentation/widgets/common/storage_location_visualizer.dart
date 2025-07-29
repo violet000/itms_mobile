@@ -520,8 +520,8 @@ class _StorageLocationPainter extends CustomPainter {
   
   // 绘制起始点和终点的文字标记
   void _drawStartEndLabels(Canvas canvas, Size size) {
-    const double labelOffset = 15; // 文字偏移量
-    const double fontSize = 12;
+    const double labelOffset = 12; // 文字偏移量
+    const double fontSize = 8; // 减小字体大小
     
     for (var point in points) {
       final Offset offset = point['offset'] as Offset;
@@ -548,11 +548,11 @@ class _StorageLocationPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
         final bgRect = Rect.fromCenter(
           center: Offset(offset.dx, offset.dy - labelOffset),
-          width: textPainter.width + 8,
-          height: textPainter.height + 4,
+          width: textPainter.width + 6, // 减小背景宽度
+          height: textPainter.height + 2, // 减小背景高度
         );
         canvas.drawRRect(
-          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(3)), // 减小圆角
           bgPaint,
         );
         
@@ -560,9 +560,9 @@ class _StorageLocationPainter extends CustomPainter {
         final borderPaint = Paint()
           ..color = Colors.blue
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1;
+          ..strokeWidth = 0.5; // 减小边框宽度
         canvas.drawRRect(
-          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(3)), // 减小圆角
           borderPaint,
         );
         
@@ -595,11 +595,11 @@ class _StorageLocationPainter extends CustomPainter {
           ..style = PaintingStyle.fill;
         final bgRect = Rect.fromCenter(
           center: Offset(offset.dx, offset.dy - labelOffset),
-          width: textPainter.width + 8,
-          height: textPainter.height + 4,
+          width: textPainter.width + 6, // 减小背景宽度
+          height: textPainter.height + 2, // 减小背景高度
         );
         canvas.drawRRect(
-          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(3)), // 减小圆角
           bgPaint,
         );
         
@@ -607,9 +607,9 @@ class _StorageLocationPainter extends CustomPainter {
         final borderPaint = Paint()
           ..color = Colors.red
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 1;
+          ..strokeWidth = 0.5; // 减小边框宽度
         canvas.drawRRect(
-          RRect.fromRectAndRadius(bgRect, const Radius.circular(4)),
+          RRect.fromRectAndRadius(bgRect, const Radius.circular(3)), // 减小圆角
           borderPaint,
         );
         

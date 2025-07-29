@@ -603,7 +603,7 @@ class _AreaManagementPageState extends State<AreaManagementPage> {
                       onPressed: () {
                         setState(() {
                           _areaIdController.clear();
-                          _selectedStatus = null;
+                          _selectedStatus = AreaStatus.active;
                           _filterData();
                         });
                       },

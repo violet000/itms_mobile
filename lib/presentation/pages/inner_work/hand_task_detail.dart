@@ -4,6 +4,7 @@ import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/storage_location_visualizer.dart';
+import 'package:itms_mobile/presentation/widgets/common/storage_location_detail_dialog.dart';
 import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/services/storage_service.dart';
@@ -830,6 +831,17 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
             };
           }).toList(),
           onTapPoint: (Map<String, dynamic> point) {
+            // 显示库位详情弹框
+            showDialog<void>(
+              context: context,
+              builder: (BuildContext context) {
+                return StorageLocationDetailDialog(
+                  locationData: point,
+                );
+              },
+            );
+            
+            // 原有的点击处理逻辑
             final cell = GridCell(
               id: point['id'] as String,
               x: (point['xplace'] as num).toDouble(),

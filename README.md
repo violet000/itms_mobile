@@ -5,6 +5,7 @@ ITMS_MOBILE移动应用
 ## 项目概述
 - 应用框架：Flutter 3.4.0 + Dart + Android SDK
 
+## AGV url地址：10.7.100.150
 
 ## 环境要求
 ### 1. Java环境
