@@ -13,11 +13,9 @@ class NetworkSettingsPage extends StatefulWidget {
 class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _vmsIpController = TextEditingController();
-  final TextEditingController _hikIpController = TextEditingController();
   final TextEditingController _vpsIpController = TextEditingController();
 
   static const String vmsKey = 'network_vms_ip';
-  static const String hikKey = 'network_hik_ip';
   static const String vpsKey = 'network_vps_ip';
 
   @override
@@ -30,7 +28,6 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     _vmsIpController.text = prefs.getString(vmsKey) ?? '10.34.12.130:9087';
     _vpsIpController.text = prefs.getString(vpsKey) ?? '10.34.12.130:8062';
-    _hikIpController.text = prefs.getString(hikKey) ?? '10.34.12.130:8000';
   }
 
   Future<void> _saveConfig() async {
@@ -38,7 +35,6 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
       final SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString(vmsKey, _vmsIpController.text);
       await prefs.setString(vpsKey, _vpsIpController.text);
-      await prefs.setString(hikKey, _hikIpController.text);
       DioServiceManager().clearAllServices();
       Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,20 +87,6 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _hikIpController,
-                decoration: const InputDecoration(
-                  labelText: '海康系统IP',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '请输入海康系统IP';
-                  }
-                  return null;
-                },
-              ),
               const SizedBox(height: 32),
               Row(
                 children: [
@@ -133,7 +115,6 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
   @override
   void dispose() {
     _vmsIpController.dispose();
-    _hikIpController.dispose();
     super.dispose();
   }
 }
