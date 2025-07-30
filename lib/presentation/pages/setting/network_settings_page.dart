@@ -77,12 +77,12 @@ class _NetworkSettingsPageState extends State<NetworkSettingsPage> {
               TextFormField(
                 controller: _vpsIpController,
                 decoration: const InputDecoration(
-                  labelText: 'VPS系统IP',
+                  labelText: 'CPS系统IP',
                   border: OutlineInputBorder(),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
-                    return '请输入VPS系统IP';
+                    return '请输入CPS系统IP';
                   }
                   return null;
                 },

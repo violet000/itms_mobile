@@ -166,7 +166,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
             'shelfType': shelf.shelfType,
             'status': shelf.status,
             'clrCenterNo': shelf.clrCenterNo,
-            'locationId': '', // 设置为空字符串
+            'locationId': '',
             'note': shelf.note,
           };
           final response = await _service9087!.updateShelf(deleteParams);
