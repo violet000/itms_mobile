@@ -10,18 +10,21 @@ class PersonalCenterPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return PageScaffold(
       title: '厂商模式',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // 顶部渐变信息区
-          _buildTopProfile(context),
-          const SizedBox(height: 5),
-          // 功能区块
-          ..._buildMenuList(context),
-          const Spacer(),
-          // 退出登录按钮
-          _buildLogoutButton(),
-        ],
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // 顶部渐变信息区
+            _buildTopProfile(context),
+            const SizedBox(height: 5),
+            // 功能区块
+            ..._buildMenuList(context),
+            const SizedBox(height: 20), // 替换 Spacer，添加固定间距
+            // 退出登录按钮
+            _buildLogoutButton(),
+            const SizedBox(height: 20), // 底部间距
+          ],
+        ),
       ),
     );
   }
