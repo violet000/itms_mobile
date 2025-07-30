@@ -118,15 +118,11 @@ class StorageService {
 
   // 仓储数据
   Future<Map<String, dynamic>> getStorageAreas() async {
-    // 如果有缓存，取缓存数据
-    if (_cachedStorageAreas != null) {
-      return _cachedStorageAreas!;
-    }
-
-    // 否则去调取接口数据
+    // 每次都从接口获取最新数据，不使用缓存
     final service = await _getService9087();
     final response = await service.qryWarehousing('');
 
+    // 更新缓存（用于其他地方可能需要的缓存数据）
     _cachedStorageAreas = response;
     return response;
   }

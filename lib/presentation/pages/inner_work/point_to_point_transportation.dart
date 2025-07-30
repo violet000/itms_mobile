@@ -38,7 +38,9 @@ class _PointToPointPageState extends State<PointToPointPage> {
   // 获取仓储库位信息
   Future<void> _getStorageAreas() async {
     try {
-      Map<String, dynamic>? response = StorageService.getCachedStorageAreas();
+      // 每次都从接口获取最新数据，不使用缓存
+      Map<String, dynamic>? response = await StorageService.instance.getStorageAreas();
+      
       if (response == null || !response.containsKey('retList')) {
         return print('仓储数据错误或为空');
       }

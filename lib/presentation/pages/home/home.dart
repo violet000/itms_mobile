@@ -176,11 +176,8 @@ class _HomePageState extends State<HomePage>
   // 获取仓储库位信息，根据仓储信息动态的生成仓储区域菜单
   Future<void> _getStorageAreas() async {
     try {
-      Map<String, dynamic>? response = StorageService.getCachedStorageAreas();
-
-      if (response == null) {
-        response = await StorageService.instance.getStorageAreas();
-      }
+      // 每次都从接口获取最新数据，不使用缓存
+      Map<String, dynamic>? response = await StorageService.instance.getStorageAreas();
 
       if (response == null || !response.containsKey('retList')) {
         return print('仓储数据错误或为空');
