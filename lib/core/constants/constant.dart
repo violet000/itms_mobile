@@ -110,6 +110,7 @@ enum HTTPCode {
 
 /// 地标类型
 enum LocationType {
+  unkown(0, '未知'),
   barrierType(1, '障碍物'),
   batteryType(2, '充电区'),
   queueType(3, '排队区'),

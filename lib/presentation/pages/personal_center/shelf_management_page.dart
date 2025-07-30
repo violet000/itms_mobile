@@ -38,7 +38,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     super.initState();
     _initService();
     _loadData();
-    _loadLandmarks();
+    _loadLandmarks(null);
   }
 
   void _initService() async {
@@ -92,7 +92,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
   }
 
   /// 加载地标数据
-  Future<void> _loadLandmarks() async {
+  Future<void> _loadLandmarks(ShelfModel? shelf) async {
     _service9087 ??= await Service9087.create();
     try {
       final response = await _service9087!.qryAllByParams(<String, dynamic>{
@@ -104,11 +104,33 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
         final List<dynamic> retList =
             (response['retList'] as List<dynamic>?) ?? <dynamic>[];
 
+        List<LandmarkModel> landmarks = retList.map<LandmarkModel>((dynamic record) {
+          final recordMap = record as Map<String, dynamic>;
+          return LandmarkModel.fromJson(recordMap);
+        }).toList();
+
+        if (shelf != null && shelf.locationId != null && shelf.locationId!.isNotEmpty) {
+          bool exists = landmarks.any((landmark) => landmark.id == shelf.locationId);
+          if (!exists) {
+            landmarks.add(LandmarkModel(
+              id: shelf.locationId!,
+              clrCenterNo: shelf.clrCenterNo,
+              locationType: 0,
+              status: shelf.status,
+              areaId: '',
+              areaName: '',
+              length: '',
+              width: '',
+              xplace: '',
+              yplace: '',
+              zplace: '',
+              note: '',
+            ));
+          }
+        }
+
         setState(() {
-          _availableLandmarks = retList.map<LandmarkModel>((dynamic record) {
-            final recordMap = record as Map<String, dynamic>;
-            return LandmarkModel.fromJson(recordMap);
-          }).toList();
+          _availableLandmarks = landmarks;
         });
       }
     } catch (e) {
@@ -176,9 +198,12 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     }
   }
 
-  void _showShelfDialog({ShelfModel? shelf}) {
+  void _showShelfDialog({ShelfModel? shelf}) async {
     final isEdit = shelf != null;
     final title = isEdit ? '编辑托盘' : '新增托盘';
+
+    // 每次打开对话框时都重新加载地标数据
+    await _loadLandmarks(shelf);
 
     final shelfIdController = TextEditingController(text: shelf?.shelfId ?? '');
     final landmarkNameController =
