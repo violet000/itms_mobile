@@ -114,6 +114,7 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                         Row(
                           children: [
                             Expanded(
+                              flex: 3, // 增加文本区域的比例
                               child: TextField(
                                 controller: ctrls['devName'],
                                 enabled: editing,
@@ -126,8 +127,9 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 textAlignVertical: TextAlignVertical.top,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8), // 减少间距
                             Expanded(
+                              flex: 3, // 增加文本区域的比例
                               child: TextField(
                                 controller: ctrls['devIp'],
                                 enabled: editing,
@@ -140,8 +142,9 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 textAlignVertical: TextAlignVertical.top,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 8), // 减少间距
                             Expanded(
+                              flex: 2, // 端口号区域稍小一些
                               child: TextField(
                                 controller: ctrls['devPort'],
                                 enabled: editing,
@@ -155,18 +158,24 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                 textAlignVertical: TextAlignVertical.top,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 4), // 减少间距
                             editing
                                 ? Row(
+                                    mainAxisSize: MainAxisSize.min, // 按钮区域紧凑
                                     children: [
                                       IconButton(
                                         icon: const Icon(Icons.save,
-                                            color: Colors.green),
+                                            color: Colors.green, size: 18), // 减小图标大小
                                         onPressed: () => _saveDev(index),
+                                        padding: const EdgeInsets.all(4), // 减小内边距
+                                        constraints: const BoxConstraints(
+                                          minWidth: 32,
+                                          minHeight: 32,
+                                        ), // 减小按钮尺寸
                                       ),
                                       IconButton(
                                         icon: const Icon(Icons.cancel,
-                                            color: Colors.red),
+                                            color: Colors.red, size: 18), // 减小图标大小
                                         onPressed: () {
                                           // 恢复原始内容
                                           ctrls['devName']!.text =
@@ -177,14 +186,24 @@ class _DevUrlManagementPageState extends State<DevUrlManagementPage> {
                                               (dev['devPort'] ?? '').toString();
                                           setState(() => _editingIndex = null);
                                         },
+                                        padding: const EdgeInsets.all(4), // 减小内边距
+                                        constraints: const BoxConstraints(
+                                          minWidth: 32,
+                                          minHeight: 32,
+                                        ), // 减小按钮尺寸
                                       ),
                                     ],
                                   )
                                 : IconButton(
-                                    icon: const Icon(Icons.edit),
+                                    icon: const Icon(Icons.edit, size: 18), // 减小图标大小
                                     onPressed: () {
                                       setState(() => _editingIndex = index);
                                     },
+                                    padding: const EdgeInsets.all(4), // 减小内边距
+                                    constraints: const BoxConstraints(
+                                      minWidth: 32,
+                                      minHeight: 32,
+                                    ), // 减小按钮尺寸
                                   ),
                           ],
                         ),
