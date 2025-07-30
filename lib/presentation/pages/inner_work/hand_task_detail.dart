@@ -373,6 +373,18 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                         ),
                       ],
                     ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '备注：${handTask.note ?? ''}',
+                            style: const TextStyle(fontSize: 12),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -818,10 +830,6 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
         borderRadius: BorderRadius.circular(8),
         child: StorageLocationVisualizer(
           data: currentAreaCells.map((cell) {
-            // 调试信息：打印有货架的库位
-            if (cell.shelfId != null && cell.shelfId!.isNotEmpty) {
-              print('传递到可视化组件 - 库位: ${cell.id}, shelfId: ${cell.shelfId}');
-            }
             return {
               'id': cell.id,
               'xplace': cell.x,

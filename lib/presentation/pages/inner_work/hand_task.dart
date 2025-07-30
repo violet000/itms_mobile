@@ -83,6 +83,7 @@ class _HandTaskPageState extends State<HandTaskPage> {
             execEndTime: (recordMap['execEndTime'] as String?) ?? '',
             jobId: (recordMap['jobId'] as String?) ?? '',
             carryContainerId: (recordMap['carryContainerId'] as String?) ?? '',
+            note: (recordMap['note'] as String?) ?? '',
           );
         }).toList();
 

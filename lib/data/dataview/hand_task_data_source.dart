@@ -17,6 +17,7 @@ class HandTask {
     required this.execEndTime, // 结束时间
     required this.jobId, // 任务号
     required this.carryContainerId, // 托盘编号
+    this.note, // 备注
   });
   final String operateType;
   final int status;
@@ -29,6 +30,7 @@ class HandTask {
   final String execEndTime;
   final String jobId;
   final String carryContainerId;
+  final String? note; // 备注
 }
 
 // 搬运任务数据源适配
@@ -159,6 +161,7 @@ class HandTaskDataSource extends DataGridSource {
           execEndTime: '', 
           jobId: '',
           carryContainerId: '',
+          note: '', // 添加空的备注
         );
       }
     } catch (e) {
