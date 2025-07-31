@@ -8,6 +8,7 @@ import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
+import 'package:itms_mobile/presentation/widgets/common/storage_location_detail_dialog.dart';
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
 import 'package:itms_mobile/core/utils/util.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -247,7 +248,24 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 subtitle: '查看库位的详细信息',
                 color: const Color.fromARGB(255, 67, 67, 68),
                 onTap: () {
-                  // AppLogger.info('库位详情: ${cell.id}');
+                  Navigator.pop(context);
+                  // 显示库位详情弹框
+                  showDialog<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return StorageLocationDetailDialog(
+                        locationData: <String, dynamic>{
+                          'id': cell.id,
+                          'xplace': cell.x,
+                          'yplace': cell.y,
+                          'status': cell.status,
+                          'shelfId': cell.shelfId,
+                          'areaId': cell.areaId,
+                          'locationType': cell.locationType,
+                        },
+                      );
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 12),
@@ -595,6 +613,8 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 'yplace': cell.y,
                 'status': cell.status,
                 'shelfId': cell.shelfId,
+                'areaId': cell.areaId,
+                'locationType': cell.locationType,
               };
             }).toList(),
             onTapPoint: (point) {
@@ -604,6 +624,8 @@ class _PointToPointPageState extends State<PointToPointPage> {
                 y: (point['yplace'] as num).toDouble(),
                 status: point['status'] as int,
                 shelfId: point['shelfId'] as String?,
+                areaId: point['areaId'] as String?,
+                locationType: int.tryParse(point['locationType']?.toString() ?? '0') ?? 0,
                 color: Colors.grey,
               );
               _onCellTap(cell);

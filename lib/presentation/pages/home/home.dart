@@ -217,6 +217,8 @@ class _HomePageState extends State<HomePage>
                 y: y,
                 id: location['id'].toString(),
                 color: Util.getStatusColor(status),
+                areaId: location['areaId']?.toString(),
+                locationType: int.tryParse(location['locationType']?.toString() ?? '0') ?? 0,
                 status: status,
               ));
             } catch (e) {

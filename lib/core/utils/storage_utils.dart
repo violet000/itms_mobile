@@ -99,12 +99,16 @@ class StorageUtils {
       final y = double.parse(storageLocationDTO['yplace'].toString());
       final shelfId =
           storageLocationDTO['storageShelfDTO']?['shelfId']?.toString();
+      final areaId = storageLocationDTO['areaId']?.toString();
+      final locationType = int.tryParse(storageLocationDTO['locationType']?.toString() ?? '0') ?? 0;
       return GridCell(
         x: x,
         y: y,
         id: storageLocationDTO['id'].toString(),
         color: Util.getStatusColor(storageLocationDTO['status'] as int),
         shelfId: shelfId,
+        areaId: areaId,
+        locationType: locationType,
         status: storageLocationDTO['status'] as int,
       );
     }).toList();

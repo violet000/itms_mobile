@@ -340,7 +340,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                       children: [
                         Expanded(
                           child: Text(
-                            '起始库位：${handTask.origCell ?? ''}',
+                            '起始库位：${startStorageLocationId ?? handTask.origCell ?? ''}',
                             style: const TextStyle(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -360,7 +360,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                       children: [
                         Expanded(
                           child: Text(
-                            '终点库位：${handTask.destCell ?? ''}',
+                            '终点库位：${endStorageLocationId ?? handTask.destCell ?? ''}',
                             style: const TextStyle(fontSize: 12),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -556,7 +556,24 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                 subtitle: '查看库位的详细信息',
                 color: const Color.fromARGB(255, 67, 67, 68),
                 onTap: () {
-                  // AppLogger.info('库位详情: ${cell.id}');
+                  Navigator.pop(context);
+                  // 显示库位详情弹框
+                  showDialog<void>(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return StorageLocationDetailDialog(
+                        locationData: <String, dynamic>{
+                          'id': cell.id,
+                          'xplace': cell.x,
+                          'yplace': cell.y,
+                          'status': cell.status,
+                          'shelfId': cell.shelfId,
+                          'areaId': cell.areaId,
+                          'locationType': cell.locationType,
+                        },
+                      );
+                    },
+                  );
                 },
               ),
               const SizedBox(height: 12),
@@ -724,7 +741,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
 
     final result = await context.showConfirmDialog(
       title: '确认人工完成',
-      content: '确定要人工放置${currentHandTask!.destCell}库位吗？\n',
+      content: '确定要人工放置${endStorageLocationId ?? currentHandTask!.destCell}库位吗？\n',
       confirmText: '确认完成',
       cancelText: '返回',
       confirmColor: const Color.fromARGB(255, 3, 93, 220),
@@ -738,8 +755,8 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
     try {
       final response = await _service8062.manualCompleteJob(<String, dynamic>{
         'jobId': currentHandTask!.jobId,
-        'origCell': currentHandTask!.origCell,
-        'destCell': currentHandTask!.destCell,
+        'origCell': startStorageLocationId ?? currentHandTask!.origCell,
+        'destCell': endStorageLocationId ?? currentHandTask!.destCell,
         'carryContainerId': currentHandTask!.carryContainerId,
       });
       if (!mounted) return;
@@ -838,26 +855,20 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
               'yplace': cell.y,
               'status': cell.status,
               'shelfId': cell.shelfId,
+              'areaId': cell.areaId,  
+              'locationType': cell.locationType,
             };
           }).toList(),
           onTapPoint: (Map<String, dynamic> point) {
-            // 显示库位详情弹框
-            showDialog<void>(
-              context: context,
-              builder: (BuildContext context) {
-                return StorageLocationDetailDialog(
-                  locationData: point,
-                );
-              },
-            );
-            
-            // 原有的点击处理逻辑
+            // 只执行库位选择逻辑，不自动显示详情弹框
             final cell = GridCell(
               id: point['id'] as String,
               x: (point['xplace'] as num).toDouble(),
               y: (point['yplace'] as num).toDouble(),
               status: point['status'] as int,
               shelfId: point['shelfId'] as String?,
+              areaId: point['areaId'] as String?,
+              locationType: int.tryParse(point['locationType']?.toString() ?? '0') ?? 0,
               color: Colors.grey,
             );
             _onCellTap(cell);
@@ -897,6 +908,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
         Navigator.of(context)
             .pushNamedAndRemoveUntil('/inner_work/hand-task', (route) => false);
       },
+      rightWidget: _buildRightButton(),
       child: Column(
         children: [
           // 顶部卡片
@@ -1031,4 +1043,286 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       ),
     );
   }
+
+  // 构建右侧按钮
+  Widget _buildRightButton() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _onRightButtonPressed,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          width: 48,
+          height: 48,
+          child: const Icon(
+            Icons.more_vert,
+            color: Color.fromARGB(255, 60, 80, 120),
+            size: 24,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 右侧按钮点击事件
+  void _onRightButtonPressed() {
+    _showLocationFormDialog();
+  }
+
+  // 显示库位设置表单对话框
+  void _showLocationFormDialog() {
+    String? selectedDirection;
+    String? locationNumber;
+    final formKey = GlobalKey<FormState>();
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 8,
+          child: Container(
+            width: 400,
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Colors.white,
+                  Colors.grey.shade50,
+                ],
+              ),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 标题区域
+                Container(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(2),
+                          gradient: const LinearGradient(
+                            colors: [
+                               Color(0xFF4A90E2),
+                               Color(0xFF357ABD),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                          const Text(
+                         '手动修改起/始库位',
+                         style: TextStyle(
+                           fontSize: 16,
+                           fontWeight: FontWeight.w600,
+                           color: Color(0xFF2C3E50),
+                         ),
+                       ),
+                    ],
+                  ),
+                ),
+                
+                // 表单内容
+                Form(
+                  key: formKey,
+                  child: Column(
+                    children: [
+                      // 方向下拉选择
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 20),
+                        child: DropdownButtonFormField<String>(
+                          decoration: InputDecoration(
+                            labelText: '修改方向',
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF7F8C8D),
+                              fontSize: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF4A90E2), width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                          value: selectedDirection,
+                            items: [
+                             DropdownMenuItem(
+                               value: 'start',
+                               child: Row(
+                                 children: const [
+                                   Icon(Icons.play_arrow, color: Color.fromRGBO(38, 87, 223, 1), size: 16),
+                                   SizedBox(width: 8),
+                                   Text('起始库位', style: TextStyle(fontSize: 12)),
+                                 ],
+                               ),
+                             ),
+                             DropdownMenuItem(
+                               value: 'end',
+                               child: Row(
+                                 children: const [
+                                   Icon(Icons.stop, color: Color(0xFFE74C3C), size: 16),
+                                   SizedBox(width: 8),
+                                   Text('终点库位', style: TextStyle(fontSize: 12)),
+                                 ],
+                               ),
+                             ),
+                           ],
+                          onChanged: (value) {
+                            selectedDirection = value;
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return '请选择方向';
+                            }
+                            return null;
+                          },
+                          icon: const Icon(Icons.keyboard_arrow_down, color: Color(0xFF4A90E2)),
+                          dropdownColor: Colors.white,
+                        ),
+                      ),
+                      
+                      // 库位编号输入框
+                      Container(
+                        margin: const EdgeInsets.only(bottom: 24),
+                        child: TextFormField(
+                          decoration: InputDecoration(
+                            labelText: '库位编号',
+                            labelStyle: const TextStyle(
+                              color: Color(0xFF7F8C8D),
+                              fontSize: 12,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: Color(0xFF4A90E2), width: 2),
+                            ),
+                            filled: true,
+                            fillColor: Colors.grey.shade50,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            hintText: '请输入库位编号',
+                            hintStyle: TextStyle(
+                              color: Colors.grey.shade400,
+                              fontSize: 12,
+                            )
+                          ),
+                          onChanged: (value) {
+                            locationNumber = value;
+                          },
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return '请输入库位编号';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // 按钮区域
+                Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 48,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: OutlinedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
+                                                     child: const Text(
+                             '取消',
+                             style: TextStyle(
+                               color: Color(0xFF7F8C8D),
+                               fontSize: 14,
+                               fontWeight: FontWeight.w500,
+                             ),
+                           ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Container(
+                        height: 48,
+                        margin: const EdgeInsets.only(left: 12),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (formKey.currentState!.validate()) {
+                              Navigator.pop(context);
+                              _setLocationFromForm(selectedDirection!, locationNumber!);
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF4A90E2),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                                                     child: const Text(
+                             '确定',
+                             style: TextStyle(
+                               fontSize: 14,
+                               fontWeight: FontWeight.w600,
+                             ),
+                           ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 根据表单设置库位
+  void _setLocationFromForm(String direction, String locationNumber) {
+    setState(() {
+      if (direction == 'start') {
+        startStorageLocationId = locationNumber;
+      } else {
+        endStorageLocationId = locationNumber;
+      }
+    });
+
+    final directionText = direction == 'start' ? '起始' : '终点';
+    context.showSuccessMessage('已设置${directionText}库位为: $locationNumber');
+  }
+
 }
