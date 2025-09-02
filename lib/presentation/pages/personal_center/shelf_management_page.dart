@@ -496,7 +496,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                           items: [
                             const DropdownMenuItem<CanPutShelf?>(
                               value: null,
-                              child: Text('请选择地标类型'),
+                              child: Text(
+                                '请选择地标',
+                                style: TextStyle(
+                                  color: Color.fromARGB(255, 177, 179, 180),
+                                  fontSize: 14,
+                                ),
+                              ),
                             ),
                             ...CanPutShelf.values.map((type) {
                               return DropdownMenuItem(
