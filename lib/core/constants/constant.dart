@@ -158,6 +158,24 @@ enum LocationType {
   }
 }
 
+
+/// 地标类型
+enum CanPutShelf {
+  binType(8, '仓库储位'),
+  workType(9, '工作区');
+
+  const CanPutShelf(this.code, this.displayName);
+  final int code;
+  final String displayName;
+
+  static CanPutShelf fromCode(int code) {
+    return CanPutShelf.values.firstWhere(
+      (type) => type.code == code,
+      orElse: () => CanPutShelf.workType,
+    );
+  }
+}
+
 /// 地标状态 0-禁用 1-空闲 2-锁定 3-占用
 enum LandmarkStatus {
   disabled(0, '禁用', '#708090'),

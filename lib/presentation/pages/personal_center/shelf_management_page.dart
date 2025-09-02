@@ -21,6 +21,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
   late ShelfDataSource _shelfDataSource;
   final TextEditingController _shelfIdController = TextEditingController();
   PalletStatus? _selectedStatus;
+
   List<ShelfModel> _allShelves = [];
   List<ShelfModel> _filteredShelves = [];
   List<LandmarkModel> _availableLandmarks = [];
@@ -38,7 +39,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     super.initState();
     _initService();
     _loadData();
-    _loadLandmarks(null);
+    // 移除自动加载地标数据，需要用户先选择LocationType
+    // _loadLandmarks(null);
   }
 
   void _initService() async {
@@ -91,13 +93,21 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     }
   }
 
-  /// 加载地标数据
+  /// 加载地标数据（保留用于兼容性）
   Future<void> _loadLandmarks(ShelfModel? shelf) async {
+    // 这个方法现在只是为了兼容性，实际的地标加载在表单中进行
+    setState(() {
+      _availableLandmarks = [];
+    });
+  }
+
+  /// 根据地标类型加载地标数据
+  Future<void> _loadLandmarksByLocationType(CanPutShelf locationType, ShelfModel? shelf) async {
     _service9087 ??= await Service9087.create();
     try {
       final response = await _service9087!.qryAllByParams(<String, dynamic>{
         'status': LandmarkStatus.idle.code,
-        'locationType': LocationType.batteryType.code,
+        'locationType': locationType.code,
       });
 
       if (response['retCode'] == HTTPCode.success.code) {
@@ -129,7 +139,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
           }
         }
 
-        setState(() {
+        // 更新状态
+        this.setState(() {
           _availableLandmarks = landmarks;
         });
       }
@@ -141,6 +152,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
   void _filterData() {
     _currentPage = 0;
     _loadData();
+    // 重新加载地标数据
+    _loadLandmarks(null);
   }
 
   void _onEditShelf(ShelfModel shelf) {
@@ -202,9 +215,6 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     final isEdit = shelf != null;
     final title = isEdit ? '编辑托盘' : '新增托盘';
 
-    // 每次打开对话框时都重新加载地标数据
-    await _loadLandmarks(shelf);
-
     final shelfIdController = TextEditingController(text: shelf?.shelfId ?? '');
     final landmarkNameController =
         TextEditingController(text: shelf?.locationId ?? '');
@@ -215,8 +225,10 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
             orElse: () => LandmarkType.values.first)
         : LandmarkType.values.first;
     final clrCenterNoController =
-        TextEditingController(text: shelf?.clrCenterNo ?? '海康模拟仓');
+        TextEditingController(text: shelf?.clrCenterNo ?? '001');
     final remarkController = TextEditingController();
+    
+    CanPutShelf? selectedFormLocationType = null;
 
     LandmarkModel? selectedLandmark;
     if (isEdit && shelf != null && _availableLandmarks.isNotEmpty) {
@@ -440,13 +452,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  // 所属地标
+                  // 地标类型
                   Row(
                     children: [
                       const SizedBox(
                         width: 80,
                         child: Text(
-                          '所属地标',
+                          '地标类型',
                           textAlign: TextAlign.right,
                           style: TextStyle(
                             color: Color.fromARGB(255, 75, 75, 75),
@@ -457,8 +469,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       ),
                       const SizedBox(width: 5),
                       Expanded(
-                        child: DropdownButtonFormField<LandmarkModel?>(
-                          value: selectedLandmark,
+                        child: DropdownButtonFormField<CanPutShelf?>(
+                          value: selectedFormLocationType,
                           style: const TextStyle(
                               fontSize: 14, color: Colors.black87),
                           decoration: InputDecoration(
@@ -482,28 +494,133 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                                 horizontal: 10, vertical: 10),
                           ),
                           items: [
-                            const DropdownMenuItem<LandmarkModel?>(
+                            const DropdownMenuItem<CanPutShelf?>(
                               value: null,
-                              child: Text('请选择'),
+                              child: Text('请选择地标类型'),
                             ),
-                            ..._availableLandmarks.map((landmark) {
+                            ...CanPutShelf.values.map((type) {
                               return DropdownMenuItem(
-                                value: landmark,
-                                child: Text('${landmark.id}',
+                                value: type,
+                                child: Text(type.displayName,
                                     style: const TextStyle(fontSize: 14)),
                               );
-                            }).toList(),
+                            }),
                           ],
-                          onChanged: (value) {
+                          onChanged: (value) async {
                             setState(() {
-                              selectedLandmark = value;
-                              if (value != null) {
-                                landmarkNameController.text = value.id;
-                              } else {
-                                landmarkNameController.text = '';
-                              }
+                              selectedFormLocationType = value;
+                              selectedLandmark = null; // 重置地标选择
                             });
+                            // 当选择地标类型时，重新加载地标数据
+                            if (value != null) {
+                              await _loadLandmarksByLocationType(value, null);
+                              // 强制刷新表单以显示新的地标数据
+                              setState(() {});
+                            } else {
+                              // 直接更新页面的状态
+                              this.setState(() {
+                                _availableLandmarks = [];
+                              });
+                              // 强制刷新表单
+                              setState(() {});
+                            }
                           },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  // 所属地标
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 80,
+                        child: Text(
+                          '所属地标',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            color: Color.fromARGB(255, 75, 75, 75),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: DropdownButtonFormField<LandmarkModel?>(
+                          value: selectedLandmark,
+                          style: TextStyle(
+                              fontSize: 14, 
+                              color: selectedFormLocationType == null 
+                                  ? Colors.grey[600] 
+                                  : Colors.black87),
+                          decoration: InputDecoration(
+                            hintText: selectedFormLocationType == null 
+                                ? '请先选择地标类型' 
+                                : '请选择地标',
+                            hintStyle: const TextStyle(
+                                fontSize: 13, color: Color(0xFFBBBBBB)),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(
+                                  color: selectedFormLocationType == null 
+                                      ? Colors.grey[300]! 
+                                      : const Color(0xFFE0E3E8)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide:
+                                  const BorderSide(color: Color(0xFFE0E3E8)),
+                            ),
+                            disabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            filled: selectedFormLocationType == null,
+                            fillColor: selectedFormLocationType == null 
+                                ? Colors.grey[100] 
+                                : null,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 10),
+                          ),
+                          items: selectedFormLocationType == null 
+                              ? [
+                                  const DropdownMenuItem<LandmarkModel?>(
+                                    value: null,
+                                    child: Text('请先选择地标类型'),
+                                  ),
+                                ]
+                              : [
+                                  const DropdownMenuItem<LandmarkModel?>(
+                                    value: null,
+                                    child: Text('请选择地标'),
+                                  ),
+                                  ..._availableLandmarks.map((landmark) {
+                                    return DropdownMenuItem(
+                                      value: landmark,
+                                      child: Text('${landmark.id}',
+                                          style: const TextStyle(fontSize: 14)),
+                                    );
+                                  }).toList(),
+                                ],
+                          onChanged: selectedFormLocationType == null 
+                              ? null 
+                              : (value) {
+                                  setState(() {
+                                    selectedLandmark = value;
+                                    if (value != null) {
+                                      landmarkNameController.text = value.id;
+                                    } else {
+                                      landmarkNameController.text = '';
+                                    }
+                                  });
+                                },
                         ),
                       ),
                     ],
@@ -643,6 +760,14 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             context.showErrorMessage('请填写完整信息');
                             return;
                           }
+                          if (selectedFormLocationType == null) {
+                            context.showErrorMessage('请选择地标类型');
+                            return;
+                          }
+                          if (selectedLandmark == null) {
+                            context.showErrorMessage('请选择所属地标');
+                            return;
+                          }
                           _service9087 ??= await Service9087.create();
                           EasyLoading.show(
                               status: isEdit ? '正在修改...' : '正在新增...');
@@ -655,7 +780,8 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                               'clrCenterName': StorageCenter.fromCode(
                                       clrCenterNoController.text)
                                   .clrCenterName,
-                              'locationId': selectedLandmark?.id ?? '',
+                              'locationId': selectedLandmark!.id,
+                              'locationType': selectedFormLocationType!.code,
                               'note': remarkController.text,
                             };
                             Map<String, dynamic> response;
@@ -838,6 +964,7 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                           ),
                         ),
                       ),
+
                     ],
                   ),
                 ),
