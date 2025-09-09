@@ -160,24 +160,25 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
     _showShelfDialog(shelf: shelf);
   }
 
-  void _onDeleteShelf(ShelfModel shelf) {
-    CustomDialog.showConfirm(
+  Future<void> _onDeleteShelf(ShelfModel shelf) async {
+    final result = await CustomDialog.showConfirm(
       context: context,
       title: '确认移除',
       content: '确定要移除托盘 ${shelf.shelfId} 吗？',
       confirmText: '移除',
       cancelText: '取消',
       confirmColor: Colors.red,
-    ).then((result) async {
-      if (result == ConfirmResult.confirm) {
-        _service9087 ??= await Service9087.create();
-        EasyLoading.show(status: '正在移除...');
-        try {
-          // 将locationId设置为空，其他参数保持正常
-          final deleteParams = <String, dynamic>{
-            'shelfId': shelf.shelfId,
-            'shelfType': shelf.shelfType,
-            'status': shelf.status,
+    );
+    
+    if (result == ConfirmResult.confirm) {
+      _service9087 ??= await Service9087.create();
+      EasyLoading.show(status: '正在移除...');
+      try {
+        // 将locationId设置为空，其他参数保持正常
+        final deleteParams = <String, dynamic>{
+          'shelfId': shelf.shelfId,
+          'shelfType': shelf.shelfType,
+          'status': shelf.status,
             'clrCenterNo': shelf.clrCenterNo,
             'locationId': '',
             'note': shelf.note,
@@ -186,12 +187,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
           EasyLoading.dismiss();
           EasyLoading.showSuccess('移除成功');
           _loadData(); // 重新加载数据
-        } catch (e) {
-          EasyLoading.dismiss();
-          EasyLoading.showError('移除失败: $e');
-        }
+      } catch (e) {
+        EasyLoading.dismiss();
+        EasyLoading.showError('移除失败: $e');
       }
-    });
+    }
   }
 
   void _onPageChanged(int page) {

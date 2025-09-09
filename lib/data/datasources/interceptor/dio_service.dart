@@ -87,23 +87,24 @@ class DioService {
   // 基础请求方法
   Future<Map<String, dynamic>> get(String endpoint, {Map<String, dynamic>? queryParameters}) async {
     try {
-      final response = await _dio.get<Map<String, dynamic>>(
+      final response = await _dio.get<dynamic>(
         endpoint,
         queryParameters: queryParameters,
       );
       
       if (response.statusCode == 200) {
-        if (response.data?.containsKey('retCode') == true) {
-          if (response.data?['retCode'] == '000000') {
-            return response.data ?? <String, dynamic>{};
+        final data = response.data as Map<String, dynamic>?;
+        if (data?.containsKey('retCode') == true) {
+          if (data?['retCode'] == '000000') {
+            return data ?? <String, dynamic>{};
           } else {
             throw BusinessException(
-              message: (response.data?['retMsg'] ?? '请求失败').toString(),
-              code: (response.data?['retCode'] ?? 'REQUEST_${response.statusCode}').toString(),
+              message: (data?['retMsg'] ?? '请求失败').toString(),
+              code: (data?['retCode'] ?? 'REQUEST_${response.statusCode}').toString(),
             );
           }
         }
-        return response.data ?? <String, dynamic>{};
+        return data ?? <String, dynamic>{};
       } else if (response.statusCode == 401) {
         throw AuthException(
           message: '认证失败，请重新登录',
@@ -155,23 +156,24 @@ class DioService {
 
   Future<Map<String, dynamic>> post(String endpoint, {dynamic body}) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      final response = await _dio.post<dynamic>(
         endpoint,
         data: body,
       );
       
       if (response.statusCode == 200) {
-        if (response.data?.containsKey('retCode') == true) {
-          if (response.data?['retCode'] == '000000') {
-            return response.data ?? <String, dynamic>{};
+        final data = response.data as Map<String, dynamic>?;
+        if (data?.containsKey('retCode') == true) {
+          if (data?['retCode'] == '000000') {
+            return data ?? <String, dynamic>{};
           } else {
             throw BusinessException(
-              message: (response.data?['retMsg'] ?? '请求失败').toString(),
-              code: (response.data?['retCode'] ?? 'REQUEST_${response.statusCode}').toString(),
+              message: (data?['retMsg'] ?? '请求失败').toString(),
+              code: (data?['retCode'] ?? 'REQUEST_${response.statusCode}').toString(),
             );
           }
         }
-        return response.data ?? <String, dynamic>{};
+        return data ?? <String, dynamic>{};
       } else if (response.statusCode == 401) {
         throw AuthException(
           message: '认证失败，请重新登录',

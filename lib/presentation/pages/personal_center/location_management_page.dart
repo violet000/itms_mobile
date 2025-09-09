@@ -111,30 +111,30 @@ class _LocationManagementPageState extends State<LocationManagementPage> {
     _loadData();
   }
 
-  void _onDeleteShelf(LandmarkModel landmark) {
-    CustomDialog.showConfirm(
+  Future<void> _onDeleteShelf(LandmarkModel landmark) async {
+    final result = await CustomDialog.showConfirm(
       context: context,
       title: '确认删除',
       content: '确定要删除地标 ${landmark.id} 吗？',
       confirmText: '删除',
       cancelText: '取消',
       confirmColor: Colors.red,
-    ).then((result) async {
-      if (result == ConfirmResult.confirm) {
-        _service9087 ??= await Service9087.create();
-        EasyLoading.show(status: '正在删除...');
-        try {
-          final List<String> deleteList = [landmark.id];
-          final response = await _service9087!.deleteBatch(deleteList);
-          EasyLoading.dismiss();
-          EasyLoading.showSuccess('删除成功');
-          _loadData();
-        } catch (e) {
-          EasyLoading.dismiss();
-          EasyLoading.showError('删除失败: $e');
-        }
+    );
+    
+    if (result == ConfirmResult.confirm) {
+      _service9087 ??= await Service9087.create();
+      EasyLoading.show(status: '正在删除...');
+      try {
+        final List<String> deleteList = [landmark.id];
+        final response = await _service9087!.deleteBatch(deleteList);
+        EasyLoading.dismiss();
+        EasyLoading.showSuccess('删除成功');
+        _loadData();
+      } catch (e) {
+        EasyLoading.dismiss();
+        EasyLoading.showError('删除失败: $e');
       }
-    });
+    }
   }
 
   void _onPageChanged(int page) {

@@ -95,9 +95,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
         itemList.add(map);
       }
       setState(() {});
-      if (itemList.isNotEmpty) {
-        _updateCurrentAreaData('A001');
-      }
+      // 移除默认加载 A001 的逻辑，等待任务数据设置后再加载对应区域
     } catch (e) {
       AppLogger.error('获取仓储库位信息失败: $e');
     }
@@ -196,7 +194,31 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
 
   // 根据当前 tab 更新库区数据（带加载提示）
   Future<void> _updateAreaDataForCurrentTabWithLoading() async {
-    if (currentHandTask == null) return;
+    if (currentHandTask == null) {
+      // 如果任务数据还未准备好，等待数据加载完成
+      setState(() {
+        currentAreaCells = [];
+        currentAreaRange = {};
+        _isUpdatingArea = true;
+      });
+      return;
+    }
+
+    // 如果 itemList 为空，说明仓储数据还未加载完成
+    if (itemList.isEmpty) {
+      setState(() {
+        currentAreaCells = [];
+        currentAreaRange = {};
+        _isUpdatingArea = true;
+      });
+      // 重新获取仓储数据
+      await _getStorageAreas();
+      // 递归调用，确保数据加载完成后再更新区域数据
+      if (itemList.isNotEmpty) {
+        await _updateAreaDataForCurrentTabWithLoading();
+      }
+      return;
+    }
 
     // 立即清空当前数据，防止显示错误的库区信息
     setState(() {
@@ -825,6 +847,27 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
   // 构建仓储区域地图
   Widget _buildStorageMap(
       String startStorageLocationId, String endStorageLocationId) {
+    // 如果正在更新区域数据，显示加载状态
+    if (_isUpdatingArea || currentHandTask == null || itemList.isEmpty) {
+      return Container(
+        margin: const EdgeInsets.all(3.0),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: const [
+              CircularProgressIndicator(),
+              SizedBox(height: 8),
+              Text('正在加载库位数据...', style: TextStyle(color: Colors.grey)),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (currentAreaCells.isEmpty) {
       return Container(
         margin: const EdgeInsets.all(3.0),
@@ -895,6 +938,8 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       currentHandTask = handTask;
       startStorageLocationId = handTask.origCell;
       endStorageLocationId = handTask.destCell;
+      print('startStorageLocationId: $startStorageLocationId');
+      print('endStorageLocationId: $endStorageLocationId');
       // 根据当前 tab 初始化库区数据
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateAreaDataForCurrentTabWithLoading();

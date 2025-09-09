@@ -20,7 +20,7 @@ targets:
           - lib/**.dart
         options:
           dart2js_args:
-            - --minify
+            - --no-minify
             - --no-source-maps
 
 # 配置路径别名

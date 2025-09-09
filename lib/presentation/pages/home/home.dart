@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:itms_mobile/presentation/widgets/common/map_control_lengend.dart';
 import 'package:itms_mobile/presentation/widgets/common/dash_border.dart';
@@ -69,21 +70,38 @@ class _HomePageState extends State<HomePage>
 
     // 延迟初始化，避免阻塞UI
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeAsync();
+      _initializeAsync().catchError((Object error) {
+        // 处理异步初始化错误
+        if (mounted) {
+          setState(() {
+            _isInitialized = true; // 即使失败也标记为已初始化，避免无限等待
+          });
+        }
+      });
     });
   }
 
   // 异步初始化
   Future<void> _initializeAsync() async {
-    _initializeBasicUI();
+    try {
+      _initializeBasicUI();
 
-    await _getStorageAreas();
+      await _getStorageAreas();
 
-    if (mounted) {
-      setState(() {
-        _isInitialized = true;
-      });
-      _animationController.forward();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+        _animationController.forward();
+      }
+    } catch (e) {
+      // 如果初始化失败，仍然标记为已初始化，避免UI卡住
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+      rethrow; // 重新抛出错误，让上层处理
     }
   }
 
@@ -173,6 +191,30 @@ class _HomePageState extends State<HomePage>
     }
   }
 
+  /// 获取所有可用的存储区域SVG背景图片
+  Future<String> getAllStorageImages(int index) async {
+    // 从assets/storage目录获取所有SVG文件
+    final List<String> svgFiles = [
+      'assets/storage/storage_1.svg',
+      'assets/storage/storage_2.svg', 
+      'assets/storage/storage_3.svg',
+    ];
+
+    return svgFiles[index % svgFiles.length] ?? '';
+  }
+
+  /// 获取所有可用的存储区域SVG的ICON图片
+  Future<String> getAllStorageIconImages(int index) async {
+    // 从assets/storage目录获取所有SVG文件
+    final List<String> svgFiles = [
+      'images/storage_1.svg',
+      'images/storage_2.svg', 
+      'images/storage_3.svg',
+    ];
+
+    return svgFiles[index % svgFiles.length] ?? '';
+  }
+
   // 获取仓储库位信息，根据仓储信息动态的生成仓储区域菜单
   Future<void> _getStorageAreas() async {
     try {
@@ -180,7 +222,14 @@ class _HomePageState extends State<HomePage>
       Map<String, dynamic>? response = await StorageService.instance.getStorageAreas();
 
       if (response == null || !response.containsKey('retList')) {
-        return print('仓储数据错误或为空');
+        print('仓储数据错误或为空');
+        // 在Release模式下提供更好的错误处理
+        if (mounted) {
+          setState(() {
+            _isInitialized = true; // 确保页面能正常显示
+          });
+        }
+        return;
       }
 
       final retList = response['retList'] as List<dynamic>;
@@ -188,25 +237,34 @@ class _HomePageState extends State<HomePage>
 
       StorageDataManager().clearAllData();
 
-      for (var item in retList) {
+      for (int index = 0; index < retList.length; index++) {
+        final item = retList[index] as Map<String, dynamic>;
         final map = item as Map<String, dynamic>;
-        String imagePath = 'assets/storage/storage_${map['id']}.svg';
-        bool exists = await assetExists(imagePath);
-
         String areaId = map['id'] as String? ?? '';
         String areaName = map['name'] as String? ?? '';
 
         if (areaId.isEmpty || areaName.isEmpty) {
-          print('区域数据不完整: $map');
-          continue;
+          print('区域数据不完整 (索引: $index): $map');
+          // 在Release模式下，即使数据不完整也要继续处理，避免页面显示异常
+          if (kReleaseMode) {
+            areaId = 'area_$index'; // 提供默认ID
+            areaName = '区域$index'; // 提供默认名称
+          } else {
+            continue;
+          }
         }
+
+        // 动态获取对应的SVG图片路径
+        String imagePath = await getAllStorageImages(index);
+        String iconPath = await getAllStorageIconImages(index);
 
         List<GridCell> areaCells = [];
 
         final storageLocationDTOS =
             map['storageLocationDTOS'] as List<dynamic>?;
         if (storageLocationDTOS != null) {
-          for (var location in storageLocationDTOS) {
+          for (int locationIndex = 0; locationIndex < storageLocationDTOS.length; locationIndex++) {
+            final location = storageLocationDTOS[locationIndex] as Map<String, dynamic>;
             try {
               final x = double.parse(location['xplace'].toString());
               final y = double.parse(location['yplace'].toString());
@@ -222,7 +280,23 @@ class _HomePageState extends State<HomePage>
                 status: status,
               ));
             } catch (e) {
-              print('处理库位数据失败: $location, 错误: $e');
+              print('处理库位数据失败 (区域索引: $index, 库位索引: $locationIndex): $location, 错误: $e');
+              // 在Release模式下，提供默认的库位数据，避免页面显示异常
+              if (kReleaseMode) {
+                try {
+                  areaCells.add(GridCell(
+                    x: locationIndex.toDouble(),
+                    y: 0.0,
+                    id: 'location_${index}_$locationIndex',
+                    color: Colors.grey, // 使用灰色作为默认颜色
+                    areaId: areaId,
+                    locationType: 0,
+                    status: 0,
+                  ));
+                } catch (fallbackError) {
+                  print('创建默认库位数据也失败: $fallbackError');
+                }
+              }
             }
           }
         }
@@ -232,8 +306,8 @@ class _HomePageState extends State<HomePage>
         storageChildren.add(MenuItem(
           name: areaName,
           index: int.tryParse(map['x'].toString()) ?? 0,
-          imagePath: exists ? imagePath : null,
-          iconPath: 'assets/images/storage_${map['id']}.svg',
+          imagePath: imagePath.isNotEmpty ? imagePath : null,
+          iconPath: imagePath.isNotEmpty ? iconPath : null,
           route: '/storage/storage-area',
           params: item,
         ));
@@ -334,25 +408,25 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  TextButton(
-                    onPressed: () {
-                      _showLegendDialog(context);
-                    },
-                    style: TextButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      splashFactory: NoSplash.splashFactory,
-                    ),
-                    child: Text(
-                      "图例",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  )
+                  // const SizedBox(width: 10),
+                  // TextButton(
+                  //   onPressed: () {
+                  //     _showLegendDialog(context);
+                  //   },
+                  //   style: TextButton.styleFrom(
+                  //     backgroundColor: Colors.transparent,
+                  //     padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  //     splashFactory: NoSplash.splashFactory,
+                  //   ),
+                  //   child: Text(
+                  //     "图例",
+                  //     style: TextStyle(
+                  //       fontSize: 16,
+                  //       fontWeight: FontWeight.w500,
+                  //       color: Colors.grey[600],
+                  //     ),
+                  //   ),
+                  // )
                 ],
               ),
             )

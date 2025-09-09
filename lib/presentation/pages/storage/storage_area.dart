@@ -7,6 +7,7 @@ import 'package:itms_mobile/core/constants/constant.dart';
 import 'package:itms_mobile/core/utils/util.dart';
 import 'package:itms_mobile/presentation/widgets/common/storage_location_visualizer.dart';
 import 'package:itms_mobile/presentation/widgets/common/storage_location_detail_dialog.dart';
+import 'package:itms_mobile/presentation/widgets/common/logger.dart';
 
 /// 仓储库位控件封装
 class StorageArea extends StatefulWidget {
@@ -42,7 +43,7 @@ class _StorageAreaState extends State<StorageArea> {
           .addAll(StorageUtils.buildGridCells(storageLocationDTOS));
     }
 
-    print('StorageArea.cells.length: ${StorageArea.cells.length}');
+    AppLogger.debug('StorageArea.cells.length: ${StorageArea.cells.length}');
 
     return PageScaffold(
       showBackButton: true,
@@ -81,7 +82,7 @@ class _StorageAreaState extends State<StorageArea> {
                     return point;
                   }).toList(),
                   onTapPoint: (point) {
-                    print('点击了点位: ${point['id']}');
+                    AppLogger.info('点击了点位: ${point['id']}');
                     // 显示库位详情弹框
                     showDialog<void>(
                       context: context,
