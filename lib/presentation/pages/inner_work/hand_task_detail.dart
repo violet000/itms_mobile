@@ -881,6 +881,25 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       );
     }
 
+    // 将原始大坐标（如 500000.0）归一化为稠密索引，避免画布被原始数值放大
+    final List<double> uniqueXs = currentAreaCells
+        .map((c) => c.x)
+        .toSet()
+        .toList()
+      ..sort();
+    final List<double> uniqueYs = currentAreaCells
+        .map((c) => c.y)
+        .toSet()
+        .toList()
+      ..sort();
+
+    final Map<double, int> xToIndex = {
+      for (int i = 0; i < uniqueXs.length; i++) uniqueXs[i]: i
+    };
+    final Map<double, int> yToIndex = {
+      for (int i = 0; i < uniqueYs.length; i++) uniqueYs[i]: i
+    };
+
     return Container(
       margin: const EdgeInsets.all(3.0),
       decoration: BoxDecoration(
@@ -892,10 +911,12 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
         borderRadius: BorderRadius.circular(8),
         child: StorageLocationVisualizer(
           data: currentAreaCells.map((cell) {
+            final int xi = xToIndex[cell.x] ?? 0;
+            final int yi = yToIndex[cell.y] ?? 0;
             return {
               'id': cell.id,
-              'xplace': cell.x,
-              'yplace': cell.y,
+              'xplace': xi.toDouble(),
+              'yplace': yi.toDouble(),
               'status': cell.status,
               'shelfId': cell.shelfId,
               'areaId': cell.areaId,  
@@ -918,6 +939,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
           },
           startLocationId: startStorageLocationId,
           endLocationId: endStorageLocationId,
+          pointSpacingMultiplier: 0.5,
         ),
       ),
     );
@@ -938,8 +960,6 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
       currentHandTask = handTask;
       startStorageLocationId = handTask.origCell;
       endStorageLocationId = handTask.destCell;
-      print('startStorageLocationId: $startStorageLocationId');
-      print('endStorageLocationId: $endStorageLocationId');
       // 根据当前 tab 初始化库区数据
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _updateAreaDataForCurrentTabWithLoading();
@@ -1037,6 +1057,7 @@ class _HandTaskDetailPageState extends State<HandTaskDetailPage>
                   child: TabBarView(
                     key: ValueKey('tab_${_tabIndex}_${currentHandTask?.jobId}'),
                     controller: _tabController,
+                    physics: const NeverScrollableScrollPhysics(),
                     children: [
                       // 起始库位 tab
                       _buildStorageMap(

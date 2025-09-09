@@ -51,6 +51,7 @@ class StorageLocationVisualizer extends StatefulWidget {
   final double? coordinatePrecision; // 自定义坐标精度
   final double? canvasScaleFactor; // 画布缩放因子
   final double? pointSpacingMultiplier; // 点位间距倍数
+  final double? initialCellPixelSize; // 初始时单个库位在屏幕上的期望像素尺寸
 
   const StorageLocationVisualizer({
     Key? key,
@@ -64,6 +65,7 @@ class StorageLocationVisualizer extends StatefulWidget {
     this.coordinatePrecision,
     this.canvasScaleFactor, // 画布缩放因子
     this.pointSpacingMultiplier, // 点位间距倍数
+    this.initialCellPixelSize,
   }) : super(key: key);
 
   @override
@@ -75,6 +77,7 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
   List<Map<String, dynamic>> _data = [];
   late TransformationController _transformationController;
   double _currentScale = 1.0;
+  bool _hasAppliedInitialFit = false; // 是否已应用初始自适应缩放
 
   // 缓存优化
   List<Map<String, dynamic>> _cachedPointsWithOffset = [];
@@ -817,6 +820,44 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
             }
 
             final pointsWithOffset = _cachedPointsWithOffset;
+
+            // 计算画布尺寸
+            final double effectiveCanvasWidth = _calculateCanvasWidth(
+                canvasWidth.toDouble(), pointsWithOffset);
+            final double effectiveCanvasHeight = _calculateCanvasHeight(
+                canvasHeight.toDouble(), pointsWithOffset);
+
+            // 初始自适应缩放与居中，仅执行一次
+            // if (!_hasAppliedInitialFit &&
+            //     effectiveCanvasWidth > 0 &&
+            //     effectiveCanvasHeight > 0 &&
+            //     constraints.maxWidth.isFinite &&
+            //     constraints.maxHeight.isFinite &&
+            //     constraints.maxWidth > 0 &&
+            //     constraints.maxHeight > 0) {
+            //   final double scaleX = constraints.maxWidth / effectiveCanvasWidth;
+            //   final double scaleY = constraints.maxHeight / effectiveCanvasHeight;
+            //   final double fitScale = (scaleX < scaleY ? scaleX : scaleY) * 0.95;
+
+            //   // 如果提供了初始单元像素大小，则优先按单元大小计算目标缩放
+            //   double targetScale = fitScale;
+            //   final double pointSpacingMultiplier = widget.pointSpacingMultiplier ?? _defaultPointSpacingMultiplier;
+            //   final double actualMinSpacing = _minPointSpacing * pointSpacingMultiplier; // 画布坐标系下单元大小
+            //   if (widget.initialCellPixelSize != null && actualMinSpacing > 0) {
+            //     final double desired = widget.initialCellPixelSize!;
+            //     final double scaleByCell = desired / actualMinSpacing;
+            //     // 取两者中的较大者，确保单元足够大易读
+            //     targetScale = scaleByCell > fitScale ? scaleByCell : fitScale;
+            //   }
+            //   final double tx = (constraints.maxWidth - effectiveCanvasWidth * fitScale) / 2.0;
+            //   final double ty = (constraints.maxHeight - effectiveCanvasHeight * fitScale) / 2.0;
+            //   final Matrix4 initialMatrix = Matrix4.identity()
+            //     ..translate(tx, ty)
+            //     ..scale(targetScale);
+            //   _transformationController.value = initialMatrix;
+            //   _hasAppliedInitialFit = true;
+            // }
+
             return InteractiveViewer(
               transformationController: _transformationController,
               minScale: 0.05,
@@ -851,10 +892,8 @@ class _StorageLocationVisualizerState extends State<StorageLocationVisualizer> {
                 },
                 child: CustomPaint(
                   size: Size(
-                    _calculateCanvasWidth(
-                        canvasWidth.toDouble(), pointsWithOffset),
-                    _calculateCanvasHeight(
-                        canvasHeight.toDouble(), pointsWithOffset),
+                    effectiveCanvasWidth,
+                    effectiveCanvasHeight,
                   ),
                   painter: _StorageLocationPainter(
                     points: pointsWithOffset,
