@@ -4,6 +4,7 @@ class ShelfModel {
   final int status; // 托盘状态
   final String clrCenterNo; // 清分中心编号
   final String locationId; // 位置ID
+  final int locationType; // 位置类型
   final String note; // 备注
 
   ShelfModel({
@@ -12,6 +13,7 @@ class ShelfModel {
     required this.status,
     required this.clrCenterNo,
     required this.locationId,
+    required this.locationType,
     required this.note,
   });
 
@@ -22,6 +24,7 @@ class ShelfModel {
       status: int.tryParse(json['status']?.toString() ?? '0') ?? 0,
       clrCenterNo: json['clrCenterNo']?.toString() ?? '',
       locationId: json['locationId']?.toString() ?? '',
+      locationType: int.tryParse(json['locationType']?.toString() ?? '0') ?? 0,
       note: json['note']?.toString() ?? '',
     );
   }
@@ -33,6 +36,8 @@ class ShelfModel {
       'status': status,
       'clrCenterNo': clrCenterNo,
       'locationId': locationId,
+      'locationType': locationType,
+      'note': note,
     };
   }
 }

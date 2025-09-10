@@ -38,12 +38,18 @@ class ShelfDataSource extends DataGridSource {
           return Container(
             alignment: Alignment.center,
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              status.displayName,
-              style: TextStyle(
-                fontSize: 12,
-                color: _hexToColor(status.color),
-                fontWeight: FontWeight.w500,
+            child: Tooltip(
+              message: status.displayName,
+              preferBelow: false,
+              child: Text(
+                status.displayName,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _hexToColor(status.color),
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           );
@@ -93,9 +99,15 @@ class ShelfDataSource extends DataGridSource {
           return Container(
             alignment: Alignment.center,
             padding: const EdgeInsets.all(8.0),
-            child: Text(
-              cell.value.toString(),
-              style: const TextStyle(fontSize: 12),
+            child: Tooltip(
+              message: cell.value.toString(),
+              preferBelow: false,
+              child: Text(
+                cell.value.toString(),
+                style: const TextStyle(fontSize: 12),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
             ),
           );
         }

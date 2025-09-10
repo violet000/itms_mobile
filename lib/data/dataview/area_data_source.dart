@@ -44,9 +44,15 @@ class AreaDataSource extends DataGridSource {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                cell.value.toString(),
-                style: const TextStyle(fontSize: 12),
+              child: Tooltip(
+                message: cell.value.toString(),
+                preferBelow: false,
+                child: Text(
+                  cell.value.toString(),
+                  style: const TextStyle(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             );
           } else if (cell.columnName == 'name') {
@@ -54,9 +60,15 @@ class AreaDataSource extends DataGridSource {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                cell.value.toString(),
-                style: const TextStyle(fontSize: 12),
+              child: Tooltip(
+                message: cell.value.toString(),
+                preferBelow: false,
+                child: Text(
+                  cell.value.toString(),
+                  style: const TextStyle(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             );
           } else if (cell.columnName == 'status') {
@@ -66,9 +78,15 @@ class AreaDataSource extends DataGridSource {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              child: Text(
-                status.displayName,
-                style: const TextStyle(fontSize: 12),
+              child: Tooltip(
+                message: status.displayName,
+                preferBelow: false,
+                child: Text(
+                  status.displayName,
+                  style: const TextStyle(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             );
           } else if (cell.columnName == 'actions') {
@@ -125,9 +143,15 @@ class AreaDataSource extends DataGridSource {
             return Container(
               alignment: Alignment.center,
               padding: const EdgeInsets.all(8.0),
-              child: Text(
-                cell.value.toString(),
-                style: const TextStyle(fontSize: 12),
+              child: Tooltip(
+                message: cell.value.toString(),
+                preferBelow: false,
+                child: Text(
+                  cell.value.toString(),
+                  style: const TextStyle(fontSize: 12),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
               ),
             );
           }

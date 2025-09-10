@@ -119,11 +119,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
           return LandmarkModel.fromJson(recordMap);
         }).toList();
 
-        if (shelf != null && shelf.locationId != null && shelf.locationId!.isNotEmpty) {
+        if (shelf != null && shelf.locationId.isNotEmpty) {
           bool exists = landmarks.any((landmark) => landmark.id == shelf.locationId);
           if (!exists) {
             landmarks.add(LandmarkModel(
-              id: shelf.locationId!,
+              id: shelf.locationId,
               clrCenterNo: shelf.clrCenterNo,
               locationType: 0,
               status: shelf.status,
@@ -228,9 +228,17 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
         TextEditingController(text: shelf?.clrCenterNo ?? '001');
     final remarkController = TextEditingController();
     
-    CanPutShelf? selectedFormLocationType = null;
+    CanPutShelf? selectedFormLocationType = isEdit && shelf != null 
+        ? CanPutShelf.fromCode(shelf.locationType) 
+        : null;
 
     LandmarkModel? selectedLandmark;
+    
+    // 在编辑模式下，如果有locationType，先加载对应的地标数据
+    if (isEdit && shelf != null && selectedFormLocationType != null) {
+      await _loadLandmarksByLocationType(selectedFormLocationType, shelf);
+    }
+    
     if (isEdit && shelf != null && _availableLandmarks.isNotEmpty) {
       try {
         selectedLandmark = _availableLandmarks.firstWhere(
@@ -353,8 +361,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<LandmarkType>(
                           value: selectedShelfType,
+                          isExpanded: true,
                           style: const TextStyle(
-                              fontSize: 14, color: Colors.black87),
+                              fontSize: 14, 
+                              color: Colors.black87,
+                              overflow: TextOverflow.ellipsis),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.category, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
@@ -412,8 +423,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<PalletStatus>(
                           value: selectedStatus,
+                          isExpanded: true,
                           style: const TextStyle(
-                              fontSize: 14, color: Colors.black87),
+                              fontSize: 14, 
+                              color: Colors.black87,
+                              overflow: TextOverflow.ellipsis),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.info_outline, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
@@ -471,8 +485,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<CanPutShelf?>(
                           value: selectedFormLocationType,
+                          isExpanded: true,
                           style: const TextStyle(
-                              fontSize: 14, color: Colors.black87),
+                              fontSize: 14, 
+                              color: Colors.black87,
+                              overflow: TextOverflow.ellipsis),
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
@@ -555,11 +572,13 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                       Expanded(
                         child: DropdownButtonFormField<LandmarkModel?>(
                           value: selectedLandmark,
+                          isExpanded: true,
                           style: TextStyle(
                               fontSize: 14, 
                               color: selectedFormLocationType == null 
                                   ? Colors.grey[600] 
-                                  : Colors.black87),
+                                  : Colors.black87,
+                              overflow: TextOverflow.ellipsis),
                           decoration: InputDecoration(
                             hintText: selectedFormLocationType == null 
                                 ? '请先选择地标类型' 
@@ -611,7 +630,9 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                                     return DropdownMenuItem(
                                       value: landmark,
                                       child: Text('${landmark.id}',
-                                          style: const TextStyle(fontSize: 14)),
+                                          style: const TextStyle(fontSize: 14),
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1),
                                     );
                                   }).toList(),
                                 ],
@@ -656,8 +677,11 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                                 clrCenterNoController.text,
                             orElse: () => StorageCenter.haikang,
                           ),
+                          isExpanded: true,
                           style: const TextStyle(
-                              fontSize: 14, color: Colors.black87),
+                              fontSize: 14, 
+                              color: Colors.black87,
+                              overflow: TextOverflow.ellipsis),
                           decoration: InputDecoration(
                             // prefixIcon: const Icon(Icons.warehouse, color: Colors.blue, size: 18),
                             border: OutlineInputBorder(
@@ -683,7 +707,9 @@ class _ShelfManagementPageState extends State<ShelfManagementPage> {
                             return DropdownMenuItem(
                               value: center,
                               child: Text(center.clrCenterName,
-                                  style: const TextStyle(fontSize: 14)),
+                                  style: const TextStyle(fontSize: 14),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1),
                             );
                           }).toList(),
                           onChanged: (value) {

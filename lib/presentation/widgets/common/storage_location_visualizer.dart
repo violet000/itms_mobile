@@ -992,7 +992,7 @@ class _StorageLocationPainter extends CustomPainter {
               
               // 绘制外边框
               final borderPaint = Paint()
-                ..color = color.withOpacity(0.2)
+                ..color = color.withOpacity(0)
                 ..style = PaintingStyle.stroke
                 ..strokeWidth = 1.0;
               canvas.drawRRect(
@@ -1191,9 +1191,9 @@ class _StorageLocationPainter extends CustomPainter {
           text: TextSpan(
             text: shelfId,
             style: const TextStyle(
-              fontSize: 5,
-              color: Color.fromARGB(255, 61, 61, 61),
-              fontWeight: FontWeight.w500,
+              fontSize: 4,
+              color: Color.fromARGB(255, 0, 0, 0),
+              fontWeight: FontWeight.w700,
             ),
           ),
           textDirection: TextDirection.ltr,
