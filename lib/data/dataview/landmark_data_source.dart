@@ -49,7 +49,6 @@ class LandmarkDataSource extends DataGridSource {
             child: Checkbox(
               value: selectedIds.contains(id),
               onChanged: (checked) {
-                print('${id} checked: $checked');
                  onSelect?.call(id, checked ?? false);
               },
             ),
