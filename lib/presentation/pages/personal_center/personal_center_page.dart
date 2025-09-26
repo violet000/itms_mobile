@@ -113,15 +113,23 @@ class PersonalCenterPage extends StatelessWidget {
           Navigator.pushNamed(context, '/personal_center/location-management');
         },
       ),
-      _MenuItemData(
-        icon: Icons.border_clear_rounded,
-        iconBg: const Color.fromARGB(255, 72, 195, 209),
-        title: '库区管理',
-        onTap: () {
-          Navigator.pushNamed(
-              context, '/personal_center/area-management');
-        },
-      ),
+        _MenuItemData(
+          icon: Icons.border_clear_rounded,
+          iconBg: const Color.fromARGB(255, 72, 195, 209),
+          title: '库区管理',
+          onTap: () {
+            Navigator.pushNamed(
+                context, '/personal_center/area-management');
+          },
+        ),
+        _MenuItemData(
+          icon: Icons.scanner,
+          iconBg: const Color.fromARGB(255, 72, 195, 209),
+          title: '海康威视扫码器配置',
+          onTap: () {
+            Navigator.pushNamed(context, '/personal_center/hikvision-scanner');
+          },
+        ),
     ];
     return menuItems
         .map((item) => Padding(

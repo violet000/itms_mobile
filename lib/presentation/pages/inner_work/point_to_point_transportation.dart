@@ -12,6 +12,8 @@ import 'package:itms_mobile/presentation/widgets/common/storage_location_detail_
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
 import 'package:itms_mobile/core/utils/util.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:itms_mobile/presentation/widgets/common/hikvision_scanner_widget.dart';
+import 'package:itms_mobile/core/config/scanner_settings.dart';
 
 class PointToPointPage extends StatefulWidget {
   const PointToPointPage({super.key});
@@ -683,6 +685,16 @@ class _PointToPointPageState extends State<PointToPointPage> {
                       ),
                     ),
                   ),
+                  if (startStorageLocationId == null) 
+                   IconButton(
+                    onPressed: () {
+                      _openScanDialog('start');
+                    },
+                    icon: const Icon(Icons.qr_code_scanner, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: '扫码设置起点',
+                  ),
                   if (startStorageLocationId != null)
                     IconButton(
                       onPressed: () {
@@ -736,6 +748,16 @@ class _PointToPointPageState extends State<PointToPointPage> {
                         fontSize: 12,
                       ),
                     ),
+                  ),
+                  if (endStorageLocationId == null) 
+                  IconButton(
+                    onPressed: () {
+                      _openScanDialog('end');
+                    },
+                    icon: const Icon(Icons.qr_code_scanner, size: 14),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: '扫码设置终点',
                   ),
                   if (endStorageLocationId != null)
                     IconButton(
@@ -791,6 +813,158 @@ class _PointToPointPageState extends State<PointToPointPage> {
           ),
         ],
       ),
+    );
+  }
+
+  void _openScanDialog(String target) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Container(
+            width: 360,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      target == 'start' ? Icons.play_arrow : Icons.flag,
+                      color: target == 'start' ? Colors.blue : Colors.red,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      target == 'start' ? '扫码设置起始库位' : '扫码设置终点库位',
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 12),
+                FutureBuilder<ScannerSettings>(
+                  future: ScannerSettings.load(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Padding(
+                        padding: EdgeInsets.all(16.0),
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+                    final cfg = snapshot.data!;
+                    String? sessionKey;
+                    String? scannedCode;
+                    return StatefulBuilder(
+                      builder: (context, setLocalState) {
+                        void restartScan() {
+                          setLocalState(() {
+                            sessionKey = DateTime.now().microsecondsSinceEpoch.toString();
+                            scannedCode = null;
+                          });
+                        }
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (scannedCode == null)
+                              KeyedSubtree(
+                                key: ValueKey(sessionKey),
+                                child: HikvisionScannerWidget(
+                                  onScanResult: (code) {
+                                    if (code.isEmpty) return;
+                                    setLocalState(() {
+                                      scannedCode = code;
+                                    });
+                                  },
+                                  onScanError: (err) {
+                                    context.showErrorMessage(err);
+                                  },
+                                  autoStart: true,
+                                  autoRestart: false,
+                                  enableTone: cfg.enableTone,
+                                  enableVibrate: cfg.enableVibrate,
+                                  enableContinuousScan: false,
+                                  showSwitchButton: false,
+                                  loadingBuilder: const Padding(
+                                    padding: EdgeInsets.all(16.0),
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                ),
+                              )
+                            else
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[50],
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(color: Colors.green[200]!),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.check_circle, color: Colors.green),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '扫描结果',
+                                          style: TextStyle(
+                                            color: Colors.green[800],
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(scannedCode!),
+                                    const SizedBox(height: 18),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: restartScan,
+                                          child: const Text('重新扫码', style: TextStyle(color: Color.fromARGB(255, 243, 36, 36)),),
+                                        ),
+                                        const SizedBox(width: 3),
+                                        TextButton(
+                                          onPressed: () {
+                                            setState(() {
+                                              if (target == 'start') {
+                                                startStorageLocationId = scannedCode;
+                                              } else {
+                                                endStorageLocationId = scannedCode;
+                                              }
+                                            });
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: const Text('确定', style: TextStyle(color: Color.fromARGB(255, 32, 135, 238)),),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

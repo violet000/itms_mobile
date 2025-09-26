@@ -171,6 +171,15 @@ flutter build apk --release
 **/android/app/key.jks
 ```
 
+# 先安装应用（如果还没安装）
+adb install -r build/app/outputs/flutter-apk/app.apk
+
+# 启动应用
+adb shell am start -n com.example.itms_mobile/.MainActivity
+
+# 然后attach到运行中的应用
+flutter attach
+
 ### 注意事项：
 # 1.修改app的icon图标
 - 先确认flutter_icons下的图标路径是否正确，然后再执行flutter pub run flutter_launcher_icons:main命令去替换图标

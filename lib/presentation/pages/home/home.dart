@@ -196,7 +196,7 @@ class _HomePageState extends State<HomePage>
     // 从assets/storage目录获取所有SVG文件
     final List<String> svgFiles = [
       'assets/storage/storage_1.svg',
-      'assets/storage/storage_2.svg', 
+      'assets/storage/storage_2.svg',
       'assets/storage/storage_3.svg',
     ];
 
@@ -208,7 +208,7 @@ class _HomePageState extends State<HomePage>
     // 从assets/storage目录获取所有SVG文件
     final List<String> svgFiles = [
       'images/storage_1.svg',
-      'images/storage_2.svg', 
+      'images/storage_2.svg',
       'images/storage_3.svg',
     ];
 
@@ -219,7 +219,8 @@ class _HomePageState extends State<HomePage>
   Future<void> _getStorageAreas() async {
     try {
       // 每次都从接口获取最新数据，不使用缓存
-      Map<String, dynamic>? response = await StorageService.instance.getStorageAreas();
+      Map<String, dynamic>? response =
+          await StorageService.instance.getStorageAreas();
 
       if (response == null || !response.containsKey('retList')) {
         print('仓储数据错误或为空');
@@ -263,8 +264,11 @@ class _HomePageState extends State<HomePage>
         final storageLocationDTOS =
             map['storageLocationDTOS'] as List<dynamic>?;
         if (storageLocationDTOS != null) {
-          for (int locationIndex = 0; locationIndex < storageLocationDTOS.length; locationIndex++) {
-            final location = storageLocationDTOS[locationIndex] as Map<String, dynamic>;
+          for (int locationIndex = 0;
+              locationIndex < storageLocationDTOS.length;
+              locationIndex++) {
+            final location =
+                storageLocationDTOS[locationIndex] as Map<String, dynamic>;
             try {
               final x = double.parse(location['xplace'].toString());
               final y = double.parse(location['yplace'].toString());
@@ -276,11 +280,14 @@ class _HomePageState extends State<HomePage>
                 id: location['id'].toString(),
                 color: Util.getStatusColor(status),
                 areaId: location['areaId']?.toString(),
-                locationType: int.tryParse(location['locationType']?.toString() ?? '0') ?? 0,
+                locationType:
+                    int.tryParse(location['locationType']?.toString() ?? '0') ??
+                        0,
                 status: status,
               ));
             } catch (e) {
-              print('处理库位数据失败 (区域索引: $index, 库位索引: $locationIndex): $location, 错误: $e');
+              print(
+                  '处理库位数据失败 (区域索引: $index, 库位索引: $locationIndex): $location, 错误: $e');
               // 在Release模式下，提供默认的库位数据，避免页面显示异常
               if (kReleaseMode) {
                 try {
@@ -389,7 +396,8 @@ class _HomePageState extends State<HomePage>
                   TextButton(
                     onPressed: () async {
                       EasyLoading.show(status: '刷新中...');
-                      await StorageService.preloadStorageAreas(forceRefresh: true);
+                      await StorageService.preloadStorageAreas(
+                          forceRefresh: true);
                       await _getStorageAreas();
                       setState(() {});
                       EasyLoading.dismiss();

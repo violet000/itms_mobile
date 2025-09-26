@@ -13,8 +13,10 @@
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- 海康威视扫码权限 -->
+    <uses-permission android:name="android.permission.WRITE_HIKVISION_SETTINGS"/>
    <application
-        android:label="外勤配送"
+        android:label="智慧仓储"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         
