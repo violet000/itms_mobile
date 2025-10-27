@@ -127,7 +127,7 @@ class PersonalCenterPage extends StatelessWidget {
           iconBg: const Color.fromARGB(255, 72, 195, 209),
           title: '海康威视扫码器配置',
           onTap: () {
-            Navigator.pushNamed(context, '/personal_center/hikvision-scanner');
+            Navigator.pushNamed(context, '/notification');
           },
         ),
     ];

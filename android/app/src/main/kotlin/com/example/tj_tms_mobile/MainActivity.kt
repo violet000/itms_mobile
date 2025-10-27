@@ -11,6 +11,11 @@ import android.os.IBinder
 import android.os.RemoteException
 import android.text.TextUtils
 import android.util.Log
+import android.view.View
+import android.view.WindowManager
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.EventChannel
@@ -67,8 +72,48 @@ class MainActivity : FlutterActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "MainActivity onCreate")
         
+        // 隐藏底部导航栏
+        hideNavigationBar()
+        
         // 注册扫码广播接收器
         registerScanBroadcastReceiver()
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // 每次恢复时重新隐藏导航栏
+        hideNavigationBar()
+    }
+    
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        if (hasFocus) {
+            // 当窗口获得焦点时重新隐藏导航栏
+            hideNavigationBar()
+        }
+    }
+    
+    /// 隐藏底部导航栏
+    private fun hideNavigationBar() {
+        window?.decorView?.let { decorView ->
+            // 使用新的 WindowInsets API
+            WindowCompat.setDecorFitsSystemWindows(window!!, false)
+            val controller = WindowInsetsControllerCompat(window!!, decorView)
+            
+            // 隐藏系统UI栏，但保持状态栏可见
+            controller.hide(WindowInsetsCompat.Type.navigationBars())
+            controller.systemBarsBehavior = 
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            
+            // 设置全屏标志（向后兼容）
+            decorView.systemUiVisibility = (
+                View.SYSTEM_UI_FLAG_FULLSCREEN 
+                or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                or View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            )
+        }
     }
     
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {

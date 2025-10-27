@@ -11,6 +11,7 @@ import 'package:itms_mobile/core/config/env.dart';
 import 'package:itms_mobile/core/config/app_theme.dart';
 import 'package:itms_mobile/core/utils/web_error_handler.dart';
 import 'package:itms_mobile/core/utils/web_type_safety.dart';
+import 'package:itms_mobile/services/notification_service.dart';
 
 void main() async {
   try {
@@ -29,6 +30,12 @@ void main() async {
       }
     }
     
+    // 初始化通知服务
+    if (!kIsWeb) {
+      await NotificationService.initialize();
+      await NotificationService.requestPermission();
+    }
+    
     // 配置EasyLoading
     EasyLoading.instance
       ..displayDuration = const Duration(milliseconds: 2000)
@@ -41,14 +48,19 @@ void main() async {
     if (!kIsWeb) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
-          // 禁用掉底部的虚拟按键
-          SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+          // 设置系统UI样式
+          SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+            // 状态栏（顶部）
             statusBarColor: Colors.transparent,
             statusBarIconBrightness: Brightness.light,
+            // 导航栏（底部虚拟按键区域）
             systemNavigationBarColor: Colors.transparent,
             systemNavigationBarIconBrightness: Brightness.dark,
+            // 导航栏分隔线颜色（设置为透明以确保完全透明）
+            systemNavigationBarDividerColor: Colors.transparent,
           ));
-          SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersive);
+          // 设置底部虚拟按键始终隐藏
+          _hideBottomNavigationBar();
         } catch (e) {
           // 系统UI设置失败时继续运行
           if (kDebugMode) {
@@ -70,8 +82,57 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+/// 隐藏底部导航栏（虚拟按键）
+/// 注意：此功能主要在原生 Android 代码中实现
+void _hideBottomNavigationBar() {
+  try {
+    // 设置系统UI样式
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.transparent,
+      systemNavigationBarIconBrightness: Brightness.dark,
+    ));
+    
+    // 使用 edgeToEdge 模式
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  } catch (e) {
+    if (kDebugMode) {
+      print('设置系统UI失败: $e');
+    }
+  }
+}
+
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // 当应用状态改变时，重新设置底部导航栏隐藏
+    if (state == AppLifecycleState.resumed) {
+      _hideBottomNavigationBar();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

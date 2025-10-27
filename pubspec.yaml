@@ -27,6 +27,7 @@ dependencies:
   syncfusion_flutter_datagrid: ^20.2.49
   flutter_easyloading: ^3.0.5
   shared_preferences: ^2.0.15
+  flutter_local_notifications: ^15.0.0
 
 dev_dependencies:
   flutter_test:
