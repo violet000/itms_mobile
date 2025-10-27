@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:itms_mobile/data/datasources/api/8062/service_8062.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'dart:ui';
+import 'dart:convert';
 import 'package:itms_mobile/presentation/pages/home/home.dart';
 import 'package:itms_mobile/services/storage_service.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:itms_mobile/presentation/pages/setting/network_settings_page.dart';
+import 'package:itms_mobile/services/websocket_service.dart';
+import 'package:itms_mobile/services/notification_example.dart';
+import 'package:itms_mobile/services/notification_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -273,7 +277,8 @@ class _LoginPageState extends State<LoginPage> {
             onPressed: () {
               Navigator.push<void>(
                 context,
-                MaterialPageRoute<void>(builder: (context) => const NetworkSettingsPage()),
+                MaterialPageRoute<void>(
+                    builder: (context) => const NetworkSettingsPage()),
               );
             },
             child: Text(
@@ -370,7 +375,6 @@ class _LoginPageState extends State<LoginPage> {
       if (mounted) {
         EasyLoading.show(status: '登录中...');
 
-
         // await _service!.accountLogin(
         //   _usernameController.text,
         //   MD5Util.generateMd5("${_passwordController.text}messi"),
@@ -386,6 +390,9 @@ class _LoginPageState extends State<LoginPage> {
 
         if (!mounted) return;
         EasyLoading.dismiss();
+
+        // 连接 WebSocket
+        _connectWebSocket();
 
         // 页面跳转
         await Navigator.pushReplacement<void, void>(
@@ -428,5 +435,38 @@ class _LoginPageState extends State<LoginPage> {
   // 注册方法的实现
   void _handleRegister() {
     context.showErrorMessage('暂时未开发');
+  }
+
+  // 连接 WebSocket
+  void _connectWebSocket() {
+    final websocketService = WebSocketService();
+
+    // 设置消息监听器
+    websocketService.addMessageListener((String message) {
+      print('------接收到消息: $message');
+      try {
+        final data = jsonDecode(message) as Map<String, dynamic>;
+        if (data['websocketType'] == 'ABNORMALINFO') {
+          // 接收到消息时显示通知，显示实际消息内容
+          NotificationService.showAlertNotification(
+            title: '⚠️ 异常消息提醒',
+            body: data['webSocketMsg'].toString().length > 100
+                ? '${data['webSocketMsg'].toString().substring(0, 100)}...'
+                : data['webSocketMsg'].toString(),
+          );
+        }
+      } catch (e) {
+        print('解析消息失败: $e');
+      }
+    });
+
+    // 尝试连接 WebSocket
+    websocketService.connect().then((success) {
+      if (success) {
+        print('WebSocket 连接成功');
+      } else {
+        print('WebSocket 连接失败或未配置');
+      }
+    });
   }
 }

@@ -122,14 +122,14 @@ class PersonalCenterPage extends StatelessWidget {
                 context, '/personal_center/area-management');
           },
         ),
-        _MenuItemData(
-          icon: Icons.scanner,
-          iconBg: const Color.fromARGB(255, 72, 195, 209),
-          title: '海康威视扫码器配置',
-          onTap: () {
-            Navigator.pushNamed(context, '/notification');
-          },
-        ),
+        // _MenuItemData(
+        //   icon: Icons.scanner,
+        //   iconBg: const Color.fromARGB(255, 72, 195, 209),
+        //   title: '海康威视扫码器配置',
+        //   onTap: () {
+        //     Navigator.pushNamed(context, '/notification');
+        //   },
+        // ),
     ];
     return menuItems
         .map((item) => Padding(

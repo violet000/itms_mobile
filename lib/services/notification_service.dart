@@ -111,10 +111,32 @@ class NotificationService {
       channelDescription: '重要警报通知',
       importance: Importance.max,
       priority: Priority.max,
-      color: Colors.red,
+      color: const Color(0xFFFF3333), // 红色
+      colorized: true, // 启用彩色样式
       enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 500, 500, 500, 500, 500, 1000]), // 震动模式
       playSound: true,
-      styleInformation: BigTextStyleInformation(body),
+      sound: const RawResourceAndroidNotificationSound('serror'), // 使用自定义警告音
+      ticker: '⚠️ $title', // 状态栏滚动文本
+      channelShowBadge: true, // 显示角标
+      onlyAlertOnce: false, // 每次显示
+      ongoing: false, // 不设置持续通知
+      autoCancel: false, // 点击后自动取消
+      icon: '@mipmap/ic_launcher', // 使用应用图标
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'), // 大图标
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+        summaryText: '警告消息',
+        htmlFormatContentTitle: false,
+        htmlFormatSummaryText: false,
+        htmlFormatBigText: false,
+      ),
+      ledColor: const Color(0xFFFF3333), // LED 灯颜色
+      ledOnMs: 1000, // LED 点亮时长（毫秒）
+      ledOffMs: 500, // LED 熄灭时长（毫秒）
+      showWhen: true, // 显示时间
+      when: DateTime.now().millisecondsSinceEpoch,
     );
 
     final NotificationDetails details = NotificationDetails(
