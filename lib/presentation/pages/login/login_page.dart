@@ -443,7 +443,6 @@ class _LoginPageState extends State<LoginPage> {
 
     // 设置消息监听器
     websocketService.addMessageListener((String message) {
-      print('------接收到消息: $message');
       try {
         final data = jsonDecode(message) as Map<String, dynamic>;
         if (data['websocketType'] == 'ABNORMALINFO') {
