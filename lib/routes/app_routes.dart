@@ -11,7 +11,6 @@ import 'package:itms_mobile/presentation/pages/personal_center/location_manageme
 import 'package:itms_mobile/presentation/pages/personal_center/area_management_page.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/dev_url_management_page.dart';
 import 'package:itms_mobile/presentation/pages/personal_center/hikvision_scanner_page.dart';
-import 'package:itms_mobile/services/notification_example.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -26,7 +25,6 @@ class AppRoutes {
   static const String areaManagement = '/personal_center/area-management';
   static const String devUrlManagement = '/personal_center/dev-url-management';
   static const String hikvisionScanner = '/personal_center/hikvision-scanner';
-  static const String notification = '/notification';
 
   static Map<String, WidgetBuilder> getRoutes() {
     return {
@@ -49,7 +47,6 @@ class AppRoutes {
       devUrlManagement: (context) => const DevUrlManagementPage(),
       shelfManagement: (context) => const ShelfManagementPage(),
       locationManagement: (context) => const LocationManagementPage(),
-      notification: (context) => const NotificationTestPage(),
       // 扫码配置器
       hikvisionScanner: (context) => const HikvisionScannerPage(),
     };

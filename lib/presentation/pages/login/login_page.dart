@@ -8,7 +8,6 @@ import 'package:itms_mobile/services/storage_service.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:itms_mobile/presentation/pages/setting/network_settings_page.dart';
 import 'package:itms_mobile/services/websocket_service.dart';
-import 'package:itms_mobile/services/notification_example.dart';
 import 'package:itms_mobile/services/notification_service.dart';
 
 class LoginPage extends StatefulWidget {

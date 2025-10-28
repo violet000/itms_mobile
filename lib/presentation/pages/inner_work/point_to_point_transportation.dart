@@ -6,11 +6,9 @@ import 'package:itms_mobile/services/storage_service.dart';
 import 'package:itms_mobile/core/utils/storage_utils.dart';
 import 'package:itms_mobile/core/utils/grid_cell.dart';
 import 'package:itms_mobile/presentation/widgets/common/page_scaffold.dart';
-import 'package:itms_mobile/presentation/widgets/common/map_control.dart';
 import 'package:itms_mobile/presentation/widgets/common/message_toast.dart';
 import 'package:itms_mobile/presentation/widgets/common/storage_location_detail_dialog.dart';
 import 'package:itms_mobile/data/datasources/api/9087/service_9087.dart';
-import 'package:itms_mobile/core/utils/util.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:itms_mobile/presentation/widgets/common/hikvision_scanner_widget.dart';
 import 'package:itms_mobile/core/config/scanner_settings.dart';
@@ -366,6 +364,76 @@ class _PointToPointPageState extends State<PointToPointPage> {
         ),
       ),
     );
+  }
+
+  // 根据库位ID查找库位（优先当前库区，其次全局）
+  GridCell? _findCellById(String locationId) {
+    try {
+      // 先在当前库区查找
+      for (final cell in currentAreaCells) {
+        if (cell.id == locationId) return cell;
+      }
+      // 在所有库区数据中查找
+      for (final area in itemList) {
+        final list = area['storageLocationDTOS'] as List<dynamic>?;
+        if (list == null) continue;
+        for (final item in list) {
+          final m = item as Map<String, dynamic>;
+          final id = m['id']?.toString();
+          if (id == locationId) {
+            return GridCell(
+              id: id!,
+              x: (m['xplace'] as num?)?.toDouble() ?? 0,
+              y: (m['yplace'] as num?)?.toDouble() ?? 0,
+              status: int.tryParse(m['status']?.toString() ?? '0') ?? 0,
+              shelfId: m['shelfId']?.toString(),
+              areaId: m['areaId']?.toString(),
+              locationType: int.tryParse(m['locationType']?.toString() ?? '0') ?? 0,
+              color: Colors.grey,
+            );
+          }
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // 扫码确认时按状态规则校验并设置
+  bool _handleScannedConfirm(String target, String scannedCode) {
+    final cell = _findCellById(scannedCode);
+    if (cell == null) {
+      context.showErrorMessage('未找到库位: $scannedCode');
+      return false;
+    }
+    // 锁定、禁用不可选择
+    if (cell.status == LandmarkStatus.locked.code) {
+      context.showErrorMessage('该库位处于锁定状态，无法选择');
+      return false;
+    }
+    if (cell.status == LandmarkStatus.disabled.code) {
+      context.showErrorMessage('该库位处于禁用状态，无法选择');
+      return false;
+    }
+    if (target == 'start') {
+      if (cell.status != LandmarkStatus.occupied.code) {
+        context.showErrorMessage('只能选择占用状态为起点');
+        return false;
+      }
+      setState(() {
+        startStorageLocationId = scannedCode;
+        startShelfId = cell.shelfId;
+      });
+      return true;
+    } else {
+      if (cell.status != LandmarkStatus.idle.code) {
+        context.showErrorMessage('只能选择空闲状态为终点');
+        return false;
+      }
+      setState(() {
+        endStorageLocationId = scannedCode;
+      });
+      return true;
+    }
   }
 
   // 设置选中的库位
@@ -938,14 +1006,10 @@ class _PointToPointPageState extends State<PointToPointPage> {
                                         const SizedBox(width: 3),
                                         TextButton(
                                           onPressed: () {
-                                            setState(() {
-                                              if (target == 'start') {
-                                                startStorageLocationId = scannedCode;
-                                              } else {
-                                                endStorageLocationId = scannedCode;
-                                              }
-                                            });
-                                            Navigator.of(context).pop();
+                                            final ok = _handleScannedConfirm(target, scannedCode!);
+                                            if (ok) {
+                                              Navigator.of(context).pop();
+                                            }
                                           },
                                           child: const Text('确定', style: TextStyle(color: Color.fromARGB(255, 32, 135, 238)),),
                                         ),
